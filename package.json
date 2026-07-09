@@ -1,7 +1,7 @@
 {
   "name": "pesticides-ocr-frontend",
-  "version": "0.0.0",
-  "description": "CDP Frontend Template",
+  "version": "0.1",
+  "description": "OCR Register Frontend",
   "sideEffects": false,
   "main": "src/index.js",
   "type": "module",
@@ -44,7 +44,7 @@
     "@hapi/catbox-memory": "6.0.2",
     "@hapi/catbox-redis": "7.0.2",
     "@hapi/hapi": "21.4.9",
-    "@hapi/inert": "7.1.0",
+    "@hapi/inert": "7.1.2",
     "@hapi/scooter": "8.0.0",
     "@hapi/vision": "7.0.3",
     "@hapi/yar": "11.0.3",
@@ -80,5 +80,10 @@
     "vite": "8.0.16",
     "vitest": "4.1.8",
     "vitest-fetch-mock": "0.4.5"
+  },
+  "overrides": {
+    "tmp": "0.2.5",
+    "joi": "18.2.1",
+    "undici": "~8.5.0"
   }
 }
