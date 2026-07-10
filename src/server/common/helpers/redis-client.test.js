@@ -5,17 +5,41 @@ import { Cluster, Redis } from 'ioredis'
 import { config } from '#/config/config.js'
 import { buildRedisClient } from './redis-client.js'
 
+const mockLogger = {
+  info: vi.fn(),
+  error: vi.fn()
+}
+
+vi.mock('#/server/common/helpers/logging/logger.js', () => ({
+  createLogger: () => mockLogger
+}))
+
 vi.mock('ioredis', () => ({
   ...vi.importActual('ioredis'),
-  Cluster: vi.fn(function () {
-    return { on: () => ({}) }
+  Cluster: vi.fn(function (nodes, options) {
+    return {
+      on: vi.fn((event, handler) => {
+        if (event === 'connect') handler()
+        if (event === 'error') handler(new Error('Redis connection error'))
+      })
+    }
   }),
   Redis: vi.fn(function () {
-    return { on: () => ({}) }
+    return {
+      on: vi.fn((event, handler) => {
+        if (event === 'connect') handler()
+        if (event === 'error') handler(new Error('Redis connection error'))
+      })
+    }
   })
 }))
 
 describe('#buildRedisClient', () => {
+  beforeEach(() => {
+    mockLogger.info.mockReset()
+    mockLogger.error.mockReset()
+  })
+
   describe('When Redis Single InstanceCache is requested', () => {
     beforeEach(() => {
       buildRedisClient(config.get('redis'))
@@ -28,6 +52,16 @@ describe('#buildRedisClient', () => {
         keyPrefix: 'pesticides-ocr-frontend:',
         port: 6379
       })
+    })
+
+    test('Should log connection success', () => {
+      expect(mockLogger.info).toHaveBeenCalledWith('Connected to Redis server')
+    })
+
+    test('Should log connection error', () => {
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Redis connection error')
+      )
     })
   })
 
@@ -51,6 +85,24 @@ describe('#buildRedisClient', () => {
           redisOptions: { db: 0, password: 'pass', tls: {}, username: 'user' },
           slotsRefreshTimeout: 10000
         }
+      )
+    })
+
+    test('Should call dnsLookup callback correctly', () => {
+      const callArgs = Cluster.mock.calls[0]
+      const dnsLookupFn = callArgs[1].dnsLookup
+      const callback = vi.fn()
+      dnsLookupFn('example.com', callback)
+      expect(callback).toHaveBeenCalledWith(null, 'example.com')
+    })
+
+    test('Should log connection success', () => {
+      expect(mockLogger.info).toHaveBeenCalledWith('Connected to Redis server')
+    })
+
+    test('Should log connection error', () => {
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Redis connection error')
       )
     })
   })

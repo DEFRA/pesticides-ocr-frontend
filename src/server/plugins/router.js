@@ -36,7 +36,7 @@ export const router = {
           })
         })()
       } else {
-        server.register(serveStaticFiles)
+        await server.register(serveStaticFiles)
       }
     }
   }
