@@ -1,8 +1,11 @@
 import convict from 'convict'
 import path from 'node:path'
+import crypto from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 
 import convictFormatWithValidator from 'convict-format-with-validator'
+
+const devSessionCookiePassword = crypto.randomBytes(32).toString('hex')
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -143,8 +146,14 @@ export const config = convict({
       },
       password: {
         doc: 'session cookie password',
-        format: String,
-        default: 'the-password-must-be-at-least-32-characters-long',
+        format: (value) => {
+          if (typeof value !== 'string' || value.length < 32) {
+            throw new Error(
+              'SESSION_COOKIE_PASSWORD must be at least 32 characters long'
+            )
+          }
+        },
+        default: isProduction ? '' : devSessionCookiePassword,
         env: 'SESSION_COOKIE_PASSWORD',
         sensitive: true
       },
