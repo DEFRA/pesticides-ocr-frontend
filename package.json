@@ -22,7 +22,7 @@
     "lint:scss": "stylelint \"src/**/*.scss\" --cache --cache-location .cache/stylelint --cache-strategy content --color --ignore-path .gitignore",
     "test": "AWS_EMF_ENVIRONMENT=Local TZ=UTC vitest run --coverage",
     "test:watch": "AWS_EMF_ENVIRONMENT=Local TZ=UTC vitest",
-    "security-audit": "npm audit --audit-level=critical",
+    "security-audit": "npm audit --audit-level=high",
     "server:watch": "nodemon --inspect=0.0.0.0 --ext js,json --legacy-watch --watch ./src/server --watch ./src/config --env-file-if-exists=.env ./src",
     "server:debug": "nodemon --inspect-brk=0.0.0.0 --ext js,json --legacy-watch --watch ./src/server --watch ./src/config --env-file-if-exists=.env ./src",
     "prestart": "npm run build:frontend",
