@@ -8,13 +8,8 @@ let client
 function getClient() {
   if (!client) {
     if (!notifyConfig.apiKey) {
-      const expectedEnvVar =
-        notifyConfig.keyMode === 'team'
-          ? 'NOTIFY_TEAM_API_KEY'
-          : 'NOTIFY_TEST_API_KEY'
-
       throw new Error(
-        `No Notify API key configured. Set ${expectedEnvVar} for NOTIFY_KEY_MODE=${notifyConfig.keyMode}, or NOTIFY_API_KEY directly.`
+        'No Notify API key configured'
       )
     }
 
@@ -49,10 +44,9 @@ async function sendEmail(templateName, emailAddress, personalisation) {
         for (const [key, value] of Object.entries(error.response.data.errors)) {
           console.error(`  ${key}:`, value)
         }
-        return error
       }
 
-      throw error
+      return error
     })
 }
 
