@@ -1,7 +1,16 @@
 import { vi } from 'vitest'
 
+import { readFileSync } from 'node:fs'
 import hapi from '@hapi/hapi'
 import { statusCodes } from '../constants/status-codes.js'
+
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    readFileSync: vi.fn(actual.readFileSync)
+  }
+})
 
 describe('#startServer', () => {
   let createServerSpy
@@ -43,6 +52,41 @@ describe('#startServer', () => {
 
       expect(result).toEqual({ message: 'success' })
       expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should log overridden environment variables', async () => {
+      const loggerSpy = vi.spyOn(server.logger, 'info')
+      vi.mocked(readFileSync).mockReturnValueOnce('PORT=3097')
+      createServerSpy.mockResolvedValueOnce(server)
+
+      await startServerImport.startServer()
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        { PORT: '3097' },
+        'Overridden environment variables'
+      )
+    })
+
+    test('Should log no env overrides found', async () => {
+      const loggerSpy = vi.spyOn(server.logger, 'info')
+      vi.mocked(readFileSync).mockReturnValueOnce('')
+      createServerSpy.mockResolvedValueOnce(server)
+
+      await startServerImport.startServer()
+
+      expect(loggerSpy).toHaveBeenCalledWith('No env overrides found')
+    })
+
+    test('Should log no .env file found', async () => {
+      const loggerSpy = vi.spyOn(server.logger, 'info')
+      vi.mocked(readFileSync).mockImplementationOnce(() => {
+        throw new Error('File not found')
+      })
+      createServerSpy.mockResolvedValueOnce(server)
+
+      await startServerImport.startServer()
+
+      expect(loggerSpy).toHaveBeenCalledWith('No .env file found')
     })
   })
 
