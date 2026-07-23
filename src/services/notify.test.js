@@ -25,7 +25,7 @@ vi.mock('#/config/config.js', () => ({
   config: { get: (key) => configValues[key] }
 }))
 
-describe('#/services/notify.js', () => {
+describe('success', () => {
   let sendEmail
 
   beforeEach(async () => {
@@ -48,6 +48,29 @@ describe('#/services/notify.js', () => {
     expect(console.log).toHaveBeenCalledOnce()
   })
 
+  test('No console log in production', async () => {
+    mockSendEmail.mockResolvedValue(successfulSendEmailMock)
+
+    vi.spyOn(console, 'log').mockImplementation(() => { })
+
+    const response = await sendEmail(...emailArgs())
+
+    expect(response.status).toBe(201)
+    expect(console.log).not.toHaveBeenCalled()
+  })
+})
+
+describe('failure', () => {
+  let sendEmail
+
+  beforeEach(async () => {
+    vi.resetModules()
+    configValues.notify.apiKey = 'TEST-KEY'
+    configValues.notify.keyMode = 'test'
+    configValues.isProduction = true
+    ; ({ sendEmail } = await import('#/services/notify.js'))
+  })
+
   test('Send email failure', async () => {
     configValues.isProduction = false
     mockSendEmail.mockRejectedValue(failedSendEmailMock)
@@ -58,6 +81,17 @@ describe('#/services/notify.js', () => {
 
     expect(response.status).toBe(400)
     expect(console.error).toHaveBeenCalledTimes(2)
+  })
+
+  test('No console error in production', async () => {
+    mockSendEmail.mockRejectedValue(failedSendEmailMock)
+
+    vi.spyOn(console, 'error').mockImplementation(() => { })
+
+    const response = await sendEmail(...emailArgs())
+
+    expect(response.status).toBe(400)
+    expect(console.error).not.toHaveBeenCalled()
   })
 
   test('Throw error for unknown template', async () => {
