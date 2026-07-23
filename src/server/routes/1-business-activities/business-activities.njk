@@ -1,0 +1,82 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% set backLink = "/" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+
+  <div class="govuk-grid-column-full">
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <form method="post" action="/business-activities" novalidate>
+
+      {{ govukCheckboxes({
+        name: "business-activities",
+        fieldset: {
+          legend: {
+            text: "What are your business’s activities with plant protection products (PPPs)?",
+            isPageHeading: true,
+            classes: "govuk-fieldset__legend--l govuk-!-margin-bottom-6"
+          }
+        },
+        hint: {
+          text: "Select all that apply.",
+          classes: "govuk-!-margin-bottom-6"
+        },
+        errorMessage: errors["business-activities"] if errors["business-activities"],
+        items: [
+          {
+            value: "manufacture",
+            text: "Manufacture, process or import",
+            hint: {
+              text: "This includes making, mixing, or bringing professional or amateur PPPs into Great Britain."
+            }
+          },
+          {
+            value: "market",
+            text: "Place on the market or distribute",
+            hint: {
+              text: "This includes wholesaling, supplying, or moving PPPs down the supply chain."
+            }
+          },
+          {
+            value: "seller-professional",
+            text: "Sell professional PPPs",
+            hint: {
+              text: "Selling commercial-grade chemicals, pesticides, or adjuvants to businesses or certified professional users."
+            }
+          },
+          {
+            value: "seller-consumer",
+            text: "Sell consumer PPPs",
+            hint: {
+              text: "Selling home and garden weedkillers, insecticides, or slug pellets to the general public (for example, in a retail shop or garden center)."
+            }
+          },
+          {
+            value: "use-professional",
+            text: "Use professional PPPs as part of work",
+            hint: { 
+              text: "Applying or storing commercial-grade pesticides, weedkillers, or adjuvants on land, farms, or commercial premises (either yourself or by hiring a contractor)." 
+            }
+          }
+        ]
+      }) }}
+
+      {{ govukButton({
+        text: "Save and continue",
+        type: "submit"
+      }) }}
+
+    </form>
+
+    <p class="govuk-body">
+      <a class="govuk-link" href="/not-eligible">I only use products in my own home or garden</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
