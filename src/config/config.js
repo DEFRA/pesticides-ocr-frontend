@@ -54,7 +54,7 @@ export const config = convict({
   serviceName: {
     doc: 'Applications Service Name',
     format: String,
-    default: 'pesticides-ocr-frontend'
+    default: 'OCR Registration',
   },
   root: {
     doc: 'Project root',
