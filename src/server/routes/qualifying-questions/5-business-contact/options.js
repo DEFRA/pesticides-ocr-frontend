@@ -4,7 +4,6 @@ import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
 export const options = {
   options: {
     validate: {
-      // Placeholder: replace with the real payload schema once the form fields are defined
       payload: Joi.object({
         'contact-name': Joi.string().required().messages({
           'string.empty': 'Enter a contact name'
