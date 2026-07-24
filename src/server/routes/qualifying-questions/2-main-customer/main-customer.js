@@ -1,19 +1,19 @@
 import { get, post } from './controller.js'
 import { options } from './options.js'
 
-export const businessActivities = {
+export const mainCustomer = {
   plugin: {
-    name: 'business-activities',
+    name: 'mainCustomer',
     register(server) {
       server.route([
         {
           method: 'GET',
-          path: '/business-activities',
+          path: '/main-customer',
           ...get
         },
         {
           method: 'POST',
-          path: '/business-activities',
+          path: '/main-customer',
           ...post,
           ...options
         }
