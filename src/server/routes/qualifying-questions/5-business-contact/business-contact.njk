@@ -1,0 +1,70 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% set title = "Contact Details" %}
+
+{% set backLink = "/business-address" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <h1 class="govuk-heading-l">Contact Details</h1>
+
+    <p class="govuk-body">This should be the contact details of someone with a good knowledge of your professional PPP activity.</p>
+
+    <form method="post" action="/business-contact" novalidate>
+
+      {% call govukFieldset({
+      }) %}
+
+      {{ govukInput({
+        label: {
+          text: "Name"
+        },
+        id: "contact-name",
+        name: "contact-name",
+        autocomplete: "name",
+        classes: "govuk-!-width-two-thirds",
+        errorMessage: errors["contact-name"] if errors["contact-name"]
+      }) }}
+
+      {{ govukInput({
+        label: {
+          text: "Telephone number"
+        },
+        id: "contact-telephone",
+        name: "contact-telephone",
+        autocomplete: "tel",
+        classes: "govuk-!-width-two-thirds",
+        errorMessage: errors["contact-telephone"] if errors["contact-telephone"]
+      }) }}
+
+      {{ govukInput({
+        label: {
+          text: "Email address"
+        },
+        classes: "govuk-!-width-two-thirds",
+        id: "contact-email",
+        name: "contact-email",
+        autocomplete: "email",
+        classes: "govuk-!-width-two-thirds",
+        errorMessage: errors["contact-email"] if errors["contact-email"]
+      }) }}
+
+      {% endcall %}
+
+      {{ govukButton({
+        text: "Save and continue",
+        type: "submit"
+      }) }}
+
+    </form>
+
+    {% endblock %}
