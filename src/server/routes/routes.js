@@ -8,6 +8,7 @@ import { addressActivity } from './qualifying-questions/6-address-activity/addre
 import { quantity } from './qualifying-questions/7-quantity/quantity.js'
 import { checkAnswers } from './qualifying-questions/8-check-answers/check-answers.js'
 import { confirmation } from './qualifying-questions/9-confirmation/confirmation.js'
+import { notEligible } from './qualifying-questions/not-eligible/not-eligible.js'
 
 export const routes = [
   home,
@@ -19,7 +20,8 @@ export const routes = [
   addressActivity,
   quantity,
   checkAnswers,
-  confirmation
+  confirmation,
+  notEligible
 ]
 
 export default routes
