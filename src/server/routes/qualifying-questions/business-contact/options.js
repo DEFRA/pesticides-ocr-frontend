@@ -17,7 +17,7 @@ export const options = {
           'string.email': 'Enter a valid email address'
         })
       }),
-      failAction: viewFailAction('qualifying-questions/5-business-contact/business-contact')
+      failAction: viewFailAction('qualifying-questions/business-contact/business-contact')
     },
     app: {
       pageTitle: 'Business Contact'

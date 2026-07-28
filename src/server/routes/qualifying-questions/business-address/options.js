@@ -17,7 +17,7 @@ export const options = {
           'string.empty': 'Enter your postcode'
         })
       }),
-      failAction: viewFailAction('qualifying-questions/4-business-address/business-address')
+      failAction: viewFailAction('qualifying-questions/business-address/business-address')
     },
     app: {
       pageTitle: 'Business Address'

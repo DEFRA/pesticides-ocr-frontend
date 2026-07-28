@@ -1,6 +1,6 @@
 export const get = {
   handler(_request, h) {
-    return h.view('qualifying-questions/5-business-contact/business-contact')
+    return h.view('qualifying-questions/business-contact/business-contact')
   },
   options: {
     app: {

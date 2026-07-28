@@ -56,7 +56,7 @@ export const get = {
       }
     ]
 
-    return h.view('qualifying-questions/8-check-answers/check-answers', {
+    return h.view('qualifying-questions/check-answers/check-answers', {
       businessRows,
       pppActivityRows
     })

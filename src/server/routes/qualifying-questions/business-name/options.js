@@ -12,7 +12,7 @@ export const options = {
           'string.empty': ENTER_BUSINESS_NAME_MESSAGE
         })
       }),
-      failAction: viewFailAction('qualifying-questions/3-business-name/business-name')
+      failAction: viewFailAction('qualifying-questions/business-name/business-name')
     },
     app: {
       pageTitle: 'Business Name'

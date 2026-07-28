@@ -10,7 +10,7 @@ export const options = {
           'string.base': 'Select a customer type'
         })
       }),
-      failAction: viewFailAction('qualifying-questions/2-main-customer/main-customer')
+      failAction: viewFailAction('qualifying-questions/main-customer/main-customer')
     },
     app: {
       pageTitle: 'Main Customer'

@@ -10,7 +10,7 @@ export const options = {
         'any.required': 'Select at least one address activity',
         'object.base': 'Select at least one address activity'
       }),
-      failAction: viewFailAction('qualifying-questions/6-address-activity/address-activity')
+      failAction: viewFailAction('qualifying-questions/address-activity/address-activity')
     },
     app: {
       pageTitle: 'Address Activity'

@@ -10,7 +10,7 @@ export const options = {
           'string.empty': 'Enter a quantity'
         })
       }),
-      failAction: viewFailAction('qualifying-questions/7-quantity/quantity')
+      failAction: viewFailAction('qualifying-questions/quantity/quantity')
     },
     app: {
       pageTitle: 'Quantity'

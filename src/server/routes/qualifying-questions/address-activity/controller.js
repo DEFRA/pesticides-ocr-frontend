@@ -1,6 +1,6 @@
 export const get = {
   handler(_request, h) {
-    return h.view('qualifying-questions/6-address-activity/address-activity')
+    return h.view('qualifying-questions/address-activity/address-activity')
   },
   options: {
     app: {

@@ -10,7 +10,7 @@ export const options = {
         'any.required': 'Select at least one business activity',
         'object.base': 'Select at least one business activity'
       }),
-      failAction: viewFailAction('qualifying-questions/1-business-activities/business-activities')
+      failAction: viewFailAction('qualifying-questions/business-activities/business-activities')
     },
     app: {
       pageTitle: 'Business Activities'
