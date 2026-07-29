@@ -1,15 +1,15 @@
-import { homeController } from './controller.js'
+import { get } from './controller.js'
 import { app } from './options.js'
 
-export const home = {
+export const confirmation = {
   plugin: {
-    name: 'home',
+    name: 'confirmation',
     register(server) {
       server.route([
         {
           method: 'GET',
-          path: '/',
-          ...homeController,
+          path: '/confirmation',
+          ...get,
           options: {
             app
           }

@@ -1,0 +1,66 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% set backLink = "/business-contact" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+
+  <div class="govuk-grid-column-full">
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <form method="post" action="/address-activity" novalidate>
+
+      {{ govukCheckboxes({
+        name: "address-activities",      
+        fieldset: {
+          legend: {
+            text: "What does your business do at this address?",
+            isPageHeading: true,
+            classes: "govuk-fieldset__legend--l govuk-!-margin-bottom-6"
+          }
+        },
+        hint: {
+          text: "Select all that apply for [address line 1]",
+          classes: "govuk-!-margin-bottom-6"
+        },
+        errorMessage: errors["address-activities"] if errors["address-activities"],
+        items: [
+          {
+            value: "use",
+            text: "Use plant protection products (PPPs) or adjuvants",
+            hint: {
+              text: "This includes applying pesticides, weedkillers or tank-mix additives on site or on nearby land as part of your work."
+            }
+          },
+          {
+            value: "store",
+            text: "Store plant protection products (PPPs) or adjuvants",
+            hint: {
+              text: "This includes keeping commercial or retail-ready chemicals in a designated store, warehouse, stockroom or chemical safe."
+            }
+          },
+          {
+            value: "records",
+            text: "Keep records of plant protection products (PPPs)",
+            hint: {
+              text: "This includes maintaining official acquisition, application, sale or disposal logs required for regulatory inspections."
+            }
+          }
+        ]
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        type: "submit"
+      }) }}
+
+    </form>
+
+  </div>
+</div>
+
+{% endblock %}

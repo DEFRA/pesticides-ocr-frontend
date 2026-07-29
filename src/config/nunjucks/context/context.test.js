@@ -71,7 +71,8 @@ describe('context and cache', () => {
               href: '/about'
             }
           ],
-          serviceName: 'pesticides-ocr-frontend',
+          pageTitle: undefined,
+          serviceName: 'OCR Register',
           serviceUrl: '/'
         })
       })
@@ -160,7 +161,8 @@ describe('context and cache', () => {
               href: '/about'
             }
           ],
-          serviceName: 'pesticides-ocr-frontend',
+          pageTitle: undefined,
+          serviceName: 'OCR Register',
           serviceUrl: '/'
         })
       })

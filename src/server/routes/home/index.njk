@@ -1,17 +1,51 @@
 {% extends 'layouts/page.njk' %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% block content %}
-  {{ appHeading({
-    text: heading,
-    caption: "pesticides-ocr-frontend"
-  }) }}
 
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-      <div class="govuk-body" data-testid="app-page-body">
-        <p></p>
-      </div>
-    </div>
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <h1 class="govuk-heading-xl">Register as a user of Plant Protection Products (PPPs)</h1>
+
+    <p class="govuk-body">Use this service to register yourself or your business if you work with, sell, or place plant protection products (PPPs) on the market in Great Britain.</p>
+
+    <h2 class="govuk-heading-m">Who must register</h2>
+    <p class="govuk-body">You must use this service if you:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="{{ links.userGuidance }}">use professional PPPs or adjuvants as part of your work</a> (such as in agriculture, horticulture, forestry, or amenities)</li>
+      <li><a class="govuk-link" href="{{ links.marketGuidance }}">place professional PPPs on the market</a>, including manufacturers, importers, distributors, and corporate sellers</li>
+      <li><a class="govuk-link" href="{{ links.sellerGuidance }}">sell or supply amateur PPPs to the public</a> (such as home and garden weedkillers, insecticides, or slug pellets)</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Before you start</h2>
+    <p class="govuk-body">To complete this registration, you will need:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>your business registration details including the address and details of any premises where PPPs are stored or sold</li>
+      <li>an estimate of the total quantities you store, sell, or use annually</li>
+    </ul>
+
+    <h3 class="govuk-heading-s">If you operate across multiple sites</h3>
+    <p class="govuk-body">You only need to register your business once, but you will need to list the addresses of all permanent storage and retail sites during this application.</p>
+
+    <h3 class="govuk-heading-s">How long it takes</h3>
+    <p class="govuk-body">It takes around 10 to 15 minutes to complete this registration. You must finish the application in one session as your progress will not be saved automatically.</p>
+
+    {{ govukButton({
+      text: "Start",
+      href: "/business-activities",
+      isStartButton: true
+    }) }}
+
+    <h3 class="govuk-heading-s">Help with the form</h3>
+    <p class="govuk-body">For help with the form you can:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>email: <a class="govuk-link" href="mailto:defra.helpline@defra.gov.uk?subject=OCR-PPP%20registration%20enquiry">defra.helpline@defra.gov.uk</a> (use the subject line ‘OCR-PPP registration enquiry’)</li>
+      <li>call the helpline: 03459 33 55 77</li>
+    </ul>
+    <p class="govuk-body">Opening hours: Monday to Friday, 8:30am to 5pm.</p>
+    <p class="govuk-body">Find out about <a class="govuk-link" href="https://www.gov.uk/call-charges">call charges</a>.</p>
+
   </div>
+</div>
 
 {% endblock %}

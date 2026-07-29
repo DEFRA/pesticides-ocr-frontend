@@ -1,0 +1,28 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {{ govukPanel({
+      titleText: "Registration complete",
+      html: "Your reference number<br><strong>" + reference + "</strong>",
+      classes: "govuk"
+    }) }}
+
+    <p class="govuk-body">We have sent you a confirmation email.</p>
+
+    <h2 class="govuk-heading-m">What happens next</h2>
+
+    <p class="govuk-body">Your details have been submitted to the Department for Environment, Food &amp; Rural Affairs (Defra) and the Health and Safety Executive (HSE) to update the central register.</p>
+
+    <p class="govuk-body">You do not need to do anything else. If you selected options for multiple activities or premises, they are all covered under this single reference number.</p>
+
+    <h2 class="govuk-heading-m">If your details change</h2>
+
+    <p class="govuk-body">By law, you must keep your registration up to date. If your business changes its name, address, or the types of chemical activities it carries out, you will need to return to this service to update your details.</p>
+
+  </div>
+</div>
+{% endblock %}

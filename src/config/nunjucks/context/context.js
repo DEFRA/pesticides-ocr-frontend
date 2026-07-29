@@ -29,6 +29,7 @@ export function context(request) {
     serviceUrl: '/',
     breadcrumbs: [],
     navigation: buildNavigation(request),
+    pageTitle: request?.route?.settings?.app?.pageTitle,
     getAssetPath(asset) {
       if (!config.get('isProduction')) {
         return `${assetPath}/${asset}`

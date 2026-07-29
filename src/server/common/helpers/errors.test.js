@@ -23,7 +23,7 @@ describe('#errors', () => {
     })
 
     expect(result).toEqual(
-      expect.stringContaining('Page not found | pesticides-ocr-frontend')
+      expect.stringContaining('Page not found | OCR Register')
     )
     expect(statusCode).toBe(statusCodes.notFound)
   })

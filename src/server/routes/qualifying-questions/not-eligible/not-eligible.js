@@ -1,15 +1,15 @@
-import { homeController } from './controller.js'
+import { get } from './controller.js'
 import { app } from './options.js'
 
-export const home = {
+export const notEligible = {
   plugin: {
-    name: 'home',
+    name: 'notEligible',
     register(server) {
       server.route([
         {
           method: 'GET',
-          path: '/',
-          ...homeController,
+          path: '/not-eligible',
+          ...get,
           options: {
             app
           }

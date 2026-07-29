@@ -1,0 +1,16 @@
+import Joi from 'joi'
+import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
+
+export const app = {
+  pageTitle: 'Main Customer'
+}
+
+export const validate = {
+  payload: Joi.object({
+    'main-customer': Joi.string().required().messages({
+      'any.required': 'Select a customer type',
+      'string.base': 'Select a customer type'
+    })
+  }),
+  failAction: viewFailAction('qualifying-questions/main-customer/main-customer')
+}

@@ -1,0 +1,39 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% set backLink = "/main-customer" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <h1 class="govuk-heading-l">What is your business name?</h1>
+
+    <p class="govuk-body">We will use this to find your business details and registered address on Companies House.</p>
+
+    <form method="post" action="/business-name" novalidate>
+
+      {{ govukInput({
+        id: "business-name",
+        name: "business-name",
+        label: {
+          text: "Enter your business or company name"
+        },
+        classes: "govuk-!-width-two-thirds",
+        errorMessage: errors["business-name"] if errors["business-name"]
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        type: "submit"
+      }) }}
+
+    </form>
+  </div>
+</div>
+{% endblock %}
