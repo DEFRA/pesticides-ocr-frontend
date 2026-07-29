@@ -6,10 +6,5 @@ export const homeController = {
       sellerGuidance: 'https://www.gov.uk/government/publications/amateur-plant-protection-products-ppps-register-as-a-seller/how-to-register-as-a-business-that-sells-amateur-plant-protection-products-ppps'
     }
     return h.view('home/index', { links })
-  },
-  options: {
-    app: {
-      pageTitle: 'Home'
-    }
   }
 }

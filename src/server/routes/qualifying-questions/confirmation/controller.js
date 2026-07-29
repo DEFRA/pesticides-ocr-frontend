@@ -14,10 +14,5 @@ export const get = {
     return h.view('qualifying-questions/confirmation/confirmation', {
       reference: generateReference()
     })
-  },
-  options: {
-    app: {
-      pageTitle: 'Confirmation'
-    }
   }
 }

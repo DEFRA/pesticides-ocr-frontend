@@ -1,11 +1,6 @@
 export const get = {
   handler(_request, h) {
     return h.view('qualifying-questions/main-customer/main-customer')
-  },
-  options: {
-    app: {
-      pageTitle: 'Main Customer'
-    }
   }
 }
 

@@ -1,5 +1,5 @@
 import { get, post } from './controller.js'
-import { options } from './options.js'
+import { app, validate } from './options.js'
 
 export const addressActivity = {
   plugin: {
@@ -9,13 +9,19 @@ export const addressActivity = {
         {
           method: 'GET',
           path: '/address-activity',
-          ...get
+          ...get,
+          options: {
+            app
+          }
         },
         {
           method: 'POST',
           path: '/address-activity',
           ...post,
-          ...options
+          options: {
+            app,
+            validate
+          }
         }
       ])
     }

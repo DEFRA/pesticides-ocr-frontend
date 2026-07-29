@@ -1,11 +1,6 @@
 export const get = {
   handler(_request, h) {
     return h.view('qualifying-questions/business-activities/business-activities')
-  },
-  options: {
-    app: {
-      pageTitle: 'Business Activities'
-    }
   }
 }
 

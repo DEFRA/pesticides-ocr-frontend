@@ -1,5 +1,5 @@
 import { get, post } from './controller.js'
-import { options } from './options.js'
+import { app, validate } from './options.js'
 
 export const quantity = {
   plugin: {
@@ -9,13 +9,19 @@ export const quantity = {
         {
           method: 'GET',
           path: '/quantity',
-          ...get
+          ...get,
+          options: {
+            app
+          }
         },
         {
           method: 'POST',
           path: '/quantity',
           ...post,
-          ...options
+          options: {
+            app,
+            validate
+          }
         }
       ])
     }

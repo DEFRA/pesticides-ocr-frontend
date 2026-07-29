@@ -1,4 +1,5 @@
 import { get } from './controller.js'
+import { app } from './options.js'
 
 export const notEligible = {
   plugin: {
@@ -8,7 +9,10 @@ export const notEligible = {
         {
           method: 'GET',
           path: '/not-eligible',
-          ...get
+          ...get,
+          options: {
+            app
+          }
         }
       ])
     }

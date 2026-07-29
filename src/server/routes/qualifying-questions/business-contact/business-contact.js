@@ -1,5 +1,5 @@
 import { get, post } from './controller.js'
-import { options } from './options.js'
+import { app, validate } from './options.js'
 
 export const businessContact = {
   plugin: {
@@ -9,13 +9,19 @@ export const businessContact = {
         {
           method: 'GET',
           path: '/business-contact',
-          ...get
+          ...get,
+          options: {
+            app
+          }
         },
         {
           method: 'POST',
           path: '/business-contact',
           ...post,
-          ...options
+          options: {
+            app,
+            validate
+          }
         }
       ])
     }

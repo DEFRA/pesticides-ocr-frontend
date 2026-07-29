@@ -1,4 +1,5 @@
 import { homeController } from './controller.js'
+import { app } from './options.js'
 
 export const home = {
   plugin: {
@@ -8,7 +9,10 @@ export const home = {
         {
           method: 'GET',
           path: '/',
-          ...homeController
+          ...homeController,
+          options: {
+            app
+          }
         }
       ])
     }

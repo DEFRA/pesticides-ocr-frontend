@@ -1,5 +1,5 @@
 import { get, post } from './controller.js'
-import { options } from './options.js'
+import { app, validate } from './options.js'
 
 export const checkAnswers = {
   plugin: {
@@ -9,13 +9,19 @@ export const checkAnswers = {
         {
           method: 'GET',
           path: '/check-answers',
-          ...get
+          ...get,
+          options: {
+            app
+          }
         },
         {
           method: 'POST',
           path: '/check-answers',
           ...post,
-          ...options
+          options: {
+            app,
+            validate
+          }
         }
       ])
     }

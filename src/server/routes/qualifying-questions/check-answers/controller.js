@@ -60,11 +60,6 @@ export const get = {
       businessRows,
       pppActivityRows
     })
-  },
-  options: {
-    app: {
-      pageTitle: 'Check Answers'
-    }
   }
 }
 
