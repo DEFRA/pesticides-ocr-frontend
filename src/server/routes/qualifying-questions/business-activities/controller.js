@@ -7,11 +7,15 @@ export const get = {
 
 export const post = {
   handler(request, h) {
-    const payload = request.payload
+    const payload = request.payload['business-activities']
     const formSession = request.yar.get('formSession')
 
-    formSession['business-activities'] = payload['business-activities']
+    formSession['business-activities'] = payload
     request.yar.set('formSession', formSession)
+
+    if (payload.includes('seller-amateur')) {
+      return h.redirect('/business-name')
+    }
 
     return h.redirect('/main-customer')
   }
