@@ -1,6 +1,7 @@
 {% extends 'layouts/page.njk' %}
-{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
 {% set backLink = "/address-activity" %}
@@ -13,25 +14,76 @@
 
     <form method="post" action="/quantity" novalidate>
 
+      {% set amountHtml %}
       {{ govukInput({
-        label: {
-          text: "What quantity of plant protection products (PPPs) or adjuvants do you use at this address in a typical year?",
-          classes: "govuk-label--l",
-          isPageHeading: true
+          label: {
+            text: "Estimated annual quantity"
+          },
+          suffix: {
+            text: "Litres or kilograms"
+          },
+          classes: "govuk-input--width-10",
+          id: "quantity-amount",
+          name: "quantity-amount",
+          value: values["quantity-amount"] if values,
+          errorMessage: errors["quantity-amount"] if errors["quantity-amount"],
+          spellcheck: false,
+          inputmode: "decimal"
+        }) }}
+      {% endset %}
+
+      {% set areaHtml %}
+      {{ govukInput({
+          label: {
+            text: "Estimated annual area covered"
+          },
+          suffix: {
+            text: "Hectares"
+          },
+          classes: "govuk-input--width-10",
+          id: "quantity-area",
+          name: "quantity-area",
+          value: values["quantity-area"] if values,
+          errorMessage: errors["quantity-area"] if errors["quantity-area"],
+          spellcheck: false,
+          inputmode: "decimal"
+        }) }}
+      {% endset %}
+
+      {{ govukRadios({
+        name: "quantity-type",
+        fieldset: {
+          legend: {
+            text: "What quantity of plant protection products (PPPs) or adjuvants do you use at this address in a typical year?",
+            isPageHeading: true,
+            classes: "govuk-fieldset__legend--l"
+          }
         },
-        classes: "govuk-input--width-10",
         hint: {
-          text: "Give an estimate of the total amount of undiluted product you use. If you use both liquid and solid products, combine them using 1 litre as roughly equal to 1 kilogram."
+          text: "Give an estimate of the total amount of undiluted product you use. You can enter this as the amount in litres or kilograms, or by the area covered."
         },
-        id: "quantity",
-        name: "quantity",
-        errorMessage: errors["quantity"] if errors["quantity"],
-        suffix: {
-          text: "kilograms or litres"
-        },
-        inputmode: "numeric",
-        spellcheck: false,
-        inputmode: "decimal"
+        errorMessage: errors["quantity-type"] if errors["quantity-type"],
+        items: [
+          {
+            value: "amount",
+            text: "Amount in litres or kilograms",
+            checked: values["quantity-type"] == "amount" if values,
+            conditional: {
+              html: amountHtml
+            }
+          },
+          {
+            value: "area",
+            text: "Area covered in hectares",
+            suffix: {
+              text: "Hectares"
+            },
+            checked: values["quantity-type"] == "area" if values,
+            conditional: {
+              html: areaHtml
+            }
+          }
+        ]
       }) }}
 
       {{ govukButton({
