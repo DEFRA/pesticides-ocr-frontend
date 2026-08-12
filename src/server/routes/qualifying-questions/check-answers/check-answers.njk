@@ -2,6 +2,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "answer-list/macro.njk" import appAnswerList %}
 
 {% set backLink = "/quantity" %}
 
@@ -16,10 +17,61 @@
     <form method="post" action="/check-answers" novalidate>
 
       <h2 class="govuk-heading-m">Business details</h2>
-      {{ govukSummaryList({ rows: businessRows }) }}
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: { text: "Business PPP activities" },
+            value: { html: appAnswerList({ values: answers.businessActivities }) },
+            actions: { items: [{ href: "/business-activities", text: "Change", visuallyHiddenText: "business PPP activities" }] }
+          },
+          {
+            key: { text: "Main customer" },
+            value: { html: appAnswerList({ values: answers.mainCustomer }) },
+            actions: { items: [{ href: "/main-customer", text: "Change", visuallyHiddenText: "main customer" }] }
+          } if answers.mainCustomer.length,
+          {
+            key: { text: "Business name" },
+            value: { html: appAnswerList({ values: answers.businessName }) },
+            actions: { items: [{ href: "/business-name", text: "Change", visuallyHiddenText: "business name" }] }
+          },
+          {
+            key: { text: "Main address" },
+            value: { html: appAnswerList({ values: answers.address }) },
+            actions: { items: [{ href: "/business-address", text: "Change", visuallyHiddenText: "main address" }] }
+          },
+          {
+            key: { text: "Name" },
+            value: { html: appAnswerList({ values: answers.contactName }) },
+            actions: { items: [{ href: "/business-contact", text: "Change", visuallyHiddenText: "name" }] }
+          },
+          {
+            key: { text: "Email" },
+            value: { html: appAnswerList({ values: answers.contactEmail }) },
+            actions: { items: [{ href: "/business-contact", text: "Change", visuallyHiddenText: "email" }] }
+          },
+          {
+            key: { text: "Telephone" },
+            value: { html: appAnswerList({ values: answers.contactTelephone }) },
+            actions: { items: [{ href: "/business-contact", text: "Change", visuallyHiddenText: "telephone" }] }
+          }
+        ]
+      }) }}
 
       <h2 class="govuk-heading-m">PPP activity details</h2>
-      {{ govukSummaryList({ rows: pppActivityRows }) }}
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: { text: "PPP activities at the address" },
+            value: { html: appAnswerList({ values: answers.addressActivities }) },
+            actions: { items: [{ href: "/address-activity", text: "Change", visuallyHiddenText: "PPP activities at the address" }] }
+          },
+          {
+            key: { text: "Quantity of PPPs used in the last year" },
+            value: { html: appAnswerList({ values: answers.quantity }) },
+            actions: { items: [{ href: "/quantity", text: "Change", visuallyHiddenText: "quantity of PPPs used in the last year" }] }
+          }
+        ]
+      }) }}
 
       {{ govukButton({
         text: "Save and continue",
