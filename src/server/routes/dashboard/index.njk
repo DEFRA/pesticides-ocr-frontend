@@ -1,0 +1,25 @@
+{% extends 'layouts/page.njk' %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    <h1 class="govuk-heading-xl">OCR Register dashboard</h1>
+
+    {% if account %}
+      <p class="govuk-body">
+        You are signed in as <strong>{{ account.name }}</strong>{% if account.roleLabel %} ({{ account.roleLabel }}){% endif %}.
+      </p>
+    {% endif %}
+
+    <p class="govuk-body">This is a protected case-officer area for the OCR register.</p>
+
+    {% if account.signOutUrl %}
+      <p class="govuk-body">
+        <a class="govuk-link" href="{{ account.signOutUrl }}">Sign out</a>
+      </p>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

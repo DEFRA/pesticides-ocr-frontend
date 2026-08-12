@@ -14,6 +14,7 @@ import { getCacheEngine } from './common/helpers/session-cache/cache-engine.js'
 import { secureContext } from '@defra/hapi-secure-context'
 import { contentSecurityPolicy } from './plugins/content-security-policy.js'
 import { metrics } from '@defra/cdp-metrics'
+import { hapiOidcAuth } from '@defra/hapi-oidc-auth'
 
 export async function createServer() {
   const server = hapi.server({
@@ -62,6 +63,28 @@ export async function createServer() {
     nunjucksConfig,
     Scooter,
     contentSecurityPolicy,
+    // Case-officer (HSE/Defra staff) sign-in via Microsoft Entra ID. Registered
+    // after sessionCache (@hapi/yar) and nunjucksConfig (@hapi/vision) since it
+    // relies on both. The applicant register journey stays unauthenticated.
+    {
+      plugin: hapiOidcAuth,
+      options: {
+        entra: {
+          mode: config.get('entra.mode'),
+          tenantId: config.get('entra.tenantId'),
+          clientId: config.get('entra.clientId'),
+          clientSecret: config.get('entra.clientSecret'),
+          publicBaseUrl: config.get('entra.publicBaseUrl'),
+          redirectPath: config.get('entra.redirectPath'),
+          signOutRedirectUrl: config.get('entra.signOutRedirectUrl'),
+          roleValues: config.get('entra.roleValue')
+        },
+        redirects: {
+          postLogin: config.get('entra.postLoginRedirect'),
+          signOut: '/'
+        }
+      }
+    },
     router // Register all the controllers/routes defined in src/server/router.js
   ])
 

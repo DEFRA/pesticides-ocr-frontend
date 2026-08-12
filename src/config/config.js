@@ -222,6 +222,63 @@ export const config = convict({
       default: isDevelopment
     }
   },
+  entra: {
+    mode: {
+      doc: 'Case-officer sign-in mode: mock (local demo identity) or live (Entra ID)',
+      format: ['mock', 'live'],
+      default: isProduction ? 'live' : 'mock',
+      env: 'ENTRA_AUTH_MODE'
+    },
+    tenantId: {
+      doc: 'Entra tenant (directory) id',
+      format: String,
+      default: '',
+      env: 'ENTRA_TENANT_ID'
+    },
+    clientId: {
+      doc: 'Entra application (client) id',
+      format: String,
+      default: '',
+      env: 'ENTRA_CLIENT_ID'
+    },
+    clientSecret: {
+      doc: 'Entra client secret (set via CDP Secrets, never committed)',
+      format: String,
+      default: '',
+      env: 'ENTRA_CLIENT_SECRET',
+      sensitive: true
+    },
+    publicBaseUrl: {
+      doc: 'Public base URL for the OIDC redirect URI (required in live mode)',
+      format: String,
+      default: '',
+      env: 'ENTRA_PUBLIC_BASE_URL'
+    },
+    redirectPath: {
+      doc: 'OIDC callback path registered with Entra',
+      format: String,
+      default: '/auth/entra/callback',
+      env: 'ENTRA_REDIRECT_PATH'
+    },
+    signOutRedirectUrl: {
+      doc: 'Post-logout redirect URL registered with Entra',
+      format: String,
+      default: '/',
+      env: 'ENTRA_SIGN_OUT_REDIRECT_URL'
+    },
+    roleValue: {
+      doc: 'Entra app-role value that grants case-officer access',
+      format: String,
+      default: 'case_officer',
+      env: 'ENTRA_CASE_OFFICER_ROLE_VALUE'
+    },
+    postLoginRedirect: {
+      doc: 'Where a signed-in case officer lands after sign-in',
+      format: String,
+      default: '/dashboard',
+      env: 'ENTRA_POST_LOGIN_REDIRECT'
+    }
+  },
   tracing: {
     header: {
       doc: 'Which header to track',
