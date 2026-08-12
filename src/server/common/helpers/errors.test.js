@@ -123,4 +123,27 @@ describe('#catchAll', () => {
       statusCodes.internalServerError
     )
   })
+
+  test('Should recover a plugin-thrown client-error .statusCode instead of the boomified 500', () => {
+    // @defra/hapi-oidc-auth throws plain errors carrying .statusCode (401/422);
+    // Hapi boomifies those to a 500 output, so catchAll must surface the intended code.
+    const request = {
+      response: {
+        isBoom: true,
+        stack: mockStack,
+        statusCode: statusCodes.unauthorized,
+        output: { statusCode: statusCodes.internalServerError }
+      },
+      logger: { error: mockErrorLogger }
+    }
+
+    catchAll(request, mockToolkit)
+
+    expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      pageTitle: 'Unauthorized',
+      heading: statusCodes.unauthorized,
+      message: 'Unauthorized'
+    })
+    expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.unauthorized)
+  })
 })
