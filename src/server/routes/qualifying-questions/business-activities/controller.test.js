@@ -22,6 +22,9 @@ describe('#businessActivitiesController', () => {
       })
 
       expect(result).toEqual(expect.stringContaining('Business Activities |'))
+      expect(result).toEqual(
+        expect.stringContaining('Manufacture, process or import')
+      )
       expect(statusCode).toBe(statusCodes.ok)
     })
   })

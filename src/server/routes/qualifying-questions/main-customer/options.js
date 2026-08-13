@@ -1,15 +1,20 @@
 import Joi from 'joi'
 import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
+import { mainCustomerItems, mainCustomerValues } from './items.js'
+
+const selectCustomerType = 'Select a customer type'
 
 export const app = {
-  pageTitle: 'Main Customer'
+  pageTitle: 'Main Customer',
+  items: mainCustomerItems
 }
 
 export const validate = {
   payload: Joi.object({
-    'main-customer': Joi.string().required().messages({
-      'any.required': 'Select a customer type',
-      'string.base': 'Select a customer type'
+    'main-customer': Joi.string().valid(...mainCustomerValues).required().messages({
+      'any.required': selectCustomerType,
+      'any.only': selectCustomerType,
+      'string.base': selectCustomerType
     })
   }),
   failAction: viewFailAction('qualifying-questions/main-customer/main-customer')

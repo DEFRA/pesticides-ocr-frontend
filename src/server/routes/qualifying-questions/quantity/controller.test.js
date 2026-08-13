@@ -1,5 +1,6 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
+import { injectWithSession } from '#/test-helpers/session-helpers.js'
 
 describe('#quantityController', () => {
   let server
@@ -39,7 +40,7 @@ describe('#quantityController', () => {
 
   describe('POST /quantity', () => {
     test('Should redirect to check answers page when an amount is given', async () => {
-      const { statusCode, headers } = await server.inject({
+      const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/quantity',
         payload: {
@@ -54,7 +55,7 @@ describe('#quantityController', () => {
     })
 
     test('Should redirect to check answers page when an area is given', async () => {
-      const { statusCode, headers } = await server.inject({
+      const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/quantity',
         payload: {
@@ -125,7 +126,7 @@ describe('#quantityController', () => {
     })
 
     test('Should not validate the area when an amount is selected', async () => {
-      const { statusCode, headers } = await server.inject({
+      const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/quantity',
         payload: {

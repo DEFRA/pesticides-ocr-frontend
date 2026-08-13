@@ -1,5 +1,6 @@
 import Joi from 'joi'
 import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
+import { quantityTypeValues } from './items.js'
 
 export const app = {
   pageTitle: 'Quantity'
@@ -11,7 +12,7 @@ const selectTypeMessage = 'Select how you want to give the quantity'
 
 export const validate = {
   payload: Joi.object({
-    'quantity-type': Joi.string().valid('amount', 'area').required().messages({
+    'quantity-type': Joi.string().valid(...quantityTypeValues).required().messages({
       'any.only': selectTypeMessage,
       'any.required': selectTypeMessage,
       'string.empty': selectTypeMessage
