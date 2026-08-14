@@ -1,0 +1,67 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    <h1 class="govuk-heading-xl">Registered operators</h1>
+
+    <form method="get" action="/admin/operators">
+      <div class="govuk-button-group">
+        {{ govukInput({
+          label: { text: "Search operators", classes: "govuk-label--s" },
+          hint: { text: "Search by reference, business name, contact, town or postcode" },
+          id: "search",
+          name: "search",
+          value: search,
+          classes: "govuk-input--width-30",
+          formGroup: { classes: "govuk-!-margin-bottom-3" }
+        }) }}
+      </div>
+      {{ govukButton({ text: "Search" }) }}
+      <a class="govuk-button govuk-button--secondary" href="/admin/operators/export{% if search %}?search={{ search | urlencode }}{% endif %}" download>
+        Export to Excel
+      </a>
+    </form>
+
+    <p class="govuk-body">
+      {{ total }} operator{{ "s" if total != 1 }} found{% if search %} for “{{ search }}”{% endif %}.
+    </p>
+
+    {% if total > 0 %}
+      {% set rows = [] %}
+      {% for op in operators %}
+        {% set rows = (rows.push([
+          { text: op.reference },
+          { text: op.businessName },
+          { text: op.registeredDate },
+          { text: op.activities | join(", ") },
+          { text: op.address.postcode },
+          { text: op.status }
+        ]), rows) %}
+      {% endfor %}
+
+      {{ govukTable({
+        caption: "Registered operators",
+        captionClasses: "govuk-visually-hidden",
+        head: [
+          { text: "Reference" },
+          { text: "Business name" },
+          { text: "Registered" },
+          { text: "Activities" },
+          { text: "Postcode" },
+          { text: "Status" }
+        ],
+        rows: rows
+      }) }}
+    {% else %}
+      <p class="govuk-body">No operators match your search.</p>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

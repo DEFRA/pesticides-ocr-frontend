@@ -1,5 +1,6 @@
 import { home } from './home/index.js'
 import { dashboard } from './dashboard/index.js'
+import { adminOperators } from './admin/operators/index.js'
 import { businessActivities } from './qualifying-questions/business-activities/business-activities.js'
 import { mainCustomer } from './qualifying-questions/main-customer/main-customer.js'
 import { businessName } from './qualifying-questions/business-name/business-name.js'
@@ -14,6 +15,7 @@ import { notEligible } from './qualifying-questions/not-eligible/not-eligible.js
 export const routes = [
   home,
   dashboard,
+  adminOperators,
   businessActivities,
   mainCustomer,
   businessName,
