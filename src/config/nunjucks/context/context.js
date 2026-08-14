@@ -1,6 +1,8 @@
 import path from 'node:path'
 import { readFileSync } from 'node:fs'
 
+import { buildAccount } from '@defra/hapi-oidc-auth'
+
 import { config } from '#/config/config.js'
 import { buildNavigation } from './build-navigation.js'
 import { createLogger } from '#/server/common/helpers/logging/logger.js'
@@ -28,6 +30,7 @@ export function context(request) {
     serviceName: config.get('serviceName'),
     serviceUrl: '/',
     breadcrumbs: [],
+    account: buildAccount(request),
     navigation: buildNavigation(request),
     pageTitle: request?.route?.settings?.app?.pageTitle,
     getAssetPath(asset) {

@@ -57,6 +57,7 @@ describe('context and cache', () => {
       test('Should provide expected context', () => {
         expect(contextResult).toEqual({
           assetPath: '/public/assets',
+          account: null,
           breadcrumbs: [],
           getAssetPath: expect.any(Function),
           navigation: [
@@ -147,6 +148,7 @@ describe('context and cache', () => {
       test('Should provide expected context', () => {
         expect(contextResult).toEqual({
           assetPath: '/public/assets',
+          account: null,
           breadcrumbs: [],
           getAssetPath: expect.any(Function),
           navigation: [

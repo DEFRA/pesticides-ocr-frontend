@@ -5,3 +5,18 @@
 .app-header {
   border-bottom-color: $app-light-grey;
 }
+
+// Signed-in account block, pushed to the right of the service navigation.
+.app-account-nav {
+  margin-left: auto;
+}
+
+.app-account-nav__link {
+  display: inline-flex;
+  align-items: center;
+}
+
+.app-account-nav__icon {
+  margin-right: 5px;
+  flex: 0 0 auto;
+}
