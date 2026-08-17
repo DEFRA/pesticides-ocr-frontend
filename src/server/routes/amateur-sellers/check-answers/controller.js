@@ -4,7 +4,7 @@ export const get = {
   handler(request, h) {
     const formData = request.yar.get('formSession') ?? {}
 
-    return h.view('qualifying-questions/check-answers/check-answers', {
+    return h.view('amateur-sellers/check-answers/check-answers', {
       answers: buildAnswers(formData)
     })
   }

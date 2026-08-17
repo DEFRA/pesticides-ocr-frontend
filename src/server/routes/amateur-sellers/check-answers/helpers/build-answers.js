@@ -1,7 +1,7 @@
-import { businessActivityItems } from '../../business-activities/items.js'
-import { mainCustomerItems } from '../../main-customer/items.js'
-import { addressActivityItems } from '../../address-activity/items.js'
-import { quantityTypeItems } from '../../quantity/items.js'
+import { businessActivityItems } from '../../../qualifying-questions/business-activities/items.js'
+import { mainCustomerItems } from '../../../qualifying-questions/main-customer/items.js'
+import { addressActivityItems } from '../../../qualifying-questions/address-activity/items.js'
+import { quantityTypeItems } from '../../../qualifying-questions/quantity/items.js'
 
 function toLines(...values) {
   return values.filter((value) => value !== undefined && value !== '')
@@ -53,6 +53,7 @@ export function buildAnswers(formData = {}) {
       addressActivityItems,
       formData['address-activities']
     ),
-    quantity: quantityLines(formData.quantity)
+    quantity: quantityLines(formData.quantity),
+    quantityType: formData.quantity?.['quantity-type']
   }
 }

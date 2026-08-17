@@ -6,7 +6,7 @@ export const app = {
 }
 
 export const validate = {
-  // Placeholder: replace with the real payload schema once the form fields are defined
+  // TODO: Add validation for the check answers form
   payload: Joi.object({}).unknown(true).allow(null),
-  failAction: viewFailAction('qualifying-questions/check-answers/check-answers')
+  failAction: viewFailAction('amateur-sellers/check-answers/check-answers')
 }

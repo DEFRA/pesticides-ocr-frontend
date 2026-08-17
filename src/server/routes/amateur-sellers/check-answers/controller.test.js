@@ -60,6 +60,51 @@ describe('#checkAnswersController', () => {
       expect(result).toEqual(expect.stringContaining('67 hectares'))
     })
 
+    test('Should title the quantity row to match the type that was entered', async () => {
+      const titleFor = async (payload) => {
+        const cookie = await getSessionCookie(server, '/quantity')
+
+        await server.inject({
+          method: 'POST',
+          url: '/quantity',
+          headers: { cookie },
+          payload
+        })
+
+        const { result } = await server.inject({
+          method: 'GET',
+          url: '/check-answers',
+          headers: { cookie }
+        })
+
+        return result
+      }
+
+      const area = await titleFor({
+        'quantity-type': 'area',
+        'quantity-amount': '',
+        'quantity-area': '67'
+      })
+      const amount = await titleFor({
+        'quantity-type': 'amount',
+        'quantity-amount': '80000',
+        'quantity-area': ''
+      })
+
+      expect(area).toEqual(
+        expect.stringContaining('Area covered by PPPs in the last year')
+      )
+      expect(area).not.toEqual(
+        expect.stringContaining('Quantity of PPPs used in the last year')
+      )
+      expect(amount).toEqual(
+        expect.stringContaining('Quantity of PPPs used in the last year')
+      )
+      expect(amount).not.toEqual(
+        expect.stringContaining('Area covered by PPPs in the last year')
+      )
+    })
+
     test('Should omit the main customer row when that question was skipped', async () => {
       const cookie = await getSessionCookie(server, '/business-activities')
 

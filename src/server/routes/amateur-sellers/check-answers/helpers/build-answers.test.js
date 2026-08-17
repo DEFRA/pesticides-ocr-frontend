@@ -36,6 +36,15 @@ describe('#buildAnswers', () => {
     expect(amount.quantity).toEqual(['80000 litres or kilograms'])
   })
 
+  test('Should pass the quantity type through for the page to title the row by', () => {
+    const area = buildAnswers({
+      quantity: { 'quantity-type': 'area', quantity: '67' }
+    })
+
+    expect(area.quantityType).toBe('area')
+    expect(buildAnswers({}).quantityType).toBeUndefined()
+  })
+
   test('Should flatten an address into one line per part, skipping the optional ones', () => {
     const answers = buildAnswers({
       address: {
@@ -74,7 +83,8 @@ describe('#buildAnswers', () => {
       contactTelephone: [],
       contactEmail: [],
       addressActivities: [],
-      quantity: []
+      quantity: [],
+      quantityType: undefined
     })
   })
 })
