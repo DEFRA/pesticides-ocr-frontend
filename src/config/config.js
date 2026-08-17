@@ -277,6 +277,12 @@ export const config = convict({
       format: String,
       default: '/dashboard',
       env: 'ENTRA_POST_LOGIN_REDIRECT'
+    },
+    mockDisplayName: {
+      doc: 'Display name for the mock case-officer identity (mock mode only, local demo / UCD)',
+      format: String,
+      default: 'Ulysses Alvarez',
+      env: 'ENTRA_MOCK_DISPLAY_NAME'
     }
   },
   tracing: {
