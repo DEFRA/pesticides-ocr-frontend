@@ -25,12 +25,19 @@ export function context(request) {
     }
   }
 
+  const account = buildAccount(request)
+  // In mock mode (local demo / UCD) the plugin returns a generic demo identity;
+  // show a friendlier demo name. Live mode keeps the real signed-in name.
+  if (account && config.get('entra.mode') === 'mock') {
+    account.name = 'Ulysses Alvarez'
+  }
+
   return {
     assetPath: `${assetPath}/assets`,
     serviceName: config.get('serviceName'),
     serviceUrl: '/',
     breadcrumbs: [],
-    account: buildAccount(request),
+    account,
     navigation: buildNavigation(request),
     pageTitle: request?.route?.settings?.app?.pageTitle,
     getAssetPath(asset) {
