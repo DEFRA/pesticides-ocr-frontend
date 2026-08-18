@@ -1,0 +1,57 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <form method="post" action="/professional-sectors" novalidate>
+
+      {{ govukCheckboxes({
+        name: "professional-sectors",
+        fieldset: {
+          legend: {
+            text: "What is the main sector of your work involving PPPs or adjuvants?",
+            isPageHeading: true,
+            classes: "govuk-fieldset__legend--l govuk-!-margin-bottom-6"
+          }
+        },
+        hint: {
+          text: "Select the sector that best describes the type of land or setting where the chemicals are applied.",
+          classes: "govuk-!-margin-bottom-6"
+        },
+        errorMessage: errors["professional-sectors"] if errors["professional-sectors"],
+        items: items
+      }) }}
+
+      <h4 class="govuk-heading-s govuk-!-margin-top-6">or</h4>
+
+      {{ govukTextarea({
+        name: "professional-sectors-other",
+        id: "professional-sectors-other",
+        label: {
+          text: "Other",
+          classes: "govuk-!-margin-bottom-3"
+        },
+        hint: {
+          text: "Describe your main type of work in a few words"
+        },
+        errorMessage: errors["professional-sectors-other"] if errors["professional-sectors-other"]
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        type: "submit"
+      }) }}
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}
