@@ -8,7 +8,7 @@ export const get = {
 export const post = {
   handler(request, h) {
     const payload = request.payload['main-customer']
-    const formSession = request.yar.get('formSession')
+    const formSession = request.yar.get('formSession') ?? {}
 
     formSession['main-customer'] = payload
     request.yar.set('formSession', formSession)

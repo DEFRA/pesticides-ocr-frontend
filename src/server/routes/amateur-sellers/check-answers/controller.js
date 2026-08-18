@@ -11,12 +11,10 @@ export const get = {
 }
 
 export const post = {
-  handler(_request, h) {
-    const formSession = _request.yar.get('formSession') ?? {}
-    formSession['created'] = new Date().toISOString()
-    formSession['isDeleted'] = false
+  handler(request, h) {
+    const formSession = request.yar.get('formSession') ?? {}
 
-    _request.yar.set('formSession', formSession)
+    request.yar.set('formSession', formSession)
 
     return h.redirect('/confirmation')
   }
