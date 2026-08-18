@@ -6,8 +6,8 @@ import { businessAddress } from './qualifying-questions/business-address/busines
 import { businessContact } from './qualifying-questions/business-contact/business-contact.js'
 import { addressActivity } from './qualifying-questions/address-activity/address-activity.js'
 import { quantity } from './qualifying-questions/quantity/quantity.js'
-import { checkAnswers } from './qualifying-questions/check-answers/check-answers.js'
-import { confirmation } from './qualifying-questions/confirmation/confirmation.js'
+import { checkAnswers } from './amateur-sellers/check-answers/check-answers.js'
+import { confirmation } from './amateur-sellers/confirmation/confirmation.js'
 import { notEligible } from './qualifying-questions/not-eligible/not-eligible.js'
 
 export const routes = [

@@ -1,5 +1,6 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
+import { injectWithSession } from '#/test-helpers/session-helpers.js'
 
 describe('#mainCustomerController', () => {
   let server
@@ -21,13 +22,16 @@ describe('#mainCustomerController', () => {
       })
 
       expect(result).toEqual(expect.stringContaining('Main Customer |'))
+      expect(result).toEqual(
+        expect.stringContaining('Both professional and amateur users')
+      )
       expect(statusCode).toBe(statusCodes.ok)
     })
   })
 
   describe('POST /main-customer', () => {
     test('Should redirect to business name page', async () => {
-      const { statusCode, headers } = await server.inject({
+      const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/main-customer',
         payload: { 'main-customer': 'professional' }

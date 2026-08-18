@@ -11,6 +11,7 @@ export const sessionCache = {
   plugin: yar,
   options: {
     name: sessionConfig.cache.name,
+    maxCookieSize: 0,
     cache: {
       cache: sessionConfig.cache.name,
       expiresIn: sessionConfig.cache.ttl

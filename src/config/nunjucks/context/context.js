@@ -30,6 +30,7 @@ export function context(request) {
     breadcrumbs: [],
     navigation: buildNavigation(request),
     pageTitle: request?.route?.settings?.app?.pageTitle,
+    items: request?.route?.settings?.app?.items,
     getAssetPath(asset) {
       if (!config.get('isProduction')) {
         return `${assetPath}/${asset}`
