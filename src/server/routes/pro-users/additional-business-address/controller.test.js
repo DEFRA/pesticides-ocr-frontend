@@ -1,6 +1,7 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
-import { injectWithSession } from '#/test-helpers/session-helpers.js'
+import { createSessionRequest, injectWithSession, sessionResponseToolkit } from '#/test-helpers/session-helpers.js'
+import { post as postHandler } from './controller.js'
 
 describe('#additionalBusinessAddressController', () => {
   let server
@@ -108,5 +109,59 @@ describe('#additionalBusinessAddressController', () => {
         expect(result).toEqual(expect.stringContaining(message))
       }
     )
+  })
+
+  describe('Session', () => {
+    const address = {
+      'address-line-1': '36 Portland Road',
+      'address-line-2': 'Brompton',
+      'address-town': 'Northallerton',
+      'address-county': 'North Yorkshire',
+      'address-postcode': 'DL62BQ'
+    }
+
+    const savePayload = (payload, formSession) => {
+      const { request, readSession } = createSessionRequest({
+        payload,
+        formSession
+      })
+
+      postHandler.handler(request, sessionResponseToolkit)
+
+      return readSession()
+    }
+
+    test('Should start a new entry keyed under additional-addresses', () => {
+      const formSession = savePayload(address)
+
+      expect(formSession['additional-addresses']).toEqual([{ address }])
+    })
+
+    test('Should append a new entry when the previous one is complete', () => {
+      const existing = { address: { 'address-town': 'Leeds' }, contact: {} }
+
+      const formSession = savePayload(address, {
+        'additional-addresses': [existing]
+      })
+
+      expect(formSession['additional-addresses']).toEqual([
+        existing,
+        { address }
+      ])
+    })
+
+    test('Should update the in-progress entry rather than appending', () => {
+      const formSession = savePayload(address, {
+        'additional-addresses': [{ address: { 'address-town': 'Leeds' } }]
+      })
+
+      expect(formSession['additional-addresses']).toEqual([{ address }])
+    })
+
+    test('Should preserve other answers already in the session', () => {
+      const formSession = savePayload(address, { 'business-name': 'Company 1' })
+
+      expect(formSession['business-name']).toBe('Company 1')
+    })
   })
 })

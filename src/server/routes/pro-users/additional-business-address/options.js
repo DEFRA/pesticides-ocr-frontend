@@ -19,5 +19,5 @@ export const validate = {
       'string.empty': 'Enter your postcode'
     })
   }),
-  failAction: viewFailAction('qualifying-questions/business-address/business-address')
+  failAction: viewFailAction('pro-users/additional-business-address/additional-business-address')
 }

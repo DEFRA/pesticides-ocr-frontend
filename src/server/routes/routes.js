@@ -13,6 +13,7 @@ import { professionalSectors } from './pro-users/professional-sectors/profession
 import { memberSchemes } from './pro-users/member-schemes/member-schemes.js'
 import { additionalAddresses } from './pro-users/additional-addresses/additional-addresses.js'
 import { additionalBusinessAddress } from './pro-users/additional-business-address/additional-business-address.js'
+import { additionalBusinessContact } from './pro-users/additional-business-contact/additional-business-contact.js'
 
 export const routes = [
   home,
@@ -29,7 +30,8 @@ export const routes = [
   professionalSectors,
   memberSchemes,
   additionalAddresses,
-  additionalBusinessAddress
+  additionalBusinessAddress,
+  additionalBusinessContact
 ]
 
 export default routes
