@@ -1,9 +1,6 @@
 import Joi from 'joi'
 import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
-import {
-  professionalSectorsItems,
-  professionalSectorsValues
-} from './items.js'
+import { professionalSectorsItems, professionalSectorsValues } from './items.js'
 
 export const app = {
   pageTitle: 'Professional Sectors',

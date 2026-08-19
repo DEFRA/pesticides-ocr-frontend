@@ -1,6 +1,6 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
-import { injectWithSession } from '#/test-helpers/session-helpers.js'
+import { getSessionCookie, injectWithSession } from '#/test-helpers/session-helpers.js'
 
 describe('#quantityController', () => {
   let server
@@ -39,38 +39,98 @@ describe('#quantityController', () => {
   })
 
   describe('POST /quantity', () => {
-    test('Should redirect to check answers page when an amount is given', async () => {
-      const { statusCode, headers } = await injectWithSession(server, {
+    // Where /quantity redirects to depends on the business activities already in
+    // the session, so the earlier step has to be answered first.
+    const postQuantityAfterActivities = async (activities, payload) => {
+      const cookie = await getSessionCookie(server, '/business-activities')
+
+      await server.inject({
+        method: 'POST',
+        url: '/business-activities',
+        payload: { 'business-activities': activities },
+        headers: { cookie }
+      })
+
+      return server.inject({
         method: 'POST',
         url: '/quantity',
-        payload: {
+        payload,
+        headers: { cookie }
+      })
+    }
+
+    test('Should redirect to check answers page when an amount is given and the only activity is selling amateur PPPs', async () => {
+      const { statusCode, headers } = await postQuantityAfterActivities(
+        ['seller-amateur'],
+        {
           'quantity-type': 'amount',
           'quantity-amount': '80000',
           'quantity-area': ''
         }
-      })
+      )
 
       expect(statusCode).toBe(statusCodes.redirect)
       expect(headers.location).toBe('/check-answers')
     })
 
-    test('Should redirect to check answers page when an area is given', async () => {
-      const { statusCode, headers } = await injectWithSession(server, {
-        method: 'POST',
-        url: '/quantity',
-        payload: {
+    test('Should redirect to check answers page when an area is given and the only activity is selling amateur PPPs', async () => {
+      const { statusCode, headers } = await postQuantityAfterActivities(
+        ['seller-amateur'],
+        {
           'quantity-type': 'area',
           'quantity-amount': '',
           'quantity-area': '250'
         }
-      })
+      )
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/check-answers')
+    })
+
+    test('Should redirect to professional sectors page when a professional activity is also selected', async () => {
+      const { statusCode, headers } = await postQuantityAfterActivities(
+        ['seller-amateur', 'manufacture'],
+        {
+          'quantity-type': 'amount',
+          'quantity-amount': '80000',
+          'quantity-area': ''
+        }
+      )
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/professional-sectors')
+    })
+
+    test('Should redirect to professional sectors page when amateur selling is not selected', async () => {
+      const { statusCode, headers } = await postQuantityAfterActivities(
+        ['manufacture'],
+        {
+          'quantity-type': 'amount',
+          'quantity-amount': '80000',
+          'quantity-area': ''
+        }
+      )
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/professional-sectors')
+    })
+
+    test('Should not validate the area when an amount is selected', async () => {
+      const { statusCode, headers } = await postQuantityAfterActivities(
+        ['seller-amateur'],
+        {
+          'quantity-type': 'amount',
+          'quantity-amount': '80000',
+          'quantity-area': 'not a number'
+        }
+      )
 
       expect(statusCode).toBe(statusCodes.redirect)
       expect(headers.location).toBe('/check-answers')
     })
 
     test('Should return view with error message when nothing is selected', async () => {
-      const { result, statusCode } = await server.inject({
+      const { result, statusCode } = await injectWithSession(server, {
         method: 'POST',
         url: '/quantity',
         payload: { 'quantity-type': '' }
@@ -81,7 +141,7 @@ describe('#quantityController', () => {
     })
 
     test('Should return view with error message when the amount is empty', async () => {
-      const { result, statusCode } = await server.inject({
+      const { result, statusCode } = await injectWithSession(server, {
         method: 'POST',
         url: '/quantity',
         payload: {
@@ -96,7 +156,7 @@ describe('#quantityController', () => {
     })
 
     test('Should return view with error message when the area is empty', async () => {
-      const { result, statusCode } = await server.inject({
+      const { result, statusCode } = await injectWithSession(server, {
         method: 'POST',
         url: '/quantity',
         payload: {
@@ -111,7 +171,7 @@ describe('#quantityController', () => {
     })
 
     test('Should return view with error message when the amount is not a number', async () => {
-      const { result, statusCode } = await server.inject({
+      const { result, statusCode } = await injectWithSession(server, {
         method: 'POST',
         url: '/quantity',
         payload: {
@@ -125,23 +185,8 @@ describe('#quantityController', () => {
       expect(statusCode).toBe(statusCodes.ok)
     })
 
-    test('Should not validate the area when an amount is selected', async () => {
-      const { statusCode, headers } = await injectWithSession(server, {
-        method: 'POST',
-        url: '/quantity',
-        payload: {
-          'quantity-type': 'amount',
-          'quantity-amount': '80000',
-          'quantity-area': 'not a number'
-        }
-      })
-
-      expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/check-answers')
-    })
-
     test('Should keep the selected radio and entered value on error', async () => {
-      const { result } = await server.inject({
+      const { result } = await injectWithSession(server, {
         method: 'POST',
         url: '/quantity',
         payload: {

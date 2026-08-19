@@ -9,6 +9,8 @@ import { quantity } from './qualifying-questions/quantity/quantity.js'
 import { checkAnswers } from './amateur-sellers/check-answers/check-answers.js'
 import { confirmation } from './amateur-sellers/confirmation/confirmation.js'
 import { notEligible } from './qualifying-questions/not-eligible/not-eligible.js'
+import { professionalSectors } from './pro-users/professional-sectors/professional-sectors.js'
+import { memberSchemes } from './pro-users/member-schemes/member-schemes.js'
 
 export const routes = [
   home,
@@ -21,7 +23,9 @@ export const routes = [
   quantity,
   checkAnswers,
   confirmation,
-  notEligible
+  notEligible,
+  professionalSectors,
+  memberSchemes
 ]
 
 export default routes
