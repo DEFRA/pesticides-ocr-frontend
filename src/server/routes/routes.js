@@ -14,6 +14,7 @@ import { memberSchemes } from './pro-users/member-schemes/member-schemes.js'
 import { additionalAddresses } from './pro-users/additional-addresses/additional-addresses.js'
 import { additionalBusinessAddress } from './pro-users/additional-business-address/additional-business-address.js'
 import { additionalBusinessContact } from './pro-users/additional-business-contact/additional-business-contact.js'
+import { additionalBusinessActivity } from './pro-users/additional-business-activity/additional-business-activity.js'
 
 export const routes = [
   home,
@@ -31,7 +32,8 @@ export const routes = [
   memberSchemes,
   additionalAddresses,
   additionalBusinessAddress,
-  additionalBusinessContact
+  additionalBusinessContact,
+  additionalBusinessActivity
 ]
 
 export default routes
