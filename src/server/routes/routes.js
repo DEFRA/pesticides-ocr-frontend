@@ -11,6 +11,7 @@ import { confirmation } from './amateur-sellers/confirmation/confirmation.js'
 import { notEligible } from './qualifying-questions/not-eligible/not-eligible.js'
 import { professionalSectors } from './pro-users/professional-sectors/professional-sectors.js'
 import { memberSchemes } from './pro-users/member-schemes/member-schemes.js'
+import { additionalAddresses } from './pro-users/additional-addresses/additional-addresses.js'
 
 export const routes = [
   home,
@@ -25,7 +26,8 @@ export const routes = [
   confirmation,
   notEligible,
   professionalSectors,
-  memberSchemes
+  memberSchemes,
+  additionalAddresses
 ]
 
 export default routes
