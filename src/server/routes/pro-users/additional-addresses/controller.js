@@ -12,6 +12,6 @@ export const post = {
       return h.redirect('/check-answers')
     }
 
-    return h.redirect('/additional-addresses/enter-address')
+    return h.redirect('/additional-addresses/address')
   }
 }

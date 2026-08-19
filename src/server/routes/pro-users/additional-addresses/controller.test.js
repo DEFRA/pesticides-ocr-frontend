@@ -54,13 +54,13 @@ describe('#additionalAddressesController', () => {
         payload
       })
 
-    test('Should redirect to enter-address page when Yes is selected', async () => {
+    test('Should redirect to the address page when Yes is selected', async () => {
       const { statusCode, headers } = await postAddresses({
         'additional-addresses': 'yes'
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/additional-addresses/enter-address')
+      expect(headers.location).toBe('/additional-addresses/address')
     })
 
     test('Should redirect to check-answers page when No is selected', async () => {

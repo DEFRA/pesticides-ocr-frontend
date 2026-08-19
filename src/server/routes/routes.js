@@ -12,6 +12,7 @@ import { notEligible } from './qualifying-questions/not-eligible/not-eligible.js
 import { professionalSectors } from './pro-users/professional-sectors/professional-sectors.js'
 import { memberSchemes } from './pro-users/member-schemes/member-schemes.js'
 import { additionalAddresses } from './pro-users/additional-addresses/additional-addresses.js'
+import { additionalBusinessAddress } from './pro-users/additional-business-address/additional-business-address.js'
 
 export const routes = [
   home,
@@ -27,7 +28,8 @@ export const routes = [
   notEligible,
   professionalSectors,
   memberSchemes,
-  additionalAddresses
+  additionalAddresses,
+  additionalBusinessAddress
 ]
 
 export default routes
