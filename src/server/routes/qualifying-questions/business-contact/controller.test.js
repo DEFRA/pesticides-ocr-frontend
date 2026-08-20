@@ -1,5 +1,6 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
+import { injectWithSession } from '#/test-helpers/session-helpers.js'
 
 describe('#businessContactController', () => {
   let server
@@ -27,7 +28,7 @@ describe('#businessContactController', () => {
 
   describe('POST /business-contact', () => {
     test('Should redirect to address activity page', async () => {
-      const { statusCode, headers } = await server.inject({
+      const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-contact',
         payload: {

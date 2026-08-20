@@ -1,5 +1,6 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
+import { injectWithSession } from '#/test-helpers/session-helpers.js'
 
 describe('#addressActivityController', () => {
   let server
@@ -21,13 +22,16 @@ describe('#addressActivityController', () => {
       })
 
       expect(result).toEqual(expect.stringContaining('Address Activity |'))
+      expect(result).toEqual(
+        expect.stringContaining('Keep records of plant protection products (PPPs)')
+      )
       expect(statusCode).toBe(statusCodes.ok)
     })
   })
 
   describe('POST /address-activity', () => {
     test('Should redirect to quantity page', async () => {
-      const { statusCode, headers } = await server.inject({
+      const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/address-activity',
         payload: { 'address-activities': ['use'] }
