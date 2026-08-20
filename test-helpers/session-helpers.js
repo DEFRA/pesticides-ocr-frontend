@@ -13,3 +13,24 @@ export async function injectWithSession(server, { ...options }) {
     headers: { ...options.headers, cookie }
   })
 }
+
+export function createSessionRequest({ payload, formSession = {} } = {}) {
+  const store = { formSession }
+
+  const request = {
+    payload,
+    yar: {
+      get: (key) => store[key],
+      set: (key, value) => {
+        store[key] = value
+      }
+    }
+  }
+
+  return { request, readSession: () => store.formSession }
+}
+
+export const sessionResponseToolkit = {
+  redirect: (location) => ({ location }),
+  view: (name, context) => ({ name, context })
+}
