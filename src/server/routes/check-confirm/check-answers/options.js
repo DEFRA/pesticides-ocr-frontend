@@ -8,5 +8,5 @@ export const app = {
 export const validate = {
   // TODO: Add validation for the check answers form
   payload: Joi.object({}).unknown(true).allow(null),
-  failAction: viewFailAction('amateur-sellers/check-answers/check-answers')
+  failAction: viewFailAction('check-confirm/check-answers/check-answers')
 }

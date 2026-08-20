@@ -84,7 +84,94 @@ describe('#buildAnswers', () => {
       contactEmail: [],
       addressActivities: [],
       quantity: [],
-      quantityType: undefined
+      quantityType: undefined,
+      professionalSectors: [],
+      memberSchemes: [],
+      additionalAddresses: []
     })
+  })
+
+  test('Should map the professional answers to the labels used on the question pages', () => {
+    const answers = buildAnswers({
+      'professional-sectors': ['agriculture-horticulture', 'forestry'],
+      'member-schemes': ['red-tractor', 'sqc']
+    })
+
+    expect(answers.professionalSectors).toEqual([
+      'Agriculture and horticulture',
+      'Forestry'
+    ])
+    expect(answers.memberSchemes).toEqual([
+      'Red Tractor',
+      'Scottish Quality Crops (SQC)'
+    ])
+  })
+
+  test('Should shape every additional address the same way as the main one', () => {
+    const answers = buildAnswers({
+      'additional-addresses': [
+        {
+          address: {
+            'address-line-1': 'Lowfield Farm',
+            'address-line-2': '',
+            'address-town': 'Leeds',
+            'address-county': '',
+            'address-postcode': 'LS1 1AA'
+          },
+          contact: {
+            'contact-name': 'Jane Doe',
+            'contact-telephone': '01111 222333',
+            'contact-email': 'jane.doe@pesticides.co.uk'
+          },
+          activity: ['store', 'records']
+        }
+      ]
+    })
+
+    expect(answers.additionalAddresses).toEqual([
+      {
+        address: ['Lowfield Farm', 'Leeds', 'LS1 1AA'],
+        contactName: ['Jane Doe'],
+        contactTelephone: ['01111 222333'],
+        contactEmail: ['jane.doe@pesticides.co.uk'],
+        activity: [
+          'Store plant protection products (PPPs) or adjuvants',
+          'Keep records of plant protection products (PPPs)'
+        ]
+      }
+    ])
+  })
+
+  test('Should keep the additional addresses in the order they were added', () => {
+    const answers = buildAnswers({
+      'additional-addresses': [
+        { address: { 'address-line-1': 'Highfield Farm' } },
+        { address: { 'address-line-1': 'Lowfield Farm' } }
+      ]
+    })
+
+    expect(answers.additionalAddresses).toHaveLength(2)
+    expect(answers.additionalAddresses[0].address).toEqual(['Highfield Farm'])
+    expect(answers.additionalAddresses[1].address).toEqual(['Lowfield Farm'])
+  })
+
+  test('Should give every unanswered part of an additional address an empty list', () => {
+    const answers = buildAnswers({ 'additional-addresses': [{}] })
+
+    expect(answers.additionalAddresses).toEqual([
+      {
+        address: [],
+        contactName: [],
+        contactTelephone: [],
+        contactEmail: [],
+        activity: []
+      }
+    ])
+  })
+
+  test('Should give an empty list when the additional address loop was never entered', () => {
+    expect(buildAnswers({}).additionalAddresses).toEqual([])
+    expect(buildAnswers().additionalAddresses).toEqual([])
+    expect(buildAnswers({ 'additional-addresses': [] }).additionalAddresses).toEqual([])
   })
 })

@@ -70,9 +70,61 @@
             key: { text: "Area covered by PPPs in the last year" if isArea else "Quantity of PPPs used in the last year" },
             value: { html: appAnswerList({ values: answers.quantity }) },
             actions: { items: [{ href: "/quantity", text: "Change", visuallyHiddenText: "area covered by PPPs in the last year" if isArea else "quantity of PPPs used in the last year" }] }
-          }
+          },
+          {
+            key: { text: "Main sectors of work" },
+            value: { html: appAnswerList({ values: answers.professionalSectors }) },
+            actions: { items: [{ href: "/professional-sectors", text: "Change", visuallyHiddenText: "main sectors of work" }] }
+          },
+          {
+            key: { text: "Assurance schemes" },
+            value: { html: appAnswerList({ values: answers.memberSchemes }) },
+            actions: { items: [{ href: "/member-schemes", text: "Change", visuallyHiddenText: "assurance schemes" }] }
+          },
+          {
+            key: { text: "Additional addresses" },
+            value: { text: answers.additionalAddresses.length },
+            actions: { items: [{ href: "/additional-addresses", text: "Change", visuallyHiddenText: "additional addresses" }] }
+          } 
         ]
       }) }}
+
+      {% if answers.additionalAddresses.length %}
+        <h2 class="govuk-heading-m">Additional addresses</h2>
+
+        {% for entry in answers.additionalAddresses %}
+          {{ govukSummaryList({
+            card: { title: { text: "Additional address " ~ loop.index } },
+            rows: [
+              { 
+                key: { text: "Address" },
+                value: { html: appAnswerList({ values: entry.address }) },
+                actions: { items: [{ href: "/additional-addresses/address", text: "Change", visuallyHiddenText: "additional address " ~ loop.index }] } 
+              },
+              { 
+                key: { text: "Name" },
+                value: { html: appAnswerList({ values: entry.contactName }) },
+                actions: { items: [{ href: "/additional-addresses/contact", text: "Change", visuallyHiddenText: "name for additional address " ~ loop.index }] } 
+              },
+              { 
+                key: { text: "Email" },
+                value: { html: appAnswerList({ values: entry.contactEmail }) },
+                actions: { items: [{ href: "/additional-addresses/contact", text: "Change", visuallyHiddenText: "email for additional address " ~ loop.index }] } 
+              },
+              { 
+                key: { text: "Telephone" },
+                value: { html: appAnswerList({ values: entry.contactTelephone }) },
+                actions: { items: [{ href: "/additional-addresses/contact", text: "Change", visuallyHiddenText: "telephone for additional address " ~ loop.index }] } 
+              },
+              { 
+                key: { text: "PPP activity" },
+                value: { html: appAnswerList({ values: entry.activity }) },
+                actions: { items: [{ href: "/additional-addresses/activity", text: "Change", visuallyHiddenText: "PPP activity for additional address " ~ loop.index }] } 
+              }
+            ]
+          }) }}
+        {% endfor %}
+      {% endif %}
 
       {{ govukButton({
         text: "Save and continue",
