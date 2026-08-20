@@ -1,5 +1,6 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
+import { injectWithSession } from '#/test-helpers/session-helpers.js'
 
 describe('#businessActivitiesController', () => {
   let server
@@ -21,13 +22,16 @@ describe('#businessActivitiesController', () => {
       })
 
       expect(result).toEqual(expect.stringContaining('Business Activities |'))
+      expect(result).toEqual(
+        expect.stringContaining('Manufacture, process or import')
+      )
       expect(statusCode).toBe(statusCodes.ok)
     })
   })
 
   describe('POST /business-activities', () => {
     test('Should redirect to main customer page', async () => {
-      const { statusCode, headers } = await server.inject({
+      const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-activities',
         payload: { 'business-activities': ['manufacture'] }

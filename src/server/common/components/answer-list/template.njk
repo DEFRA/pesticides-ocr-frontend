@@ -1,0 +1,3 @@
+{%- for value in params.values -%}
+  {{ value }}{% if not loop.last %}<br>{% endif %}
+{%- endfor -%}
