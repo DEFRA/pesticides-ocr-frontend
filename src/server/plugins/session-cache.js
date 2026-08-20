@@ -22,6 +22,11 @@ export const sessionCache = {
       password: sessionConfig.cookie.password,
       ttl: sessionConfig.cookie.ttl,
       isSecure: config.get('session.cookie.secure'),
+      // Live Entra sign-in returns via a cross-site form_post to the callback;
+      // a Lax/Strict cookie isn't sent on that request, losing the OIDC
+      // state/nonce/PKCE. Use SameSite=None when Secure (falls back to Lax
+      // locally where the cookie isn't secure).
+      isSameSite: config.get('session.cookie.secure') ? 'None' : 'Lax',
       clearInvalid: true
     }
   }

@@ -3,6 +3,8 @@ import nunjucks from 'nunjucks'
 import hapiVision from '@hapi/vision'
 import { fileURLToPath } from 'node:url'
 
+import { viewsPath } from '@defra/hapi-oidc-auth'
+
 import { config } from '../config.js'
 import { context } from './context/context.js'
 import * as filters from './filters/filters.js'
@@ -13,7 +15,8 @@ const nunjucksEnvironment = nunjucks.configure(
   [
     'node_modules/govuk-frontend/dist/',
     path.resolve(dirname, '../../server/common/templates'),
-    path.resolve(dirname, '../../server/common/components')
+    path.resolve(dirname, '../../server/common/components'),
+    viewsPath // @defra/hapi-oidc-auth sign-in / account views
   ],
   {
     autoescape: true,
@@ -40,7 +43,7 @@ export const nunjucksConfig = {
       environment: nunjucksEnvironment
     },
     relativeTo: path.resolve(dirname, '../..'),
-    path: 'server/routes',
+    path: ['server/routes', viewsPath],
     isCached: config.get('isProduction'),
     context
   }

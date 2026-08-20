@@ -22,7 +22,18 @@ export function catchAll(request, h) {
     return h.continue
   }
 
-  const statusCode = response.output.statusCode
+  // Plugins (e.g. @defra/hapi-oidc-auth) throw plain errors carrying an intended
+  // `.statusCode` (401/422). Hapi boomifies those to a 500 `output.statusCode`,
+  // so recover the intended client-error code when present.
+  const boomStatus = response.output.statusCode
+  const thrown = response.statusCode
+  const statusCode =
+    boomStatus >= statusCodes.internalServerError &&
+    Number.isInteger(thrown) &&
+    thrown >= statusCodes.badRequest &&
+    thrown < statusCodes.internalServerError
+      ? thrown
+      : boomStatus
   const errorMessage = statusCodeMessage(statusCode)
 
   if (statusCode >= statusCodes.internalServerError) {
