@@ -26,114 +26,101 @@
  * @property {string} status             'Registered' | 'Pending' | 'Suspended'
  */
 
+// Controlled vocabularies for the mock records (the real backend will supply
+// these values; naming them keeps the data consistent and avoids repeated literals).
+const STATUS = { REGISTERED: 'Registered', PENDING: 'Pending', SUSPENDED: 'Suspended' }
+const ACTIVITY = { USE: 'Use PPPs', STORE: 'Store PPPs', RECORDS: 'Keep records' }
+const COUNTRY = { ENGLAND: 'England', WALES: 'Wales', SCOTLAND: 'Scotland' }
+
+// Build an Operator from a compact row so the shape is declared once, not per
+// record (keeps the mock data DRY).
+const toOperator = ([
+  reference,
+  businessName,
+  activities,
+  mainCustomer,
+  [line1, town, postcode, country],
+  [name, email, telephone],
+  addressActivities,
+  quantity,
+  registeredDate,
+  status
+]) => ({
+  reference,
+  businessName,
+  activities,
+  mainCustomer,
+  address: { line1, town, postcode, country },
+  contact: { name, email, telephone },
+  addressActivities,
+  quantity,
+  registeredDate,
+  status
+})
+
 /** @type {Operator[]} */
 const OPERATORS = [
-  {
-    reference: 'OCR-2026-000101',
-    businessName: 'Pesticides Ltd',
-    activities: ['Manufacture', 'Distribute', 'Sell'],
-    mainCustomer: 'Professional and amateur sellers',
-    address: {
-      line1: 'Highfield Farm',
-      town: 'Farmtown',
-      postcode: 'PH1 1FT',
-      country: 'England'
-    },
-    contact: {
-      name: 'John Smith',
-      email: 'john.smith@pesticides.co.uk',
-      telephone: '01234 567890'
-    },
-    addressActivities: ['Use PPPs', 'Store PPPs'],
-    quantity: '80,000 Kgs',
-    registeredDate: '2026-03-11',
-    status: 'Registered'
-  },
-  {
-    reference: 'OCR-2026-000102',
-    businessName: 'Green Acres Growers',
-    activities: ['Use'],
-    mainCustomer: 'N/A',
-    address: {
-      line1: '2 Meadow Lane',
-      town: 'Cropwell',
-      postcode: 'NG12 3AB',
-      country: 'England'
-    },
-    contact: {
-      name: 'Priya Patel',
-      email: 'priya@greenacres.example',
-      telephone: '0115 900 1234'
-    },
-    addressActivities: ['Use PPPs'],
-    quantity: '3,200 litres',
-    registeredDate: '2026-05-02',
-    status: 'Registered'
-  },
-  {
-    reference: 'OCR-2026-000103',
-    businessName: 'Coastal Crop Supplies',
-    activities: ['Place on the market', 'Sell'],
-    mainCustomer: 'Professional users',
-    address: {
-      line1: 'Unit 7, Dock Road',
-      town: 'Port Haven',
-      postcode: 'SA1 9ZZ',
-      country: 'Wales'
-    },
-    contact: {
-      name: 'Dylan Rhys',
-      email: 'dylan@coastalcrop.example',
-      telephone: '01792 555 010'
-    },
-    addressActivities: ['Store PPPs', 'Keep records'],
-    quantity: '12,000 Kgs',
-    registeredDate: '2026-06-20',
-    status: 'Pending'
-  },
-  {
-    reference: 'OCR-2026-000104',
-    businessName: 'Highland Forestry Co',
-    activities: ['Use'],
-    mainCustomer: 'N/A',
-    address: {
-      line1: 'Glen Estate',
-      town: 'Aviemore',
-      postcode: 'PH22 1QD',
-      country: 'Scotland'
-    },
-    contact: {
-      name: 'Fiona MacLeod',
-      email: 'fiona@highlandforestry.example',
-      telephone: '01479 555 200'
-    },
-    addressActivities: ['Use PPPs'],
-    quantity: '900 litres',
-    registeredDate: '2026-01-30',
-    status: 'Suspended'
-  },
-  {
-    reference: 'OCR-2026-000105',
-    businessName: 'Amateur Garden Store',
-    activities: ['Sell amateur'],
-    mainCustomer: 'Amateur users',
-    address: {
-      line1: '14 High Street',
-      town: 'Marketon',
-      postcode: 'LN2 4CD',
-      country: 'England'
-    },
-    contact: {
-      name: 'Sam Taylor',
-      email: 'sam@gardenstore.example',
-      telephone: '01522 555 300'
-    },
-    addressActivities: ['Store PPPs'],
-    quantity: '450 Kgs',
-    registeredDate: '2026-07-14',
-    status: 'Registered'
-  }
-]
+  [
+    'OCR-2026-000101',
+    'Pesticides Ltd',
+    ['Manufacture', 'Distribute', 'Sell'],
+    'Professional and amateur sellers',
+    ['Highfield Farm', 'Farmtown', 'PH1 1FT', COUNTRY.ENGLAND],
+    ['John Smith', 'john.smith@pesticides.co.uk', '01234 567890'],
+    [ACTIVITY.USE, ACTIVITY.STORE],
+    '80,000 Kgs',
+    '2026-03-11',
+    STATUS.REGISTERED
+  ],
+  [
+    'OCR-2026-000102',
+    'Green Acres Growers',
+    ['Use'],
+    'N/A',
+    ['2 Meadow Lane', 'Cropwell', 'NG12 3AB', COUNTRY.ENGLAND],
+    ['Priya Patel', 'priya@greenacres.example', '0115 900 1234'],
+    [ACTIVITY.USE],
+    '3,200 litres',
+    '2026-05-02',
+    STATUS.REGISTERED
+  ],
+  [
+    'OCR-2026-000103',
+    'Coastal Crop Supplies',
+    ['Place on the market', 'Sell'],
+    'Professional users',
+    ['Unit 7, Dock Road', 'Port Haven', 'SA1 9ZZ', COUNTRY.WALES],
+    ['Dylan Rhys', 'dylan@coastalcrop.example', '01792 555 010'],
+    [ACTIVITY.STORE, ACTIVITY.RECORDS],
+    '12,000 Kgs',
+    '2026-06-20',
+    STATUS.PENDING
+  ],
+  [
+    'OCR-2026-000104',
+    'Highland Forestry Co',
+    ['Use'],
+    'N/A',
+    ['Glen Estate', 'Aviemore', 'PH22 1QD', COUNTRY.SCOTLAND],
+    ['Fiona MacLeod', 'fiona@highlandforestry.example', '01479 555 200'],
+    [ACTIVITY.USE],
+    '900 litres',
+    '2026-01-30',
+    STATUS.SUSPENDED
+  ],
+  [
+    'OCR-2026-000105',
+    'Amateur Garden Store',
+    ['Sell amateur'],
+    'Amateur users',
+    ['14 High Street', 'Marketon', 'LN2 4CD', COUNTRY.ENGLAND],
+    ['Sam Taylor', 'sam@gardenstore.example', '01522 555 300'],
+    [ACTIVITY.STORE],
+    '450 Kgs',
+    '2026-07-14',
+    STATUS.REGISTERED
+  ]
+].map(toOperator)
 
 const includesCi = (haystack, needle) =>
   String(haystack).toLowerCase().includes(needle)
@@ -185,7 +172,7 @@ const CSV_COLUMNS = [
 ]
 
 // Quote a CSV field and escape embedded quotes (RFC 4180).
-const csvCell = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`
+const csvCell = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`
 
 /**
  * Render operators as CSV (Export API). CSV opens directly in Excel; a true
