@@ -1,7 +1,48 @@
+@use "govuk-frontend" as *;
 @use "variables/colours" as *;
 
 // Example namespaced custom element style CSS classes
 
 .app-header {
   border-bottom-color: $app-light-grey;
+}
+
+// Lay the logo and the signed-in account block on one row in the blue bar.
+.app-header__container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+// Signed-in account block, pushed to the right of the GOV.UK header bar.
+.app-account-nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  color: govuk-colour("white");
+}
+
+.app-account-nav__link,
+.app-account-nav__signout {
+  display: inline-flex;
+  align-items: center;
+  color: govuk-colour("white");
+  font-weight: bold;
+
+  &:link,
+  &:visited,
+  &:hover,
+  &:active {
+    color: govuk-colour("white");
+  }
+}
+
+.app-account-nav__signout {
+  margin-left: govuk-spacing(4);
+}
+
+.app-account-nav__icon {
+  margin-right: 5px;
+  flex: 0 0 auto;
+  fill: govuk-colour("white");
 }

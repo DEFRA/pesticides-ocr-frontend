@@ -283,6 +283,12 @@ export const config = convict({
       format: String,
       default: '/',
       env: 'ENTRA_POST_SIGN_OUT_REDIRECT'
+    },
+    mockDisplayName: {
+      doc: 'Display name for the mock case-officer identity (mock mode only, local demo / UCD). Override per-machine via ENTRA_MOCK_DISPLAY_NAME in .env.',
+      format: String,
+      default: 'Case Officer',
+      env: 'ENTRA_MOCK_DISPLAY_NAME'
     }
   },
   tracing: {
