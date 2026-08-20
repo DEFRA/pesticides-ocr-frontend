@@ -15,6 +15,7 @@ import { additionalAddresses } from './pro-users/additional-addresses/additional
 import { additionalBusinessAddress } from './pro-users/additional-business-address/additional-business-address.js'
 import { additionalBusinessContact } from './pro-users/additional-business-contact/additional-business-contact.js'
 import { additionalBusinessActivity } from './pro-users/additional-business-activity/additional-business-activity.js'
+import { checkAdditionalAddress } from './pro-users/check-additional-address/check-additional-address.js'
 
 export const routes = [
   home,
@@ -33,7 +34,8 @@ export const routes = [
   additionalAddresses,
   additionalBusinessAddress,
   additionalBusinessContact,
-  additionalBusinessActivity
+  additionalBusinessActivity,
+  checkAdditionalAddress
 ]
 
 export default routes
