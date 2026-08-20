@@ -77,11 +77,11 @@ export async function createServer() {
           publicBaseUrl: config.get('entra.publicBaseUrl'),
           redirectPath: config.get('entra.redirectPath'),
           signOutRedirectUrl: config.get('entra.signOutRedirectUrl'),
-          roleValues: config.get('entra.roleValue')
+          roleValues: config.get('entra.roleValues')
         },
         redirects: {
           postLogin: config.get('entra.postLoginRedirect'),
-          signOut: '/'
+          signOut: config.get('entra.postSignOutRedirect')
         }
       }
     },

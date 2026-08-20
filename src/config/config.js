@@ -266,8 +266,8 @@ export const config = convict({
       default: '/',
       env: 'ENTRA_SIGN_OUT_REDIRECT_URL'
     },
-    roleValue: {
-      doc: 'Entra app-role value that grants case-officer access',
+    roleValues: {
+      doc: 'Entra app-role value(s) that grant case-officer access',
       format: String,
       default: 'case_officer',
       env: 'ENTRA_CASE_OFFICER_ROLE_VALUE'
@@ -277,6 +277,12 @@ export const config = convict({
       format: String,
       default: '/dashboard',
       env: 'ENTRA_POST_LOGIN_REDIRECT'
+    },
+    postSignOutRedirect: {
+      doc: 'Where a user lands after signing out locally',
+      format: String,
+      default: '/',
+      env: 'ENTRA_POST_SIGN_OUT_REDIRECT'
     }
   },
   tracing: {
