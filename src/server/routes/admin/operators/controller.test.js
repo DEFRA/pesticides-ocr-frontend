@@ -62,6 +62,17 @@ describe('#adminOperators (EQ-227)', () => {
     expect(result).not.toEqual(expect.stringContaining('Pesticides Ltd'))
   })
 
+  test('an over-length search is rejected and falls back to the unfiltered list', async () => {
+    const { statusCode, headers } = await server.inject({
+      method: 'GET',
+      url: `/admin/operators?search=${'a'.repeat(101)}`,
+      headers: { cookie }
+    })
+
+    expect(statusCode).toBe(statusCodes.redirect)
+    expect(headers.location).toBe('/admin/operators')
+  })
+
   test('exports the (filtered) operators as a CSV download', async () => {
     const res = await server.inject({
       method: 'GET',

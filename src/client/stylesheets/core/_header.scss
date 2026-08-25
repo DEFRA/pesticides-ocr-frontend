@@ -7,16 +7,18 @@
   border-bottom-color: $app-light-grey;
 }
 
-// Lay the logo and the signed-in account block on one row in the blue bar.
-.app-header__container {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+// Overlay the signed-in account block onto the govukHeader blue bar without
+// replacing the macro's markup: the wrapper is the positioning context and the
+// account block is absolutely positioned into the top-right of the bar.
+.app-header-wrapper {
+  position: relative;
 }
 
-// Signed-in account block, pushed to the right of the GOV.UK header bar.
 .app-account-nav {
-  margin-left: auto;
+  position: absolute;
+  top: 0;
+  right: govuk-spacing(3);
+  height: 50px;
   display: flex;
   align-items: center;
   color: govuk-colour("white");
