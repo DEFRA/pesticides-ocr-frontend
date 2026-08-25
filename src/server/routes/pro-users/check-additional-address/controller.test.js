@@ -282,13 +282,13 @@ describe('#checkAdditionalAddressController', () => {
     })
   })
 
-  describe('POST /check-additional-address/remove', () => {
+  describe('GET /check-additional-address/remove', () => {
     test('Should remove the address that was just entered', async () => {
       const cookie = await newSessionCookie()
       await addAnAddress(cookie)
 
       const { statusCode, headers } = await server.inject({
-        method: 'POST',
+        method: 'GET',
         url: '/check-additional-address/remove',
         headers: { cookie }
       })
@@ -309,7 +309,7 @@ describe('#checkAdditionalAddressController', () => {
       })
 
       await server.inject({
-        method: 'POST',
+        method: 'GET',
         url: '/check-additional-address/remove',
         headers: { cookie }
       })
@@ -325,7 +325,7 @@ describe('#checkAdditionalAddressController', () => {
       const cookie = await newSessionCookie()
 
       const { statusCode, headers } = await server.inject({
-        method: 'POST',
+        method: 'GET',
         url: '/check-additional-address/remove',
         headers: { cookie }
       })

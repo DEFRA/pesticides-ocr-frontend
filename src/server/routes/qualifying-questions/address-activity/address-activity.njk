@@ -24,7 +24,7 @@
           }
         },
         hint: {
-          text: "Select all that apply for "~ currentAddressLineOne ~ ".",
+          text: "Select all that apply for " ~ currentAddressLineOne ~ "." if currentAddressLineOne else "Select all that apply.",
           classes: "govuk-!-margin-bottom-6"
         },
         errorMessage: errors["address-activities"] if errors["address-activities"],
