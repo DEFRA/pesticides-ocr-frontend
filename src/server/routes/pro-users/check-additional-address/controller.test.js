@@ -131,20 +131,21 @@ describe('#checkAdditionalAddressController', () => {
       expect(result).not.toEqual(expect.stringContaining('Highfield Farm'))
     })
 
-    test('Should point the Change links at the loop steps', async () => {
+    test('Should show Change actions that are not yet wired up', async () => {
       const cookie = await newSessionCookie()
       await addAnAddress(cookie)
 
       const { result } = await checkPage(cookie)
 
-      expect(result).toEqual(
-        expect.stringContaining('href="/additional-addresses/address"')
+      expect(result).toEqual(expect.stringContaining('href="#">Change'))
+      expect(result).not.toEqual(
+        expect.stringContaining('href="/additional-addresses/address">Change')
       )
-      expect(result).toEqual(
-        expect.stringContaining('href="/additional-addresses/contact"')
+      expect(result).not.toEqual(
+        expect.stringContaining('href="/additional-addresses/contact">Change')
       )
-      expect(result).toEqual(
-        expect.stringContaining('href="/additional-addresses/activity"')
+      expect(result).not.toEqual(
+        expect.stringContaining('href="/additional-addresses/activity">Change')
       )
     })
 
