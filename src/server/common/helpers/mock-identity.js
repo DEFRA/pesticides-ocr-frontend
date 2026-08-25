@@ -1,3 +1,4 @@
+import { config } from '#/config/config.js'
 import { getAuthSession } from '@defra/hapi-oidc-auth'
 
 // The yar key the auth plugin stores its session under (its internal
@@ -9,6 +10,14 @@ export const AUTH_SESSION_KEY = 'auth'
 // configured display name so the header and the account page agree. Live mode is
 // authoritative and must never be touched.
 export function applyMockIdentity(request, displayName) {
+  // Defence-in-depth: never mutate a session outside mock mode, regardless of
+  // the caller. This guards against a misconfigured ENTRA_AUTH_MODE or this
+  // helper being invoked from an unexpected code path — otherwise it would
+  // silently overwrite a real Entra user's name in live.
+  if (config.get('entra.mode') !== 'mock') {
+    return
+  }
+
   if (!request?.yar) {
     return
   }

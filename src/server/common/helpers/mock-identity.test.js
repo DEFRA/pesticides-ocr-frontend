@@ -1,5 +1,6 @@
 import { vi } from 'vitest'
 
+import { config } from '#/config/config.js'
 import { applyMockIdentity, AUTH_SESSION_KEY } from './mock-identity.js'
 
 // A minimal yar stub backed by a plain object, mirroring how @hapi/yar stores
@@ -63,5 +64,18 @@ describe('#applyMockIdentity', () => {
         lastName: ''
       })
     )
+  })
+
+  test('does nothing in live mode, even for a signed-in user (defence-in-depth)', () => {
+    // Spy rather than mutate the shared config singleton, so live mode can't
+    // leak into other test files. applyMockIdentity only reads 'entra.mode'.
+    const spy = vi.spyOn(config, 'get').mockReturnValue('live')
+    try {
+      const request = fakeRequest({ isAuthenticated: true, name: 'Real User' })
+      applyMockIdentity(request, displayName)
+      expect(request.yar.set).not.toHaveBeenCalled()
+    } finally {
+      spy.mockRestore()
+    }
   })
 })
