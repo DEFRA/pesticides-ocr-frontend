@@ -8,7 +8,7 @@ export const get = {
 export const post = {
   handler(request, h) {
     const payload = request.payload
-    const formSession = request.yar.get('formSession')
+    const formSession = request.yar.get('formSession') ?? {}
     const quantity = payload['quantity-type'] === 'amount' ? payload['quantity-amount'] : payload['quantity-area']
 
     formSession['quantity'] = { 'quantity-type': payload['quantity-type'], quantity }

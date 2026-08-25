@@ -3,9 +3,10 @@ import { getSession } from '#/server/common/helpers/get-session.js'
 export const get = {
   handler(request, h) {
     request.yar.set('formSession', getSession(request, 'formSession'))
-    return h.view(
-      'pro-users/additional-business-activity/additional-business-activity'
-    )
+
+    const currentAddressLineOne = getSession(request, 'formSession')['additional-addresses']?.at(-1)['address']['address-line-1']
+
+    return h.view('pro-users/additional-business-activity/additional-business-activity', { currentAddressLineOne })
   }
 }
 
