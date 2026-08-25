@@ -5,6 +5,8 @@ import { operatorsController, operatorsExportController } from './controller.js'
 import { app } from './options.js'
 
 const MAX_SEARCH_LENGTH = 100
+const OPERATORS_PATH = '/admin/operators'
+const OPERATORS_EXPORT_PATH = `${OPERATORS_PATH}/export`
 
 // Bound the search query before it reaches the (future) backend API: a trimmed
 // string, optional/empty allowed, capped length; unknown query params stripped.
@@ -19,7 +21,7 @@ const validate = {
     search: Joi.string().trim().max(MAX_SEARCH_LENGTH).allow('').default('')
   }),
   options: { stripUnknown: true },
-  failAction: (_request, h) => h.redirect('/admin/operators').takeover()
+  failAction: (_request, h) => h.redirect(OPERATORS_PATH).takeover()
 }
 
 // Enforcement-officer / admin view of registered operators (EQ-227). Both routes
@@ -31,7 +33,7 @@ export const adminOperators = {
       server.route([
         {
           method: 'GET',
-          path: '/admin/operators',
+          path: OPERATORS_PATH,
           ...operatorsController,
           options: {
             app,
@@ -41,7 +43,7 @@ export const adminOperators = {
         },
         {
           method: 'GET',
-          path: '/admin/operators/export',
+          path: OPERATORS_EXPORT_PATH,
           ...operatorsExportController,
           options: {
             app,
