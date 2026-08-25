@@ -73,6 +73,33 @@ describe('#adminOperators (EQ-227)', () => {
     expect(headers.location).toBe('/admin/operators')
   })
 
+  test('shows the empty state when nothing matches the search', async () => {
+    const { statusCode, result } = await server.inject({
+      method: 'GET',
+      url: '/admin/operators?search=zzzznomatch',
+      headers: { cookie }
+    })
+
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result).toEqual(
+      expect.stringContaining('No operators match your search')
+    )
+    expect(result).not.toEqual(expect.stringContaining('Pesticides Ltd'))
+  })
+
+  test('an over-length search from an unauthenticated visitor never leaks operator data', async () => {
+    // Query validation (and its failAction) runs before requireAuthorised, so
+    // verify the pre-auth failAction only redirects and never emits operator data.
+    const { statusCode, result, headers } = await server.inject({
+      method: 'GET',
+      url: `/admin/operators?search=${'a'.repeat(101)}`
+    })
+
+    expect(statusCode).toBe(statusCodes.redirect)
+    expect(headers.location).toBe('/admin/operators')
+    expect(result).not.toEqual(expect.stringContaining('Pesticides Ltd'))
+  })
+
   test('exports the (filtered) operators as a CSV download', async () => {
     const res = await server.inject({
       method: 'GET',

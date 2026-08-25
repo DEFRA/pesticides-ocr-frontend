@@ -71,4 +71,29 @@ describe('#toCsv', () => {
     ])
     expect(csv).toContain('"A ""B"" C"')
   })
+
+  test('neutralises spreadsheet formula injection with a leading quote', () => {
+    const csv = toCsv([
+      {
+        reference: 'X',
+        businessName: '=HYPERLINK("http://evil.example","x")',
+        activities: [],
+        mainCustomer: '',
+        address: { town: '', postcode: '', country: '' },
+        contact: { name: '', email: '', telephone: '' },
+        addressActivities: [],
+        quantity: '',
+        registeredDate: '',
+        status: ''
+      }
+    ])
+    // Prefixed with ' so Excel/Sheets treats it as text, not a formula.
+    expect(csv).toContain('"\'=HYPERLINK(')
+  })
+
+  test('does not throw when contact/address/activities are missing', () => {
+    expect(() =>
+      toCsv([{ reference: 'X', businessName: 'No nested fields' }])
+    ).not.toThrow()
+  })
 })

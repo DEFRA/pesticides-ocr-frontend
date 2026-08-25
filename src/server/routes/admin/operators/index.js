@@ -9,6 +9,11 @@ const MAX_SEARCH_LENGTH = 100
 // Bound the search query before it reaches the (future) backend API: a trimmed
 // string, optional/empty allowed, capped length; unknown query params stripped.
 // An invalid/oversized query falls back to the unfiltered list rather than a 400.
+//
+// NOTE: Hapi runs query validation (and this failAction) BEFORE route `pre`
+// handlers, i.e. before `requireAuthorised`. So this must stay a side-effect-free
+// unconditional local redirect only — never log/reflect the raw query or emit
+// any operator data here, or it becomes a pre-auth information-disclosure path.
 const validate = {
   query: Joi.object({
     search: Joi.string().trim().max(MAX_SEARCH_LENGTH).allow('').default('')

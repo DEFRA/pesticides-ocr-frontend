@@ -156,23 +156,35 @@ export async function getOperatorById(reference) {
   return OPERATORS.find((op) => op.reference === reference) ?? null
 }
 
+// Getters are null-safe so real backend data with a missing contact/address/
+// activities can't 500 the export (the grid tolerates gaps; the CSV must too).
 const CSV_COLUMNS = [
   ['Reference', (op) => op.reference],
   ['Business name', (op) => op.businessName],
   ['Registered date', (op) => op.registeredDate],
-  ['Activities', (op) => op.activities.join('; ')],
+  ['Activities', (op) => (op.activities ?? []).join('; ')],
   ['Main customer', (op) => op.mainCustomer],
-  ['Contact name', (op) => op.contact.name],
-  ['Email', (op) => op.contact.email],
-  ['Telephone', (op) => op.contact.telephone],
-  ['Town', (op) => op.address.town],
-  ['Postcode', (op) => op.address.postcode],
-  ['Country', (op) => op.address.country],
+  ['Contact name', (op) => op.contact?.name],
+  ['Email', (op) => op.contact?.email],
+  ['Telephone', (op) => op.contact?.telephone],
+  ['Town', (op) => op.address?.town],
+  ['Postcode', (op) => op.address?.postcode],
+  ['Country', (op) => op.address?.country],
   ['Status', (op) => op.status]
 ]
 
-// Quote a CSV field and escape embedded quotes (RFC 4180).
-const csvCell = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`
+// Formula-injection prefixes: a cell starting with any of these is treated as a
+// formula by Excel/Sheets. Prefix such values with a single quote so they render
+// as text — matters once operator-supplied names flow through this seam.
+const CSV_FORMULA_PREFIXES = /^[=+\-@\t\r]/
+
+// Quote a CSV field (RFC 4180), escape embedded quotes, and neutralise formula
+// injection.
+const csvCell = (value) => {
+  const raw = String(value ?? '')
+  const safe = CSV_FORMULA_PREFIXES.test(raw) ? `'${raw}` : raw
+  return `"${safe.replaceAll('"', '""')}"`
+}
 
 /**
  * Render operators as CSV (Export API). CSV opens directly in Excel; a true
