@@ -1,0 +1,59 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% set backLink = "/professional-sectors" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <form method="post" action="/member-schemes" novalidate>
+
+      {{ govukCheckboxes({
+        name: "member-schemes",
+        fieldset: {
+          legend: {
+            text: "Are you a member of any official assurance schemes at this address? (optional)",
+            isPageHeading: true,
+            classes: "govuk-fieldset__legend--l govuk-!-margin-bottom-6"
+          }
+        },
+        hint: {
+          text: "Select all that apply",
+          classes: "govuk-!-margin-bottom-6"
+        },
+        errorMessage: errors["member-schemes"] if errors["member-schemes"],
+        items: items
+      }) }}
+
+      <h4 class="govuk-heading-s govuk-!-margin-top-6">or</h4>
+
+      {{ govukTextarea({
+        name: "member-schemes-other",
+        id: "member-schemes-other",
+        label: {
+          text: "Other",
+          classes: "govuk-!-margin-bottom-3"
+        },
+        hint: {
+          text: "Enter the name of the assurance schemes you are a member of if not shown"
+        },
+        errorMessage: errors["member-schemes-other"] if errors["member-schemes-other"]
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        type: "submit"
+      }) }}
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}

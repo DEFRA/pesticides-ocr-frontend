@@ -1,33 +1,33 @@
 {% extends 'layouts/page.njk' %}
 
-{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
-{% set backLink = "/business-contact" %}
+{% set backLink = "/member-schemes" %}
 
 {% block content %}
 <div class="govuk-grid-row">
-
   <div class="govuk-grid-column-full">
+
     {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
 
-    <form method="post" action="/address-activity" novalidate>
+    <form method="post" action="/additional-addresses" novalidate>
 
-      {{ govukCheckboxes({
-        name: "address-activities",      
+      {{ govukRadios({
+        name: "additional-addresses",
         fieldset: {
           legend: {
-            text: "What does your business do at this address?",
+            text: "Do you need to add any additional business addresses?",
             isPageHeading: true,
             classes: "govuk-fieldset__legend--l govuk-!-margin-bottom-6"
           }
         },
         hint: {
-          text: "Select all that apply for " ~ currentAddressLineOne ~ "." if currentAddressLineOne else "Select all that apply.",
+          text: "You must register any additional address where you store PPPs and adjuvants. Do not add addresses where you store or apply PPPs for clients on their land.",
           classes: "govuk-!-margin-bottom-6"
         },
-        errorMessage: errors["address-activities"] if errors["address-activities"],
+        errorMessage: errors["additional-addresses"] if errors["additional-addresses"],
         items: items
       }) }}
 
@@ -40,5 +40,4 @@
 
   </div>
 </div>
-
 {% endblock %}

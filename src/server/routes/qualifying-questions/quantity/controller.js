@@ -14,6 +14,11 @@ export const post = {
     formSession['quantity'] = { 'quantity-type': payload['quantity-type'], quantity }
     request.yar.set('formSession', formSession)
 
-    return h.redirect('/check-answers')
+    if (formSession['business-activities'].length === 1 &&
+        formSession['business-activities'][0] === 'seller-amateur') {
+      return h.redirect('/check-answers')
+    }
+
+    return h.redirect('/professional-sectors')
   }
 }

@@ -1,0 +1,90 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "answer-list/macro.njk" import appAnswerList %}
+
+{% set backLink = "/additional-addresses/activity" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <h1 class="govuk-heading-l">Additional business addresses</h1>
+
+    {% if address %}
+    <div class="govuk-!-margin-bottom-6">
+
+      {{ govukSummaryList({
+          card: {
+            title: { 
+              text: "Additional address details" 
+            },
+            actions : {
+              items: [
+                {
+                  href: "/check-additional-address/remove",
+                  text: "Remove"
+                }
+              ]
+            }
+          },
+          rows: [
+            {
+              key: { text: "Address" },
+              value: { html: appAnswerList({ values: address.address }) },
+              actions: { items: [{ href: "#", text: "Change", visuallyHiddenText: "address" }] }
+            },
+            {
+              key: { text: "Name" },
+              value: { html: appAnswerList({ values: address.contactName }) },
+              actions: { items: [{ href: "#", text: "Change", visuallyHiddenText: "name" }] }
+            },
+            {
+              key: { text: "Email" },
+              value: { html: appAnswerList({ values: address.contactEmail }) },
+              actions: { items: [{ href: "#", text: "Change", visuallyHiddenText: "email" }] }
+            },
+            {
+              key: { text: "Telephone" },
+              value: { html: appAnswerList({ values: address.contactTelephone }) },
+              actions: { items: [{ href: "#", text: "Change", visuallyHiddenText: "telephone" }] }
+            },
+            {
+              key: { text: "PPP activity" },
+              value: { html: appAnswerList({ values: address.activity }) },
+              actions: { items: [{ href: "#", text: "Change", visuallyHiddenText: "PPP activity" }] }
+            }
+          ]
+        }) }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="/check-additional-address" novalidate>
+
+      {{ govukRadios({
+        name: "check-additional-address",
+        fieldset: {
+          legend: {
+            text: "Do you want to add another address?",
+            classes: "govuk-fieldset__legend--m"
+          }
+        },
+        errorMessage: errors["check-additional-address"] if errors["check-additional-address"],
+        items: items
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        type: "submit"
+      }) }}
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}

@@ -4,18 +4,17 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
-{% set backLink = "/business-contact" %}
+{% set backLink = "/additional-addresses/contact" %}
 
 {% block content %}
 <div class="govuk-grid-row">
-
   <div class="govuk-grid-column-full">
     {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
 
-    <form method="post" action="/address-activity" novalidate>
+    <form method="post" action="/additional-addresses/activity" novalidate>
 
       {{ govukCheckboxes({
-        name: "address-activities",      
+        name: "address-activities",
         fieldset: {
           legend: {
             text: "What does your business do at this address?",
@@ -24,7 +23,7 @@
           }
         },
         hint: {
-          text: "Select all that apply for " ~ currentAddressLineOne ~ "." if currentAddressLineOne else "Select all that apply.",
+          text: "Select all that apply for " ~ currentAddressLineOne ~ ".",
           classes: "govuk-!-margin-bottom-6"
         },
         errorMessage: errors["address-activities"] if errors["address-activities"],

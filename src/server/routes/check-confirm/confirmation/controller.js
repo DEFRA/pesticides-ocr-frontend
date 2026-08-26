@@ -22,7 +22,7 @@ export const get = {
       request.yar.set('formSession', formSession)
     }
 
-    return h.view('amateur-sellers/confirmation/confirmation', {
+    return h.view('check-confirm/confirmation/confirmation', {
       reference
     })
   }
