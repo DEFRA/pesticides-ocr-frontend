@@ -11,7 +11,12 @@ async function signInCaseOfficer(server) {
     headers: { cookie: startCookie }
   })
   const setCookie = callback.headers['set-cookie']
-  return (setCookie ? setCookie[0] : startCookie).split(';')[0]
+  // Fail loudly rather than silently falling back to the pre-auth cookie, which
+  // would let a broken sign-in flow masquerade as authenticated in the tests.
+  if (!setCookie?.length) {
+    throw new Error('Expected a session cookie after the OIDC callback')
+  }
+  return setCookie[0].split(';')[0]
 }
 
 // The header sign-out is security-relevant: @defra/hapi-oidc-auth 0.3.0 makes
