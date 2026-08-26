@@ -15,6 +15,21 @@ import { secureContext } from '@defra/hapi-secure-context'
 import { contentSecurityPolicy } from './plugins/content-security-policy.js'
 import { metrics } from '@defra/cdp-metrics'
 import { hapiOidcAuth } from '@defra/hapi-oidc-auth'
+import { applyMockIdentity } from './common/helpers/mock-identity.js'
+
+// In mock mode, normalise the signed-in demo identity to the configured display
+// name so the header and the account page agree (see mock-identity.js). No-op in
+// live mode, where the real Entra identity is authoritative.
+function registerMockIdentity(server) {
+  if (config.get('entra.mode') !== 'mock') {
+    return
+  }
+  const mockDisplayName = config.get('entra.mockDisplayName')
+  server.ext('onPostAuth', (request, h) => {
+    applyMockIdentity(request, mockDisplayName)
+    return h.continue
+  })
+}
 
 export async function createServer() {
   const server = hapi.server({
@@ -87,6 +102,8 @@ export async function createServer() {
     },
     router // Register all the controllers/routes defined in src/server/router.js
   ])
+
+  registerMockIdentity(server)
 
   server.ext('onPreResponse', catchAll)
 

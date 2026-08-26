@@ -1,7 +1,50 @@
+@use "govuk-frontend" as *;
 @use "variables/colours" as *;
 
 // Example namespaced custom element style CSS classes
 
 .app-header {
   border-bottom-color: $app-light-grey;
+}
+
+// Overlay the signed-in account block onto the govukHeader blue bar without
+// replacing the macro's markup: the wrapper is the positioning context and the
+// account block is absolutely positioned into the top-right of the bar.
+.app-header-wrapper {
+  position: relative;
+}
+
+.app-account-nav {
+  position: absolute;
+  top: 0;
+  right: govuk-spacing(3);
+  height: 50px;
+  display: flex;
+  align-items: center;
+  color: govuk-colour("white");
+}
+
+.app-account-nav__link,
+.app-account-nav__signout {
+  display: inline-flex;
+  align-items: center;
+  color: govuk-colour("white");
+  font-weight: bold;
+
+  &:link,
+  &:visited,
+  &:hover,
+  &:active {
+    color: govuk-colour("white");
+  }
+}
+
+.app-account-nav__signout {
+  margin-left: govuk-spacing(4);
+}
+
+.app-account-nav__icon {
+  margin-right: 5px;
+  flex: 0 0 auto;
+  fill: govuk-colour("white");
 }

@@ -1,9 +1,6 @@
-import { buildAccount } from '@defra/hapi-oidc-auth'
-
 export const dashboardController = {
-  handler(request, h) {
-    return h.view('dashboard/index', {
-      account: buildAccount(request)
-    })
+  handler(_request, h) {
+    // `account` is provided globally by the nunjucks context.
+    return h.view('dashboard/index')
   }
 }

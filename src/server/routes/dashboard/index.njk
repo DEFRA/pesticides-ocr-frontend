@@ -14,11 +14,12 @@
 
     <p class="govuk-body">This is a protected case-officer area for the OCR register.</p>
 
-    {% if account.signOutUrl %}
-      <p class="govuk-body">
-        <a class="govuk-link" href="{{ account.signOutUrl }}">Sign out</a>
-      </p>
-    {% endif %}
+    <ul class="govuk-list">
+      <li>
+        <a class="govuk-link" href="/admin/operators">View registered operators</a>
+        — search, view and export the operators on the register.
+      </li>
+    </ul>
 
   </div>
 </div>
