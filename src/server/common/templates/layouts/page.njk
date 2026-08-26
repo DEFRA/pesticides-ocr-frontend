@@ -42,7 +42,11 @@
           </svg>
           <span>{{ account.name }}</span>
         </a>
-        <a class="app-account-nav__signout" href="{{ account.signOutUrl }}">Sign out</a>
+        {# Sign-out is POST-only (CSRF) in @defra/hapi-oidc-auth 0.3.0; submit
+           via a form, not a GET link. #}
+        <form class="app-account-nav__signout-form" method="post" action="{{ account.signOutUrl }}">
+          <button type="submit" class="app-account-nav__signout" data-testid="header-sign-out">Sign out</button>
+        </form>
       </div>
     {% endif %}
   </div>

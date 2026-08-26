@@ -24,6 +24,8 @@
   color: govuk-colour("white");
 }
 
+// Shared visual treatment for the account link and the sign-out control so the
+// two read identically in the blue bar.
 .app-account-nav__link,
 .app-account-nav__signout {
   display: inline-flex;
@@ -31,16 +33,34 @@
   color: govuk-colour("white");
   font-weight: bold;
 
-  &:link,
-  &:visited,
   &:hover,
   &:active {
     color: govuk-colour("white");
   }
 }
 
+.app-account-nav__link {
+  &:link,
+  &:visited {
+    color: govuk-colour("white");
+  }
+}
+
+// Sign-out is POST-only (CSRF), so it is a form-submit button styled to match
+// the account link rather than an anchor: strip the native button chrome.
 .app-account-nav__signout {
-  margin-left: govuk-spacing(4);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: bold; // re-assert: `font: inherit` above resets it
+  cursor: pointer;
+}
+
+.app-account-nav__signout-form {
+  margin: 0 0 0 govuk-spacing(4);
+  display: inline-flex;
+  align-items: center;
 }
 
 .app-account-nav__icon {
