@@ -31,6 +31,7 @@ describe('#errors', () => {
 
 describe('#catchAll', () => {
   const mockErrorLogger = vi.fn()
+  const mockWarnLogger = vi.fn()
   const mockStack = 'Mock error stack'
   const errorPage = 'error/index'
   const mockRequest = (statusCode) => ({
@@ -41,7 +42,11 @@ describe('#catchAll', () => {
         statusCode
       }
     },
-    logger: { error: mockErrorLogger }
+    logger: { error: mockErrorLogger, warn: mockWarnLogger }
+  })
+
+  beforeEach(() => {
+    vi.clearAllMocks()
   })
   const mockToolkitView = vi.fn()
   const mockToolkitCode = vi.fn()
@@ -49,6 +54,22 @@ describe('#catchAll', () => {
     view: mockToolkitView.mockReturnThis(),
     code: mockToolkitCode.mockReturnThis()
   }
+
+  // A request whose Boom response carries a plugin-thrown 4xx `.statusCode`
+  // (which Hapi boomifies to a 500 output) — the recovered-client-error case.
+  const recoveredClientErrorRequest = (
+    message = 'ID token audience mismatch'
+  ) => ({
+    path: '/auth/entra/callback',
+    response: {
+      isBoom: true,
+      stack: mockStack,
+      message,
+      statusCode: statusCodes.unauthorized,
+      output: { statusCode: statusCodes.internalServerError }
+    },
+    logger: { error: mockErrorLogger, warn: mockWarnLogger }
+  })
 
   test('Should provide expected "Not Found" page', () => {
     catchAll(mockRequest(statusCodes.notFound), mockToolkit)
@@ -114,6 +135,7 @@ describe('#catchAll', () => {
     catchAll(mockRequest(statusCodes.internalServerError), mockToolkit)
 
     expect(mockErrorLogger).toHaveBeenCalledWith(mockStack)
+    expect(mockWarnLogger).not.toHaveBeenCalled()
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
       pageTitle: 'Something went wrong',
       heading: statusCodes.internalServerError,
@@ -127,17 +149,7 @@ describe('#catchAll', () => {
   test('Should recover a plugin-thrown client-error .statusCode instead of the boomified 500', () => {
     // @defra/hapi-oidc-auth throws plain errors carrying .statusCode (401/422);
     // Hapi boomifies those to a 500 output, so catchAll must surface the intended code.
-    const request = {
-      response: {
-        isBoom: true,
-        stack: mockStack,
-        statusCode: statusCodes.unauthorized,
-        output: { statusCode: statusCodes.internalServerError }
-      },
-      logger: { error: mockErrorLogger }
-    }
-
-    catchAll(request, mockToolkit)
+    catchAll(recoveredClientErrorRequest(), mockToolkit)
 
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
       pageTitle: 'Unauthorized',
@@ -145,5 +157,59 @@ describe('#catchAll', () => {
       message: 'Unauthorized'
     })
     expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.unauthorized)
+  })
+
+  test('Should log the underlying reason server-side for a recovered client error, without exposing it', () => {
+    catchAll(recoveredClientErrorRequest(), mockToolkit)
+
+    // Reason (and route) logged server-side via warn, not error...
+    expect(mockWarnLogger).toHaveBeenCalledWith(
+      {
+        statusCode: statusCodes.unauthorized,
+        path: '/auth/entra/callback',
+        reason: 'ID token audience mismatch'
+      },
+      'Downstream plugin returned a client error'
+    )
+    expect(mockErrorLogger).not.toHaveBeenCalled()
+    // ...and never rendered into the client-facing page.
+    expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      pageTitle: 'Unauthorized',
+      heading: statusCodes.unauthorized,
+      message: 'Unauthorized'
+    })
+  })
+
+  test('Should NOT warn-log for a genuine boom client error (e.g. 404)', () => {
+    catchAll(mockRequest(statusCodes.notFound), mockToolkit)
+    expect(mockWarnLogger).not.toHaveBeenCalled()
+  })
+
+  test('Should include the error details array in the server-side log when present', () => {
+    const details = ['clientId', 'clientSecret']
+    const request = {
+      path: '/auth/entra/start',
+      response: {
+        isBoom: true,
+        stack: mockStack,
+        message: 'Microsoft Entra live configuration is incomplete',
+        details,
+        statusCode: statusCodes.badRequest,
+        output: { statusCode: statusCodes.internalServerError }
+      },
+      logger: { error: mockErrorLogger, warn: mockWarnLogger }
+    }
+
+    catchAll(request, mockToolkit)
+
+    expect(mockWarnLogger).toHaveBeenCalledWith(
+      {
+        statusCode: statusCodes.badRequest,
+        path: '/auth/entra/start',
+        reason: 'Microsoft Entra live configuration is incomplete',
+        details
+      },
+      'Downstream plugin returned a client error'
+    )
   })
 })
