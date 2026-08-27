@@ -146,6 +146,34 @@ describe('#catchAll', () => {
     )
   })
 
+  test('Should also log the reason (not just the stack) for a plugin-thrown server error', () => {
+    // An upstream 5xx from @defra/hapi-oidc-auth (e.g. a JWKS/discovery gateway
+    // error) boomifies to a generic 500; the message would otherwise be lost.
+    const request = {
+      path: '/auth/entra/callback',
+      response: {
+        isBoom: true,
+        stack: mockStack,
+        message: 'Unable to load Microsoft Entra JWKS',
+        output: { statusCode: statusCodes.internalServerError }
+      },
+      logger: { error: mockErrorLogger, warn: mockWarnLogger }
+    }
+
+    catchAll(request, mockToolkit)
+
+    expect(mockErrorLogger).toHaveBeenCalledWith(mockStack)
+    expect(mockErrorLogger).toHaveBeenCalledWith(
+      {
+        statusCode: statusCodes.internalServerError,
+        path: '/auth/entra/callback',
+        reason: 'Unable to load Microsoft Entra JWKS'
+      },
+      'Plugin returned a server error'
+    )
+    expect(mockWarnLogger).not.toHaveBeenCalled()
+  })
+
   test('Should recover a plugin-thrown client-error .statusCode instead of the boomified 500', () => {
     // @defra/hapi-oidc-auth throws plain errors carrying .statusCode (401/422);
     // Hapi boomifies those to a 500 output, so catchAll must surface the intended code.
