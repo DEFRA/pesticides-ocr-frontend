@@ -20,4 +20,15 @@ describe('#contentSecurityPolicy', () => {
 
     expect(resp.headers['content-security-policy']).toBeDefined()
   })
+
+  test('form-action allows the Entra login host so POST sign-out can redirect to it', async () => {
+    const resp = await server.inject({
+      method: 'GET',
+      url: '/'
+    })
+
+    const csp = resp.headers['content-security-policy']
+    expect(csp).toContain('form-action')
+    expect(csp).toContain('https://login.microsoftonline.com')
+  })
 })
