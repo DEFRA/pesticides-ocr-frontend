@@ -169,7 +169,7 @@ describe('#catchAll', () => {
         path: '/auth/entra/callback',
         reason: 'Unable to load Microsoft Entra JWKS'
       },
-      'Plugin returned a server error'
+      `Plugin server error ${statusCodes.internalServerError} on /auth/entra/callback: Unable to load Microsoft Entra JWKS`
     )
     expect(mockWarnLogger).not.toHaveBeenCalled()
   })
@@ -197,7 +197,7 @@ describe('#catchAll', () => {
         path: '/auth/entra/callback',
         reason: 'ID token audience mismatch'
       },
-      'Downstream plugin returned a client error'
+      `Plugin client error ${statusCodes.unauthorized} on /auth/entra/callback: ID token audience mismatch`
     )
     expect(mockErrorLogger).not.toHaveBeenCalled()
     // ...and never rendered into the client-facing page.
@@ -237,7 +237,7 @@ describe('#catchAll', () => {
         reason: 'Microsoft Entra live configuration is incomplete',
         details
       },
-      'Downstream plugin returned a client error'
+      `Plugin client error ${statusCodes.badRequest} on /auth/entra/start: Microsoft Entra live configuration is incomplete [clientId, clientSecret]`
     )
   })
 })

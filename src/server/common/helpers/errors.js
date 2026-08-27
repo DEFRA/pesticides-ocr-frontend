@@ -27,6 +27,18 @@ function buildErrorLogPayload(request, statusCode) {
   return payload
 }
 
+// The reason belongs in the log MESSAGE (not only the merged fields): the ECS
+// logging pipeline can drop extra fields off a request-scoped log, but the
+// message string always survives — so the reason stays visible for diagnosis.
+// Server-side only; never rendered to the user.
+function buildErrorLogMessage(request, statusCode) {
+  const { response } = request
+  const details = response.details?.length
+    ? ` [${response.details.join(', ')}]`
+    : ''
+  return `${statusCode} on ${request.path}: ${response.message}${details}`
+}
+
 export function catchAll(request, h) {
   const { response } = request
 
@@ -55,7 +67,7 @@ export function catchAll(request, h) {
     if (response.message) {
       request.logger.error(
         buildErrorLogPayload(request, statusCode),
-        'Plugin returned a server error'
+        `Plugin server error ${buildErrorLogMessage(request, statusCode)}`
       )
     }
   } else if (isRecoveredClientError) {
@@ -64,7 +76,7 @@ export function catchAll(request, h) {
     // it server-side only for diagnosis — never surface it to the user.
     request.logger.warn(
       buildErrorLogPayload(request, statusCode),
-      'Downstream plugin returned a client error'
+      `Plugin client error ${buildErrorLogMessage(request, statusCode)}`
     )
   } else {
     // Genuine Boom client error (e.g. 404/403): the generic page is enough and
