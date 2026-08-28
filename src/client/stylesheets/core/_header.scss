@@ -25,13 +25,15 @@
 }
 
 // Shared visual treatment for the account link and the sign-out control so the
-// two read identically in the blue bar.
+// two read identically in the blue bar. Set the GOV.UK font explicitly on both:
+// a <button> does not reliably inherit the page font (Safari especially), so the
+// sign-out text would otherwise render in the browser's default control font.
 .app-account-nav__link,
 .app-account-nav__signout {
+  @include govuk-font($size: 19, $weight: bold);
   display: inline-flex;
   align-items: center;
   color: govuk-colour("white");
-  font-weight: bold;
 
   &:hover,
   &:active {
@@ -52,8 +54,6 @@
   padding: 0;
   border: 0;
   background: none;
-  font: inherit;
-  font-weight: bold; // re-assert: `font: inherit` above resets it
   cursor: pointer;
 }
 
