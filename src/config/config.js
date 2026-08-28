@@ -267,10 +267,10 @@ export const config = convict({
       env: 'ENTRA_SIGN_OUT_REDIRECT_URL'
     },
     roleValues: {
-      doc: 'Entra app-role value(s) that grant case-officer access',
+      doc: 'Entra app-role value(s) that grant case-officer access, comma-separated (e.g. "case_officer" or "case_officer,admin")',
       format: String,
       default: 'case_officer',
-      env: 'ENTRA_CASE_OFFICER_ROLE_VALUE'
+      env: 'ENTRA_CASE_OFFICER_ROLE_VALUES'
     },
     postLoginRedirect: {
       doc: 'Where a signed-in case officer lands after sign-in',
