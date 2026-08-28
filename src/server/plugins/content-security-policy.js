@@ -22,7 +22,11 @@ const contentSecurityPolicy = {
     frameSrc: ['self', 'data:'],
     objectSrc: ['none'],
     frameAncestors: ['none'],
-    formAction: ['self'],
+    // The case-officer sign-out is a POST form that redirects to Entra's
+    // end-session endpoint; `form-action` is enforced across that redirect, so
+    // Microsoft's login host must be allowed or the sign-out navigation is
+    // blocked. (Sign-in is a GET link, so it isn't affected.)
+    formAction: ['self', 'https://login.microsoftonline.com'],
     manifestSrc: ['self'],
     generateNonces: false
   }
