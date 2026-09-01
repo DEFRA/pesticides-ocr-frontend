@@ -92,7 +92,12 @@ export async function createServer() {
           publicBaseUrl: config.get('entra.publicBaseUrl'),
           redirectPath: config.get('entra.redirectPath'),
           signOutRedirectUrl: config.get('entra.signOutRedirectUrl'),
-          roleValues: config.get('entra.roleValues')
+          // roleValues is a comma-separated string; split + trim so multiple
+          // roles work (the plugin matches an array of values, not one literal).
+          roleValues: config
+            .get('entra.roleValues')
+            .split(',')
+            .map((role) => role.trim())
         },
         redirects: {
           postLogin: config.get('entra.postLoginRedirect'),
