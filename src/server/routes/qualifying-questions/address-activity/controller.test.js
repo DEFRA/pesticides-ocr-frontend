@@ -34,7 +34,7 @@ describe('#addressActivityController', () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/address-activity',
-        payload: { 'address-activities': ['use'] }
+        payload: { addressActivities: ['use'] }
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -45,7 +45,7 @@ describe('#addressActivityController', () => {
       const { result, statusCode } = await server.inject({
         method: 'POST',
         url: '/address-activity',
-        payload: { 'address-activities': [] }
+        payload: { addressActivities: [] }
       })
 
       expect(result).toEqual(expect.stringContaining('Select at least one address activity'))

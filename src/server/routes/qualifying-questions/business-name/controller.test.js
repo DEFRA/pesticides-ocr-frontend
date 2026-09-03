@@ -31,7 +31,7 @@ describe('#businessNameController', () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-name',
-        payload: { 'business-name': 'Pesticides Ltd' }
+        payload: { businessName: 'Pesticides Ltd' }
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -42,7 +42,7 @@ describe('#businessNameController', () => {
       const { result, statusCode } = await server.inject({
         method: 'POST',
         url: '/business-name',
-        payload: { 'business-name': '' }
+        payload: { businessName: '' }
       })
 
       expect(result).toEqual(expect.stringContaining('Enter a business name'))

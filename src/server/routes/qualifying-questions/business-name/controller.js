@@ -9,10 +9,10 @@ export const get = {
 
 export const post = {
   handler(request, h) {
-    const payload = request.payload['business-name']
+    const payload = request.payload['businessName']
     const formSession = getSession(request, 'formSession')
 
-    formSession['business-name'] = payload
+    formSession['businessName'] = payload
     request.yar.set('formSession', formSession)
 
     return h.redirect('/business-address')

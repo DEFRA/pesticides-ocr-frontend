@@ -32,9 +32,9 @@ describe('#additionalBusinessContactController', () => {
 
   describe('POST /additional-addresses/contact', () => {
     const validContact = {
-      'contact-name': 'John Smith',
-      'contact-telephone': '01234 567890',
-      'contact-email': 'John.Smith@pesticides.co.uk'
+      contactName: 'John Smith',
+      contactTelephone: '01234 567890',
+      contactEmail: 'John.Smith@pesticides.co.uk'
     }
 
     const postContact = (payload) =>
@@ -52,9 +52,9 @@ describe('#additionalBusinessContactController', () => {
     })
 
     test.each([
-      ['contact-name', 'Enter a contact name'],
-      ['contact-telephone', 'Enter a telephone number'],
-      ['contact-email', 'Enter an email address']
+      ['contactName', 'Enter a contact name'],
+      ['contactTelephone', 'Enter a telephone number'],
+      ['contactEmail', 'Enter an email address']
     ])(
       'Should return view with an error message when %s is missing',
       async (field, message) => {
@@ -71,7 +71,7 @@ describe('#additionalBusinessContactController', () => {
     test('Should return view with an error message when the email is invalid', async () => {
       const { statusCode, result } = await postContact({
         ...validContact,
-        'contact-email': 'not-an-email'
+        contactEmail: 'not-an-email'
       })
 
       expect(statusCode).toBe(statusCodes.ok)
@@ -83,7 +83,7 @@ describe('#additionalBusinessContactController', () => {
     test('Should return view with an error message when the telephone is invalid', async () => {
       const { statusCode, result } = await postContact({
         ...validContact,
-        'contact-telephone': 'not a number'
+        contactTelephone: 'not a number'
       })
 
       expect(statusCode).toBe(statusCodes.ok)
@@ -95,17 +95,17 @@ describe('#additionalBusinessContactController', () => {
 
   describe('Session', () => {
     const address = {
-      'address-line-1': '36 Portland Road',
-      'address-line-2': 'Brompton',
-      'address-town': 'Northallerton',
-      'address-county': 'North Yorkshire',
-      'address-postcode': 'DL62BQ'
+      addressLine1: '36 Portland Road',
+      addressLine2: 'Brompton',
+      addressTown: 'Northallerton',
+      addressCounty: 'North Yorkshire',
+      addressPostcode: 'DL62BQ'
     }
 
     const contact = {
-      'contact-name': 'Matthew Quinton',
-      'contact-telephone': '07376235617',
-      'contact-email': 'MQuinton@proton.me'
+      contactName: 'Matthew Quinton',
+      contactTelephone: '07376235617',
+      contactEmail: 'MQuinton@proton.me'
     }
 
     const savePayload = (payload, formSession) => {
@@ -121,20 +121,20 @@ describe('#additionalBusinessContactController', () => {
 
     test('Should merge the contact into the address entry', () => {
       const formSession = savePayload(contact, {
-        'additional-addresses': [{ address }]
+        additionalAddresses: [{ address }]
       })
 
-      expect(formSession['additional-addresses']).toEqual([{ address, contact }])
+      expect(formSession['additionalAddresses']).toEqual([{ address, contact }])
     })
 
     test('Should complete only the most recent entry', () => {
-      const existing = { address: { 'address-town': 'Leeds' }, contact: {} }
+      const existing = { address: { addressTown: 'Leeds' }, contact: {} }
 
       const formSession = savePayload(contact, {
-        'additional-addresses': [existing, { address }]
+        additionalAddresses: [existing, { address }]
       })
 
-      expect(formSession['additional-addresses']).toEqual([
+      expect(formSession['additionalAddresses']).toEqual([
         existing,
         { address, contact }
       ])
@@ -143,7 +143,7 @@ describe('#additionalBusinessContactController', () => {
     test('Should start an entry when there is no address to complete', () => {
       const formSession = savePayload(contact)
 
-      expect(formSession['additional-addresses']).toEqual([{ contact }])
+      expect(formSession['additionalAddresses']).toEqual([{ contact }])
     })
 
     test('Should build one object per address across both steps', () => {
@@ -161,7 +161,7 @@ describe('#additionalBusinessContactController', () => {
       postHandler.handler(contactRequest.request, sessionResponseToolkit)
 
       expect(contactRequest.readSession()).toEqual({
-        'additional-addresses': [{ address, contact }]
+        additionalAddresses: [{ address, contact }]
       })
     })
   })

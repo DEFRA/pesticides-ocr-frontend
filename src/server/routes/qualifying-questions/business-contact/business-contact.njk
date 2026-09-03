@@ -28,22 +28,22 @@
         label: {
           text: "Name"
         },
-        id: "contact-name",
-        name: "contact-name",
+        id: "contactName",
+        name: "contactName",
         autocomplete: "name",
         classes: "govuk-!-width-two-thirds",
-        errorMessage: errors["contact-name"] if errors["contact-name"]
+        errorMessage: errors["contactName"] if errors["contactName"]
       }) }}
 
       {{ govukInput({
         label: {
           text: "Telephone number"
         },
-        id: "contact-telephone",
-        name: "contact-telephone",
+        id: "contactTelephone",
+        name: "contactTelephone",
         autocomplete: "tel",
         classes: "govuk-!-width-two-thirds",
-        errorMessage: errors["contact-telephone"] if errors["contact-telephone"]
+        errorMessage: errors["contactTelephone"] if errors["contactTelephone"]
       }) }}
 
       {{ govukInput({
@@ -51,11 +51,11 @@
           text: "Email address"
         },
         classes: "govuk-!-width-two-thirds",
-        id: "contact-email",
-        name: "contact-email",
+        id: "contactEmail",
+        name: "contactEmail",
         autocomplete: "email",
         classes: "govuk-!-width-two-thirds",
-        errorMessage: errors["contact-email"] if errors["contact-email"]
+        errorMessage: errors["contactEmail"] if errors["contactEmail"]
       }) }}
 
       {% endcall %}

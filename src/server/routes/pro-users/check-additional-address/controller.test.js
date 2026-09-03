@@ -26,9 +26,9 @@ describe('#checkAdditionalAddressController', () => {
       url: '/additional-addresses/address',
       headers: { cookie },
       payload: {
-        'address-line-1': 'Highfield Farm',
-        'address-town': 'Farm town',
-        'address-postcode': 'PH1 1FT',
+        addressLine1: 'Highfield Farm',
+        addressTown: 'Farm town',
+        addressPostcode: 'PH1 1FT',
         ...overrides
       }
     })
@@ -39,9 +39,9 @@ describe('#checkAdditionalAddressController', () => {
       url: '/additional-addresses/contact',
       headers: { cookie },
       payload: {
-        'contact-name': 'John Smith',
-        'contact-telephone': '01234 567890',
-        'contact-email': 'John.Smith@pesticides.co.uk',
+        contactName: 'John Smith',
+        contactTelephone: '01234 567890',
+        contactEmail: 'John.Smith@pesticides.co.uk',
         ...overrides
       }
     })
@@ -51,7 +51,7 @@ describe('#checkAdditionalAddressController', () => {
       method: 'POST',
       url: '/additional-addresses/activity',
       headers: { cookie },
-      payload: { 'address-activities': activities }
+      payload: { addressActivities: activities }
     })
 
   const addAnAddress = async (cookie, overrides = {}) => {
@@ -122,7 +122,7 @@ describe('#checkAdditionalAddressController', () => {
       const cookie = await newSessionCookie()
       await addAnAddress(cookie)
       await addAnAddress(cookie, {
-        address: { 'address-line-1': 'Lowfield Farm' }
+        address: { addressLine1: 'Lowfield Farm' }
       })
 
       const { result } = await checkPage(cookie)
@@ -152,7 +152,7 @@ describe('#checkAdditionalAddressController', () => {
     test('Should escape answers rather than trusting them as markup', async () => {
       const cookie = await newSessionCookie()
       await addAnAddress(cookie, {
-        address: { 'address-line-1': '<img src=x onerror=alert(1)>' }
+        address: { addressLine1: '<img src=x onerror=alert(1)>' }
       })
 
       const { result } = await checkPage(cookie)
@@ -170,7 +170,7 @@ describe('#checkAdditionalAddressController', () => {
         method: 'POST',
         url: '/check-additional-address',
         headers: { cookie },
-        payload: { 'check-additional-address': 'yes' }
+        payload: { checkAdditionalAddress: 'yes' }
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -184,7 +184,7 @@ describe('#checkAdditionalAddressController', () => {
         method: 'POST',
         url: '/check-additional-address',
         headers: { cookie },
-        payload: { 'check-additional-address': 'no' }
+        payload: { checkAdditionalAddress: 'no' }
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -206,7 +206,7 @@ describe('#checkAdditionalAddressController', () => {
       const { statusCode, result } = await server.inject({
         method: 'POST',
         url: '/check-additional-address',
-        payload: { 'check-additional-address': 'maybe' }
+        payload: { checkAdditionalAddress: 'maybe' }
       })
 
       expect(statusCode).toBe(statusCodes.ok)
@@ -235,7 +235,7 @@ describe('#checkAdditionalAddressController', () => {
       const cookie = await newSessionCookie()
       await addAnAddress(cookie)
       await addAnAddress(cookie, {
-        address: { 'address-line-1': 'Lowfield Farm' }
+        address: { addressLine1: 'Lowfield Farm' }
       })
 
       const { result } = await server.inject({
@@ -305,7 +305,7 @@ describe('#checkAdditionalAddressController', () => {
       const cookie = await newSessionCookie()
       await addAnAddress(cookie)
       await addAnAddress(cookie, {
-        address: { 'address-line-1': 'Lowfield Farm' }
+        address: { addressLine1: 'Lowfield Farm' }
       })
 
       await server.inject({

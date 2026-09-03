@@ -9,13 +9,13 @@ export const post = {
   handler(request, h) {
     const payload = request.payload
     const formSession = request.yar.get('formSession') ?? {}
-    const quantity = payload['quantity-type'] === 'amount' ? payload['quantity-amount'] : payload['quantity-area']
+    const quantity = payload['quantityType'] === 'amount' ? payload['quantityAmount'] : payload['quantityArea']
 
-    formSession['quantity'] = { 'quantity-type': payload['quantity-type'], quantity }
+    formSession['quantity'] = { quantityType: payload['quantityType'], quantity }
     request.yar.set('formSession', formSession)
 
-    if (formSession['business-activities'].length === 1 &&
-        formSession['business-activities'][0] === 'seller-amateur') {
+    if (formSession['businessActivities'].length === 1 &&
+        formSession['businessActivities'][0] === 'seller-amateur') {
       return h.redirect('/check-answers')
     }
 

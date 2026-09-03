@@ -7,15 +7,15 @@ export const app = {
 
 export const validate = {
   payload: Joi.object({
-    'address-line-1': Joi.string().required().messages({
+    addressLine1: Joi.string().required().messages({
       'string.empty': 'Enter the first line of your business\' address'
     }),
-    'address-line-2': Joi.string().allow(''),
-    'address-town': Joi.string().required().messages({
+    addressLine2: Joi.string().allow(''),
+    addressTown: Joi.string().required().messages({
       'string.empty': 'Enter town or city'
     }),
-    'address-county': Joi.string().allow(''),
-    'address-postcode': Joi.string().required().messages({
+    addressCounty: Joi.string().allow(''),
+    addressPostcode: Joi.string().required().messages({
       'string.empty': 'Enter your postcode'
     })
   }),

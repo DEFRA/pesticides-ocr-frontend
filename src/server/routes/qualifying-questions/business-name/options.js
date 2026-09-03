@@ -9,7 +9,7 @@ export const app = {
 
 export const validate = {
   payload: Joi.object({
-    'business-name': Joi.string().required().messages({
+    businessName: Joi.string().required().messages({
       'any.required': ENTER_BUSINESS_NAME_MESSAGE,
       'string.empty': ENTER_BUSINESS_NAME_MESSAGE
     })

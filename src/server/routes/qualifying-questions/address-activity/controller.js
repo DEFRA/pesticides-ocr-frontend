@@ -12,10 +12,10 @@ export const get = {
 
 export const post = {
   handler(request, h) {
-    const payload = request.payload['address-activities']
+    const payload = request.payload['addressActivities']
     const formSession = getSession(request, 'formSession')
 
-    formSession['address-activities'] = payload
+    formSession['addressActivities'] = payload
     request.yar.set('formSession', formSession)
 
     if (payload.includes('use')) {

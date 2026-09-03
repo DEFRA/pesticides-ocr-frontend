@@ -12,12 +12,12 @@ const selectTypeMessage = 'Select how you want to give the quantity'
 
 export const validate = {
   payload: Joi.object({
-    'quantity-type': Joi.string().valid(...quantityTypeValues).required().messages({
+    quantityType: Joi.string().valid(...quantityTypeValues).required().messages({
       'any.only': selectTypeMessage,
       'any.required': selectTypeMessage,
       'string.empty': selectTypeMessage
     }),
-    'quantity-amount': Joi.when('quantity-type', {
+    quantityAmount: Joi.when('quantityType', {
       is: 'amount',
       then: Joi.string().trim().pattern(numericRegex).required().messages({
         'string.pattern.base': 'Enter a quantity in litres or kilograms, like 80000',
@@ -26,7 +26,7 @@ export const validate = {
       }),
       otherwise: Joi.any().strip()
     }),
-    'quantity-area': Joi.when('quantity-type', {
+    quantityArea: Joi.when('quantityType', {
       is: 'area',
       then: Joi.string().trim().pattern(numericRegex).required().messages({
         'string.pattern.base': 'Enter an area in hectares, like 250',

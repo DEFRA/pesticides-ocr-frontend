@@ -9,11 +9,11 @@ export const get = {
 
 export const post = {
   handler(request, h) {
-    const schemes = request.payload['member-schemes']
-    const other = request.payload['member-schemes-other']
+    const schemes = request.payload['memberSchemes']
+    const other = request.payload['memberSchemesOther']
     const formSession = getSession(request, 'formSession')
 
-    formSession['member-schemes'] = schemes ?? [other]
+    formSession['memberSchemes'] = schemes ?? [other]
     request.yar.set('formSession', formSession)
 
     return h.redirect('/additional-addresses')

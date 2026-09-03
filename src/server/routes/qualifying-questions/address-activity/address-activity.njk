@@ -15,7 +15,7 @@
     <form method="post" action="/address-activity" novalidate>
 
       {{ govukCheckboxes({
-        name: "address-activities",      
+        name: "addressActivities",      
         fieldset: {
           legend: {
             text: "What does your business do at this address?",
@@ -27,7 +27,7 @@
           text: "Select all that apply for " ~ currentAddressLineOne ~ "." if currentAddressLineOne else "Select all that apply.",
           classes: "govuk-!-margin-bottom-6"
         },
-        errorMessage: errors["address-activities"] if errors["address-activities"],
+        errorMessage: errors["addressActivities"] if errors["addressActivities"],
         items: items
       }) }}
 

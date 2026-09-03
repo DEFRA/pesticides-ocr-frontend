@@ -18,27 +18,27 @@ function labelsFor(items, values) {
 
 function addressLines(address = {}) {
   return toLines(
-    address['address-line-1'],
-    address['address-line-2'],
-    address['address-town'],
-    address['address-county'],
-    address['address-postcode']
+    address['addressLine1'],
+    address['addressLine2'],
+    address['addressTown'],
+    address['addressCounty'],
+    address['addressPostcode']
   )
 }
 
 function additionalAddress(entry = {}) {
   return {
     address: addressLines(entry.address),
-    contactName: toLines(entry.contact?.['contact-name']),
-    contactEmail: toLines(entry.contact?.['contact-email']),
-    contactTelephone: toLines(entry.contact?.['contact-telephone']),
+    contactName: toLines(entry.contact?.['contactName']),
+    contactEmail: toLines(entry.contact?.['contactEmail']),
+    contactTelephone: toLines(entry.contact?.['contactTelephone']),
     activity: labelsFor(additionalBusinessActivityItems, entry.activity)
   }
 }
 
 function quantityLines(quantity = {}) {
   const type = quantityTypeItems.find(
-    (item) => item.value === quantity['quantity-type']
+    (item) => item.value === quantity['quantityType']
   )
 
   if (!type || !quantity.quantity) {
@@ -52,18 +52,18 @@ export function buildAnswers(formData = {}) {
   const contact = formData['primary-contact'] ?? {}
 
   return {
-    businessActivities: labelsFor(businessActivityItems, formData['business-activities']),
-    mainCustomer: labelsFor(mainCustomerItems, formData['main-customer']),
-    businessName: toLines(formData['business-name']),
+    businessActivities: labelsFor(businessActivityItems, formData['businessActivities']),
+    mainCustomer: labelsFor(mainCustomerItems, formData['mainCustomer']),
+    businessName: toLines(formData['businessName']),
     address: addressLines(formData.address),
-    contactName: toLines(contact['contact-name']),
-    contactTelephone: toLines(contact['contact-telephone']),
-    contactEmail: toLines(contact['contact-email']),
-    addressActivities: labelsFor(addressActivityItems, formData['address-activities']),
+    contactName: toLines(contact['contactName']),
+    contactTelephone: toLines(contact['contactTelephone']),
+    contactEmail: toLines(contact['contactEmail']),
+    addressActivities: labelsFor(addressActivityItems, formData['addressActivities']),
     quantity: quantityLines(formData.quantity),
-    quantityType: formData.quantity?.['quantity-type'],
-    professionalSectors: labelsFor(professionalSectorsItems, formData['professional-sectors']),
-    memberSchemes: labelsFor(memberSchemesItems, formData['member-schemes']),
-    additionalAddresses: (formData['additional-addresses'] ?? []).map(additionalAddress)
+    quantityType: formData.quantity?.['quantityType'],
+    professionalSectors: labelsFor(professionalSectorsItems, formData['professionalSectors']),
+    memberSchemes: labelsFor(memberSchemesItems, formData['memberSchemes']),
+    additionalAddresses: (formData['additionalAddresses'] ?? []).map(additionalAddress)
   }
 }

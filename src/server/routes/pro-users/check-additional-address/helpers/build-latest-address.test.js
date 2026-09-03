@@ -10,11 +10,11 @@ describe('#buildLatestAddress', () => {
     const result = buildLatestAddress([
       {
         address: {
-          'address-line-1': 'Highfield Farm',
-          'address-line-2': '',
-          'address-town': 'Farm town',
-          'address-county': '',
-          'address-postcode': 'PH1 1FT'
+          addressLine1: 'Highfield Farm',
+          addressLine2: '',
+          addressTown: 'Farm town',
+          addressCounty: '',
+          addressPostcode: 'PH1 1FT'
         }
       }
     ])
@@ -26,9 +26,9 @@ describe('#buildLatestAddress', () => {
     const result = buildLatestAddress([
       {
         contact: {
-          'contact-name': 'John Smith',
-          'contact-telephone': '01234 567890',
-          'contact-email': 'john.smith@pesticides.co.uk'
+          contactName: 'John Smith',
+          contactTelephone: '01234 567890',
+          contactEmail: 'john.smith@pesticides.co.uk'
         }
       }
     ])
@@ -49,8 +49,8 @@ describe('#buildLatestAddress', () => {
 
   test('Should only ever describe the most recently added entry', () => {
     const result = buildLatestAddress([
-      { address: { 'address-town': 'Leeds' } },
-      { address: { 'address-town': 'Northallerton' } }
+      { address: { addressTown: 'Leeds' } },
+      { address: { addressTown: 'Northallerton' } }
     ])
 
     expect(result.address).toEqual(['Northallerton'])

@@ -12,13 +12,13 @@ describe('#viewFailAction', () => {
   const error = {
     details: [
       {
-        path: ['check-additional-address'],
+        path: ['checkAdditionalAddress'],
         message: 'Select whether you want to add another address'
       }
     ]
   }
 
-  const request = { payload: { 'check-additional-address': 'maybe' } }
+  const request = { payload: { checkAdditionalAddress: 'maybe' } }
 
   const contextFor = () => mockView.mock.calls[0][1]
 
@@ -34,17 +34,17 @@ describe('#viewFailAction', () => {
 
     expect(contextFor()).toEqual({
       errors: {
-        'check-additional-address': {
+        checkAdditionalAddress: {
           text: 'Select whether you want to add another address'
         }
       },
       errorList: [
         {
           text: 'Select whether you want to add another address',
-          href: '#check-additional-address'
+          href: '#checkAdditionalAddress'
         }
       ],
-      values: { 'check-additional-address': 'maybe' }
+      values: { checkAdditionalAddress: 'maybe' }
     })
   })
 
@@ -80,9 +80,9 @@ describe('#viewFailAction', () => {
     viewFailAction(view, buildContext)(request, h, error)
 
     expect(contextFor().errorList).toHaveLength(1)
-    expect(contextFor().errors['check-additional-address']).toBeDefined()
+    expect(contextFor().errors['checkAdditionalAddress']).toBeDefined()
     expect(contextFor().values).toEqual({
-      'check-additional-address': 'maybe'
+      checkAdditionalAddress: 'maybe'
     })
   })
 })

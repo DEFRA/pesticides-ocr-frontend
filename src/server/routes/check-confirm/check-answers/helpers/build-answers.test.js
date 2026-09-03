@@ -3,9 +3,9 @@ import { buildAnswers } from './build-answers.js'
 describe('#buildAnswers', () => {
   test('Should map coded answers to the labels used on the question pages', () => {
     const answers = buildAnswers({
-      'business-activities': ['seller-amateur', 'manufacture'],
-      'address-activities': ['store'],
-      'main-customer': 'both'
+      businessActivities: ['seller-amateur', 'manufacture'],
+      addressActivities: ['store'],
+      mainCustomer: 'both'
     })
 
     expect(answers.businessActivities).toEqual([
@@ -19,17 +19,17 @@ describe('#buildAnswers', () => {
   })
 
   test('Should fall back to the raw value when it is not a known option', () => {
-    const answers = buildAnswers({ 'main-customer': 'unknown' })
+    const answers = buildAnswers({ mainCustomer: 'unknown' })
 
     expect(answers.mainCustomer).toEqual(['unknown'])
   })
 
   test('Should read the quantity back in the unit it was given in', () => {
     const area = buildAnswers({
-      quantity: { 'quantity-type': 'area', quantity: '67' }
+      quantity: { quantityType: 'area', quantity: '67' }
     })
     const amount = buildAnswers({
-      quantity: { 'quantity-type': 'amount', quantity: '80000' }
+      quantity: { quantityType: 'amount', quantity: '80000' }
     })
 
     expect(area.quantity).toEqual(['67 hectares'])
@@ -38,7 +38,7 @@ describe('#buildAnswers', () => {
 
   test('Should pass the quantity type through for the page to title the row by', () => {
     const area = buildAnswers({
-      quantity: { 'quantity-type': 'area', quantity: '67' }
+      quantity: { quantityType: 'area', quantity: '67' }
     })
 
     expect(area.quantityType).toBe('area')
@@ -48,11 +48,11 @@ describe('#buildAnswers', () => {
   test('Should flatten an address into one line per part, skipping the optional ones', () => {
     const answers = buildAnswers({
       address: {
-        'address-line-1': 'Highfield Farm',
-        'address-line-2': '',
-        'address-town': 'Farm town',
-        'address-county': '',
-        'address-postcode': 'PH1 1FT'
+        addressLine1: 'Highfield Farm',
+        addressLine2: '',
+        addressTown: 'Farm town',
+        addressCounty: '',
+        addressPostcode: 'PH1 1FT'
       }
     })
 
@@ -62,9 +62,9 @@ describe('#buildAnswers', () => {
   test('Should split the contact details into separate answers', () => {
     const answers = buildAnswers({
       'primary-contact': {
-        'contact-name': 'John Smith',
-        'contact-telephone': '01234 567890',
-        'contact-email': 'john.smith@pesticides.co.uk'
+        contactName: 'John Smith',
+        contactTelephone: '01234 567890',
+        contactEmail: 'john.smith@pesticides.co.uk'
       }
     })
 
@@ -93,8 +93,8 @@ describe('#buildAnswers', () => {
 
   test('Should map the professional answers to the labels used on the question pages', () => {
     const answers = buildAnswers({
-      'professional-sectors': ['agriculture-horticulture', 'forestry'],
-      'member-schemes': ['red-tractor', 'sqc']
+      professionalSectors: ['agriculture-horticulture', 'forestry'],
+      memberSchemes: ['red-tractor', 'sqc']
     })
 
     expect(answers.professionalSectors).toEqual([
@@ -109,19 +109,19 @@ describe('#buildAnswers', () => {
 
   test('Should shape every additional address the same way as the main one', () => {
     const answers = buildAnswers({
-      'additional-addresses': [
+      additionalAddresses: [
         {
           address: {
-            'address-line-1': 'Lowfield Farm',
-            'address-line-2': '',
-            'address-town': 'Leeds',
-            'address-county': '',
-            'address-postcode': 'LS1 1AA'
+            addressLine1: 'Lowfield Farm',
+            addressLine2: '',
+            addressTown: 'Leeds',
+            addressCounty: '',
+            addressPostcode: 'LS1 1AA'
           },
           contact: {
-            'contact-name': 'Jane Doe',
-            'contact-telephone': '01111 222333',
-            'contact-email': 'jane.doe@pesticides.co.uk'
+            contactName: 'Jane Doe',
+            contactTelephone: '01111 222333',
+            contactEmail: 'jane.doe@pesticides.co.uk'
           },
           activity: ['store', 'records']
         }
@@ -144,9 +144,9 @@ describe('#buildAnswers', () => {
 
   test('Should keep the additional addresses in the order they were added', () => {
     const answers = buildAnswers({
-      'additional-addresses': [
-        { address: { 'address-line-1': 'Highfield Farm' } },
-        { address: { 'address-line-1': 'Lowfield Farm' } }
+      additionalAddresses: [
+        { address: { addressLine1: 'Highfield Farm' } },
+        { address: { addressLine1: 'Lowfield Farm' } }
       ]
     })
 
@@ -156,7 +156,7 @@ describe('#buildAnswers', () => {
   })
 
   test('Should give every unanswered part of an additional address an empty list', () => {
-    const answers = buildAnswers({ 'additional-addresses': [{}] })
+    const answers = buildAnswers({ additionalAddresses: [{}] })
 
     expect(answers.additionalAddresses).toEqual([
       {
@@ -172,6 +172,6 @@ describe('#buildAnswers', () => {
   test('Should give an empty list when the additional address loop was never entered', () => {
     expect(buildAnswers({}).additionalAddresses).toEqual([])
     expect(buildAnswers().additionalAddresses).toEqual([])
-    expect(buildAnswers({ 'additional-addresses': [] }).additionalAddresses).toEqual([])
+    expect(buildAnswers({ additionalAddresses: [] }).additionalAddresses).toEqual([])
   })
 })

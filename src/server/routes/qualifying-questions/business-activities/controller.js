@@ -9,10 +9,10 @@ export const get = {
 
 export const post = {
   handler(request, h) {
-    const payload = request.payload['business-activities']
+    const payload = request.payload['businessActivities']
     const formSession = getSession(request, 'formSession')
 
-    formSession['business-activities'] = payload
+    formSession['businessActivities'] = payload
     request.yar.set('formSession', formSession)
 
     if (payload.includes('seller-amateur')) {
