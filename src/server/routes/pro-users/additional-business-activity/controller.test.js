@@ -5,10 +5,16 @@ import {
   injectWithSession,
   sessionResponseToolkit
 } from '#/test-helpers/session-helpers.js'
-import { post as postHandler } from './controller.js'
+import { get as getHandler, post as postHandler } from './controller.js'
 
 describe('#additionalBusinessActivityController', () => {
   let server
+
+  const address = {
+    addressLine1: 'Lower Meadow Barn',
+    addressTown: 'Farm town',
+    addressPostcode: 'LS1 1AA'
+  }
 
   beforeAll(async () => {
     server = await createServer()
@@ -100,16 +106,10 @@ describe('#additionalBusinessActivityController', () => {
   })
 
   describe('Session', () => {
-    const address = {
-      addressLine1: '36 Portland Road',
-      addressTown: 'Northallerton',
-      addressPostcode: 'DL62BQ'
-    }
-
     const contact = {
-      contactName: 'Matthew Quinton',
-      contactTelephone: '07376235617',
-      contactEmail: 'MQuinton@proton.me'
+      contactName: 'John Smith',
+      contactTelephone: '01234 567890',
+      contactEmail: 'john.smith@pesticides.co.uk'
     }
 
     const activity = ['use', 'store']
@@ -159,6 +159,34 @@ describe('#additionalBusinessActivityController', () => {
       const formSession = savePayload(activityPayload, { businessName: 'Company 1' })
 
       expect(formSession['businessName']).toBe('Company 1')
+    })
+  })
+
+  describe('Address line one hint', () => {
+    const readContext = (formSession) => {
+      const { request } = createSessionRequest({ formSession })
+
+      return getHandler.handler(request, sessionResponseToolkit).context
+    }
+
+    test('Should read the first line of the most recent additional address', () => {
+      const { currentAddressLineOne } = readContext({
+        additionalAddresses: [{ address: { addressLine1: 'Leeds Road' } }, { address }]
+      })
+
+      expect(currentAddressLineOne).toBe('Lower Meadow Barn')
+    })
+
+    test('Should be undefined when no additional address has been started', () => {
+      expect(readContext().currentAddressLineOne).toBeUndefined()
+    })
+
+    test('Should be undefined when the latest entry has no address yet', () => {
+      const { currentAddressLineOne } = readContext({
+        additionalAddresses: [{ activity: ['use'] }]
+      })
+
+      expect(currentAddressLineOne).toBeUndefined()
     })
   })
 })

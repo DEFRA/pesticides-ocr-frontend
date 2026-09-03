@@ -50,10 +50,10 @@ describe('#buildLatestAddress', () => {
   test('Should only ever describe the most recently added entry', () => {
     const result = buildLatestAddress([
       { address: { addressTown: 'Leeds' } },
-      { address: { addressTown: 'Northallerton' } }
+      { address: { addressTown: 'Farm town' } }
     ])
 
-    expect(result.address).toEqual(['Northallerton'])
+    expect(result.address).toEqual(['Farm town'])
   })
 
   test('Should number the entry by how many addresses have been added so far', () => {

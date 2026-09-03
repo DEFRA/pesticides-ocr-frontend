@@ -4,7 +4,7 @@ export const get = {
   handler(request, h) {
     request.yar.set('formSession', getSession(request, 'formSession'))
 
-    const currentAddressLineOne = getSession(request, 'formSession')['additional-addresses']?.at(-1)['address']['address-line-1']
+    const currentAddressLineOne = getSession(request, 'formSession')['additionalAddresses']?.at(-1)?.['address']?.['addressLine1']
 
     return h.view('pro-users/additional-business-activity/additional-business-activity', { currentAddressLineOne })
   }

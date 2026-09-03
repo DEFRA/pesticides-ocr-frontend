@@ -1,6 +1,11 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
-import { injectWithSession } from '#/test-helpers/session-helpers.js'
+import {
+  createSessionRequest,
+  injectWithSession,
+  sessionResponseToolkit
+} from '#/test-helpers/session-helpers.js'
+import { get as getHandler } from './controller.js'
 
 describe('#addressActivityController', () => {
   let server
@@ -26,6 +31,30 @@ describe('#addressActivityController', () => {
         expect.stringContaining('Keep records of plant protection products (PPPs)')
       )
       expect(statusCode).toBe(statusCodes.ok)
+    })
+  })
+
+  describe('Address line one hint', () => {
+    const readContext = (formSession) => {
+      const { request } = createSessionRequest({ formSession })
+
+      return getHandler.handler(request, sessionResponseToolkit).context
+    }
+
+    test('Should read the first line of the saved business address', () => {
+      const { currentAddressLineOne } = readContext({
+        address: {
+          addressLine1: 'Lower Meadow Barn',
+          addressTown: 'Farm town',
+          addressPostcode: 'LS1 1AA'
+        }
+      })
+
+      expect(currentAddressLineOne).toBe('Lower Meadow Barn')
+    })
+
+    test('Should be undefined when no address has been answered yet', () => {
+      expect(readContext().currentAddressLineOne).toBeUndefined()
     })
   })
 

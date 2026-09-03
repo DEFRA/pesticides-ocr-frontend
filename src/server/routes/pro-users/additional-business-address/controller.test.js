@@ -113,11 +113,11 @@ describe('#additionalBusinessAddressController', () => {
 
   describe('Session', () => {
     const address = {
-      addressLine1: '36 Portland Road',
-      addressLine2: 'Brompton',
-      addressTown: 'Northallerton',
-      addressCounty: 'North Yorkshire',
-      addressPostcode: 'DL62BQ'
+      addressLine1: 'Lower Meadow Barn',
+      addressLine2: 'Mill Lane',
+      addressTown: 'Farm town',
+      addressCounty: 'Farmshire',
+      addressPostcode: 'LS1 1AA'
     }
 
     const savePayload = (payload, formSession) => {
