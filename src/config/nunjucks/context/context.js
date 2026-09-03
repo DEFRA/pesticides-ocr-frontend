@@ -29,6 +29,11 @@ export function context(request) {
     assetPath: `${assetPath}/assets`,
     serviceName: config.get('serviceName'),
     serviceUrl: '/',
+    // Google Tag Manager + cookie banner (EQ-388/EQ-363) render only when
+    // analytics is enabled — production by default, or ANALYTICS_ENABLED=true to
+    // exercise it locally. The container id is config-driven (per environment).
+    analyticsEnabled: config.get('analytics.enabled'),
+    analyticsGtmId: config.get('analytics.gtmId'),
     breadcrumbs: [],
     account: buildAccount(request),
     navigation: buildNavigation(request),
