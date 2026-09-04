@@ -36,8 +36,8 @@ describe('#professionalSectorsController', () => {
 
     test('Should redirect to member-schemes page when a sector is selected', async () => {
       const { statusCode, headers } = await postSectors({
-        'professional-sectors': 'amenity',
-        'professional-sectors-other': ''
+        professionalSectors: 'amenity',
+        professionalSectorsOther: ''
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -46,7 +46,7 @@ describe('#professionalSectorsController', () => {
 
     test('Should redirect to member-schemes page when only Other is given', async () => {
       const { statusCode, headers } = await postSectors({
-        'professional-sectors-other': 'Vineyard management'
+        professionalSectorsOther: 'Vineyard management'
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -55,7 +55,7 @@ describe('#professionalSectorsController', () => {
 
     test('Should show an error when neither a sector nor Other is given', async () => {
       const { statusCode, result } = await postSectors({
-        'professional-sectors-other': ''
+        professionalSectorsOther: ''
       })
 
       expect(statusCode).toBe(statusCodes.ok)
@@ -68,8 +68,8 @@ describe('#professionalSectorsController', () => {
 
     test('Should show an error when both a sector and Other are given', async () => {
       const { statusCode, result } = await postSectors({
-        'professional-sectors': 'forestry',
-        'professional-sectors-other': 'Vineyard management'
+        professionalSectors: 'forestry',
+        professionalSectorsOther: 'Vineyard management'
       })
 
       expect(statusCode).toBe(statusCodes.ok)
@@ -82,7 +82,7 @@ describe('#professionalSectorsController', () => {
 
     test('Should show an error when Other is longer than 100 characters', async () => {
       const { statusCode, result } = await postSectors({
-        'professional-sectors-other': 'x'.repeat(101)
+        professionalSectorsOther: 'x'.repeat(101)
       })
 
       expect(statusCode).toBe(statusCodes.ok)

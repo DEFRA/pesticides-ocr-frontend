@@ -34,7 +34,7 @@ describe('#mainCustomerController', () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/main-customer',
-        payload: { 'main-customer': 'professional' }
+        payload: { mainCustomer: 'professional' }
       })
 
       expect(statusCode).toBe(statusCodes.redirect)

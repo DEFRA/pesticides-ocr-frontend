@@ -19,13 +19,13 @@
     <form method="post" action="/business-name" novalidate>
 
       {{ govukInput({
-        id: "business-name",
-        name: "business-name",
+        id: "businessName",
+        name: "businessName",
         label: {
           text: "Enter your business or company name"
         },
         classes: "govuk-!-width-two-thirds",
-        errorMessage: errors["business-name"] if errors["business-name"]
+        errorMessage: errors["businessName"] if errors["businessName"]
       }) }}
 
       {{ govukButton({

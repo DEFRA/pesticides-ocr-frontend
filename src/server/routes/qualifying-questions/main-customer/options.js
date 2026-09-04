@@ -11,7 +11,7 @@ export const app = {
 
 export const validate = {
   payload: Joi.object({
-    'main-customer': Joi.string().valid(...mainCustomerValues).required().messages({
+    mainCustomer: Joi.string().valid(...mainCustomerValues).required().messages({
       'any.required': selectCustomerType,
       'any.only': selectCustomerType,
       'string.base': selectCustomerType

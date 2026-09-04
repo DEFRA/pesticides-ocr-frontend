@@ -32,11 +32,11 @@ describe('#businessAddressController', () => {
         method: 'POST',
         url: '/business-address',
         payload: {
-          'address-line-1': 'Highfield Farm',
-          'address-line-2': '',
-          'address-town': 'Farm town',
-          'address-county': '',
-          'address-postcode': 'PH1 1FT'
+          addressLine1: 'Highfield Farm',
+          addressLine2: '',
+          addressTown: 'Farm town',
+          addressCounty: '',
+          addressPostcode: 'PH1 1FT'
         }
       })
 
@@ -49,11 +49,11 @@ describe('#businessAddressController', () => {
         method: 'POST',
         url: '/business-address',
         payload: {
-          'address-line-1': '',
-          'address-line-2': '',
-          'address-town': '',
-          'address-county': '',
-          'address-postcode': ''
+          addressLine1: '',
+          addressLine2: '',
+          addressTown: '',
+          addressCounty: '',
+          addressPostcode: ''
         }
       })
 

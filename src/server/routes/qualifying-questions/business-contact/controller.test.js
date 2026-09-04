@@ -32,9 +32,9 @@ describe('#businessContactController', () => {
         method: 'POST',
         url: '/business-contact',
         payload: {
-          'contact-name': 'John Smith',
-          'contact-telephone': '01234 567890',
-          'contact-email': 'John.Smith@pesticides.co.uk'
+          contactName: 'John Smith',
+          contactTelephone: '01234 567890',
+          contactEmail: 'John.Smith@pesticides.co.uk'
         }
       })
 
@@ -47,9 +47,9 @@ describe('#businessContactController', () => {
         method: 'POST',
         url: '/business-contact',
         payload: {
-          'contact-name': '',
-          'contact-telephone': '',
-          'contact-email': ''
+          contactName: '',
+          contactTelephone: '',
+          contactEmail: ''
         }
       })
 

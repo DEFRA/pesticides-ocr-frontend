@@ -12,7 +12,7 @@ export const get = {
 export const post = {
   handler(request, h) {
     const formSession = getSession(request, 'formSession')
-    const additionalAddresses = formSession['additional-addresses'] ?? []
+    const additionalAddresses = formSession['additionalAddresses'] ?? []
     const current = additionalAddresses.at(-1)
 
     if (current && !current.contact) {
@@ -21,7 +21,7 @@ export const post = {
       additionalAddresses.push({ address: request.payload })
     }
 
-    formSession['additional-addresses'] = additionalAddresses
+    formSession['additionalAddresses'] = additionalAddresses
     request.yar.set('formSession', formSession)
 
     return h.redirect('/additional-addresses/contact')

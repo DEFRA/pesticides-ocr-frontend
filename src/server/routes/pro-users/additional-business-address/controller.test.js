@@ -49,11 +49,11 @@ describe('#additionalBusinessAddressController', () => {
       })
 
     const validAddress = {
-      'address-line-1': 'Highfield Farm',
-      'address-line-2': '',
-      'address-town': 'Farm town',
-      'address-county': '',
-      'address-postcode': 'PH1 1FT'
+      addressLine1: 'Highfield Farm',
+      addressLine2: '',
+      addressTown: 'Farm town',
+      addressCounty: '',
+      addressPostcode: 'PH1 1FT'
     }
 
     test('Should redirect to the additional address contact page', async () => {
@@ -65,9 +65,9 @@ describe('#additionalBusinessAddressController', () => {
 
     test('Should redirect when the optional fields are omitted', async () => {
       const { statusCode, headers } = await postAddress({
-        'address-line-1': 'Highfield Farm',
-        'address-town': 'Farm town',
-        'address-postcode': 'PH1 1FT'
+        addressLine1: 'Highfield Farm',
+        addressTown: 'Farm town',
+        addressPostcode: 'PH1 1FT'
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -76,11 +76,11 @@ describe('#additionalBusinessAddressController', () => {
 
     test('Should return view with error messages when required fields are empty', async () => {
       const { statusCode, result } = await postAddress({
-        'address-line-1': '',
-        'address-line-2': '',
-        'address-town': '',
-        'address-county': '',
-        'address-postcode': ''
+        addressLine1: '',
+        addressLine2: '',
+        addressTown: '',
+        addressCounty: '',
+        addressPostcode: ''
       })
 
       expect(statusCode).toBe(statusCodes.ok)
@@ -94,9 +94,9 @@ describe('#additionalBusinessAddressController', () => {
     })
 
     test.each([
-      ['address-line-1', 'Enter the first line of your business&#39; address'],
-      ['address-town', 'Enter town or city'],
-      ['address-postcode', 'Enter your postcode']
+      ['addressLine1', 'Enter the first line of your business&#39; address'],
+      ['addressTown', 'Enter town or city'],
+      ['addressPostcode', 'Enter your postcode']
     ])(
       'Should return view with an error message when %s is missing',
       async (field, message) => {
@@ -113,11 +113,11 @@ describe('#additionalBusinessAddressController', () => {
 
   describe('Session', () => {
     const address = {
-      'address-line-1': '36 Portland Road',
-      'address-line-2': 'Brompton',
-      'address-town': 'Northallerton',
-      'address-county': 'North Yorkshire',
-      'address-postcode': 'DL62BQ'
+      addressLine1: 'Lower Meadow Barn',
+      addressLine2: 'Mill Lane',
+      addressTown: 'Farm town',
+      addressCounty: 'Farmshire',
+      addressPostcode: 'LS1 1AA'
     }
 
     const savePayload = (payload, formSession) => {
@@ -134,17 +134,17 @@ describe('#additionalBusinessAddressController', () => {
     test('Should start a new entry keyed under additional-addresses', () => {
       const formSession = savePayload(address)
 
-      expect(formSession['additional-addresses']).toEqual([{ address }])
+      expect(formSession['additionalAddresses']).toEqual([{ address }])
     })
 
     test('Should append a new entry when the previous one is complete', () => {
-      const existing = { address: { 'address-town': 'Leeds' }, contact: {} }
+      const existing = { address: { addressTown: 'Leeds' }, contact: {} }
 
       const formSession = savePayload(address, {
-        'additional-addresses': [existing]
+        additionalAddresses: [existing]
       })
 
-      expect(formSession['additional-addresses']).toEqual([
+      expect(formSession['additionalAddresses']).toEqual([
         existing,
         { address }
       ])
@@ -152,16 +152,16 @@ describe('#additionalBusinessAddressController', () => {
 
     test('Should update the in-progress entry rather than appending', () => {
       const formSession = savePayload(address, {
-        'additional-addresses': [{ address: { 'address-town': 'Leeds' } }]
+        additionalAddresses: [{ address: { addressTown: 'Leeds' } }]
       })
 
-      expect(formSession['additional-addresses']).toEqual([{ address }])
+      expect(formSession['additionalAddresses']).toEqual([{ address }])
     })
 
     test('Should preserve other answers already in the session', () => {
-      const formSession = savePayload(address, { 'business-name': 'Company 1' })
+      const formSession = savePayload(address, { businessName: 'Company 1' })
 
-      expect(formSession['business-name']).toBe('Company 1')
+      expect(formSession['businessName']).toBe('Company 1')
     })
   })
 })

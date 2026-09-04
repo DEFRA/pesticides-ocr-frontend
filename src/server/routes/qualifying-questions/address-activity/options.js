@@ -11,7 +11,7 @@ export const app = {
 
 export const validate = {
   payload: Joi.object({
-    'address-activities': Joi.array()
+    addressActivities: Joi.array()
       .items(Joi.string().valid(...addressActivityValues))
       .single()
       .min(1)

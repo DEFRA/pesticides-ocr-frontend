@@ -12,16 +12,16 @@ const selectSchemeOrOther =
 
 export const validate = {
   payload: Joi.object({
-    'member-schemes': Joi.array()
+    memberSchemes: Joi.array()
       .single()
-      .when('member-schemes-other', {
+      .when('memberSchemesOther', {
         is: Joi.exist(),
         then: Joi.forbidden()
       })
       .messages({
         'any.unknown': selectSchemeOrOther
       }),
-    'member-schemes-other': Joi.string()
+    memberSchemesOther: Joi.string()
       .trim()
       .max(100)
       .empty('')

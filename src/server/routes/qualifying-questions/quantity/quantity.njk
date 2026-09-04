@@ -23,10 +23,10 @@
             text: "Litres or kilograms"
           },
           classes: "govuk-input--width-10",
-          id: "quantity-amount",
-          name: "quantity-amount",
-          value: values["quantity-amount"] if values,
-          errorMessage: errors["quantity-amount"] if errors["quantity-amount"],
+          id: "quantityAmount",
+          name: "quantityAmount",
+          value: values["quantityAmount"] if values,
+          errorMessage: errors["quantityAmount"] if errors["quantityAmount"],
           spellcheck: false,
           inputmode: "decimal"
         }) }}
@@ -41,17 +41,17 @@
             text: "Hectares"
           },
           classes: "govuk-input--width-10",
-          id: "quantity-area",
-          name: "quantity-area",
-          value: values["quantity-area"] if values,
-          errorMessage: errors["quantity-area"] if errors["quantity-area"],
+          id: "quantityArea",
+          name: "quantityArea",
+          value: values["quantityArea"] if values,
+          errorMessage: errors["quantityArea"] if errors["quantityArea"],
           spellcheck: false,
           inputmode: "decimal"
         }) }}
       {% endset %}
 
       {{ govukRadios({
-        name: "quantity-type",
+        name: "quantityType",
         fieldset: {
           legend: {
             text: "What quantity of plant protection products (PPPs) or adjuvants do you use at this address in a typical year?",
@@ -62,12 +62,12 @@
         hint: {
           text: "Give an estimate of the total amount of undiluted product you use. You can enter this as the amount in litres or kilograms, or by the area covered."
         },
-        errorMessage: errors["quantity-type"] if errors["quantity-type"],
+        errorMessage: errors["quantityType"] if errors["quantityType"],
         items: [
           {
             value: "amount",
             text: "Amount in litres or kilograms",
-            checked: values["quantity-type"] == "amount" if values,
+            checked: values["quantityType"] == "amount" if values,
             conditional: {
               html: amountHtml
             }
@@ -78,7 +78,7 @@
             suffix: {
               text: "Hectares"
             },
-            checked: values["quantity-type"] == "area" if values,
+            checked: values["quantityType"] == "area" if values,
             conditional: {
               html: areaHtml
             }
