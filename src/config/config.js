@@ -305,6 +305,14 @@ export const config = convict({
       env: 'ENTRA_MOCK_DISPLAY_NAME'
     }
   },
+  ocrBackend: {
+    url: {
+      doc: 'Base URL of the pesticides-ocr-backend read API (EQ-385). Set to the CDP internal service-to-service address on deployed tiers. Live mode only: the case officer\'s Entra token is forwarded as a bearer; mock mode uses local sample data and ignores this.',
+      format: String,
+      default: '',
+      env: 'OCR_BACKEND_URL'
+    }
+  },
   tracing: {
     header: {
       doc: 'Which header to track',
