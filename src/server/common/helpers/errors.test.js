@@ -208,6 +208,35 @@ describe('#catchAll', () => {
     })
   })
 
+  test('Should recover a data-client-thrown 5xx .statusCode (e.g. 502) instead of the boomified 500', () => {
+    // operators-client throws a plain Error with .statusCode = 502 when the OCR
+    // backend is unreachable/misconfigured; Hapi boomifies it to a 500 output, so
+    // catchAll must surface the intended 502 and log it as a server error.
+    const request = {
+      path: '/admin/operators',
+      response: {
+        isBoom: true,
+        stack: mockStack,
+        message: 'OCR backend request failed: ECONNREFUSED',
+        statusCode: statusCodes.badGateway,
+        output: { statusCode: statusCodes.internalServerError }
+      },
+      logger: { error: mockErrorLogger, warn: mockWarnLogger }
+    }
+
+    catchAll(request, mockToolkit)
+
+    expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      pageTitle: 'Something went wrong',
+      heading: statusCodes.badGateway,
+      message: 'Something went wrong'
+    })
+    expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.badGateway)
+    // A recovered 5xx is a server error → logged via error, never warn.
+    expect(mockErrorLogger).toHaveBeenCalledWith(mockStack)
+    expect(mockWarnLogger).not.toHaveBeenCalled()
+  })
+
   test('Should NOT warn-log for a genuine boom client error (e.g. 404)', () => {
     catchAll(mockRequest(statusCodes.notFound), mockToolkit)
     expect(mockWarnLogger).not.toHaveBeenCalled()
