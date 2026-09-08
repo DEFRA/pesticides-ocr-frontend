@@ -3,7 +3,6 @@ import { statusCodes } from '#/server/common/constants/status-codes.js'
 
 // Not in the shared status-codes constants, which only cover the codes the
 // journey itself returns.
-const BAD_GATEWAY = 502
 const SERVICE_UNAVAILABLE = 503
 
 const jsonResponse = (body, status = statusCodes.ok) =>
@@ -61,14 +60,44 @@ describe('#searchRegistration', () => {
     })
   })
 
-  test('Should throw a bad gateway error when the search API fails', async () => {
+  test('Should carry the reason back when the search API rejects the request', async () => {
     fetchMock.mockResolvedValue(
-      jsonResponse({}, statusCodes.internalServerError)
+      jsonResponse(
+        { statusCode: 400, error: 'Bad Request', message: 'Invalid reference number' },
+        statusCodes.badRequest
+      )
     )
 
-    await expect(searchRegistration('PPP-ABC-123')).rejects.toMatchObject({
+    // Returned rather than thrown, so the controller can show the reason on the
+    // search page instead of the generic error page.
+    expect(await searchRegistration('PPP-ABC-123')).toMatchObject({
       isBoom: true,
-      output: { statusCode: BAD_GATEWAY }
+      output: {
+        statusCode: statusCodes.badRequest,
+        payload: { message: 'Invalid reference number' }
+      }
+    })
+  })
+
+  test('Should report an upstream failure as a bad request too', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(
+        {
+          statusCode: 500,
+          error: 'Internal Server Error',
+          message: 'An internal server error occurred'
+        },
+        statusCodes.internalServerError
+      )
+    )
+
+    // The upstream status is flattened to 400 rather than preserved.
+    expect(await searchRegistration('PPP-ABC-123')).toMatchObject({
+      isBoom: true,
+      output: {
+        statusCode: statusCodes.badRequest,
+        payload: { message: 'An internal server error occurred' }
+      }
     })
   })
 })

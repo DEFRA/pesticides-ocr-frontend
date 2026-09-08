@@ -13,10 +13,6 @@ async function signInCaseOfficer(server) {
   return (setCookie ? setCookie[0] : startCookie).split(';')[0]
 }
 
-// Not in the shared status-codes constants, which only cover the codes the
-// journey itself returns.
-const BAD_GATEWAY = 502
-
 const jsonResponse = (body, status = statusCodes.ok) =>
   new Response(JSON.stringify(body), {
     status,
@@ -206,17 +202,50 @@ describe('#searchController', () => {
       expect(result).toEqual(expect.stringContaining('There is a problem'))
     })
 
-    test('Should return the error page when the search API fails', async () => {
+    test('Should show the reason on the search page when the search API rejects the request', async () => {
       fetchMock.mockResolvedValue(
-        jsonResponse({}, statusCodes.internalServerError)
+        jsonResponse(
+          {
+            statusCode: 400,
+            error: 'Bad Request',
+            message: 'Invalid reference number'
+          },
+          statusCodes.badRequest
+        )
       )
 
       const { statusCode, result } = await postSearch({
         'registration-reference': 'PPP-ABC-123'
       })
 
-      expect(statusCode).toBe(BAD_GATEWAY)
-      expect(result).toEqual(expect.stringContaining('Something went wrong'))
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(result).toEqual(expect.stringContaining('There is a problem'))
+      expect(result).toEqual(
+        expect.stringContaining('Invalid reference number')
+      )
+    })
+
+    test('Should show the failure on the search page when the search API errors', async () => {
+      fetchMock.mockResolvedValue(
+        jsonResponse(
+          {
+            statusCode: 500,
+            error: 'Internal Server Error',
+            message: 'An internal server error occurred'
+          },
+          statusCodes.internalServerError
+        )
+      )
+
+      const { statusCode, result } = await postSearch({
+        'registration-reference': 'PPP-ABC-123'
+      })
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(result).toEqual(expect.stringContaining('There is a problem'))
+      expect(result).toEqual(
+        expect.stringContaining('An internal server error occurred')
+      )
     })
   })
 })

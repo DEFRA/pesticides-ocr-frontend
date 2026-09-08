@@ -23,7 +23,8 @@ export async function searchRegistration(reference) {
   }
 
   if (!response.ok) {
-    throw Boom.badGateway(`Search failed with status ${response.status}`)
+    const error = await response.json()
+    return Boom.badRequest(`${error.message}`)
   }
 
   return response.json()
