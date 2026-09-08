@@ -39,7 +39,7 @@
     </form>
 
     {% if searched %}
-      {% if registration %}
+      {% if isFound %}
       
         {% set rows = [] %}
         {% for key, value in registration %}
@@ -62,7 +62,8 @@
           },
           rows: rows }) }}
       {% else %}
-        <p class="govuk-body">No registration found for {{ reference }}.</p>
+        <h2 class="govuk-heading-m">No registration found</h2>
+        <p class="govuk-body">There does not appear to be a registration matching {{ reference }}.</p>
       {% endif %}
     {% endif %}
 
