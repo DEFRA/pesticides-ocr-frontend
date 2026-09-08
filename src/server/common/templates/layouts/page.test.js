@@ -39,7 +39,7 @@ describe('#pageLayout header sign-out', () => {
 
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/dashboard',
+      url: '/admin/dashboard',
       headers: { cookie }
     })
 

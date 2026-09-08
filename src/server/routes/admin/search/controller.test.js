@@ -13,7 +13,11 @@ async function signInCaseOfficer(server) {
   return (setCookie ? setCookie[0] : startCookie).split(';')[0]
 }
 
-const jsonResponse = (body, status = 200) =>
+// Not in the shared status-codes constants, which only cover the codes the
+// journey itself returns.
+const BAD_GATEWAY = 502
+
+const jsonResponse = (body, status = statusCodes.ok) =>
   new Response(JSON.stringify(body), {
     status,
     headers: { 'content-type': 'application/json' }
@@ -75,7 +79,7 @@ describe('#searchController', () => {
 
     test('Should redirect to sign in when not signed in', async () => {
       const { statusCode, headers } = await postSearch(
-        { 'registration-reference': 'PP-ABC-123' },
+        { 'registration-reference': 'PPP-ABC-123' },
         {}
       )
 
@@ -98,7 +102,16 @@ describe('#searchController', () => {
       }
     )
 
-    test.each(['PP-AB-123', 'PP-ABC-12', 'XX-ABC-123', 'PP-AB!-123', 'PPABC123'])(
+    // References are PPP-XXX-XXX; 'PP-ABC-123' is the near miss the hint text
+    // used to suggest, so it is pinned here as invalid.
+    test.each([
+      'PP-ABC-123',
+      'PPP-AB-123',
+      'PPP-ABC-12',
+      'XXX-ABC-123',
+      'PPP-AB!-123',
+      'PPPABC123'
+    ])(
       'Should return view with an error message when the reference is %s',
       async (reference) => {
         const { statusCode, result } = await postSearch({
@@ -126,65 +139,83 @@ describe('#searchController', () => {
       expect(fetchMock).not.toHaveBeenCalled()
     })
 
+    // The reference goes to the API as a query parameter on a GET, so read the
+    // requested URL back rather than matching a request body.
+    const searchedReference = () =>
+      new URL(fetchMock.mock.lastCall[0]).searchParams.get('reference')
+
     test('Should show the registration when the reference is found', async () => {
       fetchMock.mockResolvedValue(
-        jsonResponse({ reference: 'PP-ABC-123', businessName: 'Pesticides Ltd' })
+        jsonResponse({
+          reference: 'PPP-ABC-123',
+          businessName: 'Pesticides Ltd'
+        })
       )
 
       const { statusCode, result } = await postSearch({
-        'registration-reference': 'PP-ABC-123'
+        'registration-reference': 'PPP-ABC-123'
       })
 
       expect(statusCode).toBe(statusCodes.ok)
-      expect(fetchMock).toHaveBeenCalledWith(
-        'http://localhost:3001/search',
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({ reference: 'PP-ABC-123' })
-        })
+      expect(fetchMock.mock.lastCall[1]).toMatchObject({ method: 'GET' })
+      expect(searchedReference()).toBe('PPP-ABC-123')
+      expect(result).toEqual(
+        expect.stringContaining('Registration details for PPP-ABC-123')
       )
-      expect(result).toEqual(expect.stringContaining('Registration PP-ABC-123'))
       expect(result).toEqual(expect.stringContaining('Pesticides Ltd'))
     })
 
     test('Should trim and uppercase the reference before searching', async () => {
-      fetchMock.mockResolvedValue(jsonResponse({ reference: 'PP-ABC-123' }))
+      fetchMock.mockResolvedValue(jsonResponse({ reference: 'PPP-ABC-123' }))
 
       const { statusCode, result } = await postSearch({
-        'registration-reference': '  pp-abc-123 '
+        'registration-reference': '  ppp-abc-123 '
       })
 
       expect(statusCode).toBe(statusCodes.ok)
-      expect(fetchMock).toHaveBeenCalledWith(
-        'http://localhost:3001/search',
-        expect.objectContaining({
-          body: JSON.stringify({ reference: 'PP-ABC-123' })
-        })
-      )
-      expect(result).toEqual(expect.stringContaining('value="PP-ABC-123"'))
+      expect(searchedReference()).toBe('PPP-ABC-123')
+      expect(result).toEqual(expect.stringContaining('value="PPP-ABC-123"'))
     })
 
     test('Should show a not found message when the reference is not found', async () => {
-      fetchMock.mockResolvedValue(jsonResponse({}, 404))
+      fetchMock.mockResolvedValue(jsonResponse({}, statusCodes.notFound))
 
       const { statusCode, result } = await postSearch({
-        'registration-reference': 'PP-ZZZ-999'
+        'registration-reference': 'PPP-ZZZ-999'
       })
 
       expect(statusCode).toBe(statusCodes.ok)
       expect(result).toEqual(
-        expect.stringContaining('No registration found for PP-ZZZ-999')
+        expect.stringContaining('No registration found')
+      )
+      expect(result).toEqual(
+        expect.stringContaining(
+          'There does not appear to be a registration matching PPP-ZZZ-999'
+        )
       )
     })
 
-    test('Should return the error page when the search API fails', async () => {
-      fetchMock.mockResolvedValue(jsonResponse({}, 500))
+    test('Should show the failure on the search page when the search API is unreachable', async () => {
+      fetchMock.mockRejectedValue(new TypeError('fetch failed'))
 
       const { statusCode, result } = await postSearch({
-        'registration-reference': 'PP-ABC-123'
+        'registration-reference': 'PPP-ABC-123'
       })
 
-      expect(statusCode).toBe(502)
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(result).toEqual(expect.stringContaining('There is a problem'))
+    })
+
+    test('Should return the error page when the search API fails', async () => {
+      fetchMock.mockResolvedValue(
+        jsonResponse({}, statusCodes.internalServerError)
+      )
+
+      const { statusCode, result } = await postSearch({
+        'registration-reference': 'PPP-ABC-123'
+      })
+
+      expect(statusCode).toBe(BAD_GATEWAY)
       expect(result).toEqual(expect.stringContaining('Something went wrong'))
     })
   })
