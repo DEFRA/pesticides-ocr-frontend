@@ -1,8 +1,8 @@
+import { vi } from 'vitest'
+
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie } from '#/test-helpers/session-helpers.js'
-
-const referencePattern = /PPP-\d{3}-\d{2}[A-Z]/
 
 describe('#confirmationController', () => {
   let server
@@ -16,6 +16,10 @@ describe('#confirmationController', () => {
     await server.stop({ timeout: 0 })
   })
 
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   const loadConfirmation = async (cookie) => {
     const { result, statusCode } = await server.inject({
       method: 'GET',
@@ -23,50 +27,71 @@ describe('#confirmationController', () => {
       ...(cookie ? { headers: { cookie } } : {})
     })
 
-    return {
-      result,
-      statusCode,
-      reference: (result.match(referencePattern) ?? [])[0]
-    }
+    return { result, statusCode }
+  }
+
+  // The reference is issued by the backend and reaches the session by way of
+  // the check answers submission, so a session under test is seeded the same
+  // way, with the backend stubbed.
+  const sessionWithReference = async (reference) => {
+    const cookie = await getSessionCookie(server, '/business-activities')
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      status: statusCodes.created,
+      json: async () => ({ reference })
+    })
+
+    await server.inject({
+      method: 'POST',
+      url: '/check-answers',
+      headers: { cookie },
+      payload: {}
+    })
+
+    return cookie
   }
 
   describe('GET /confirmation', () => {
     test('Should return view', async () => {
-      const { result, statusCode } = await loadConfirmation()
+      const cookie = await sessionWithReference('PPP-123-45A')
+
+      const { result, statusCode } = await loadConfirmation(cookie)
 
       expect(result).toEqual(expect.stringContaining('Confirmation |'))
       expect(statusCode).toBe(statusCodes.ok)
     })
 
-    test('Should show the reference number in the confirmation panel', async () => {
-      const { result, reference } = await loadConfirmation()
+    test('Should show the reference number the backend issued in the confirmation panel', async () => {
+      const cookie = await sessionWithReference('PPP-123-45A')
 
-      expect(reference).toMatch(referencePattern)
+      const { result } = await loadConfirmation(cookie)
+
       expect(result).toEqual(
         expect.stringContaining(
-          `Your reference number<br><strong>${reference}</strong>`
+          'Your reference number<br><strong>PPP-123-45A</strong>'
         )
       )
     })
 
     test('Should keep the same reference number when the page is reloaded', async () => {
-      const cookie = await getSessionCookie(server, '/confirmation')
+      const cookie = await sessionWithReference('PPP-123-45A')
 
       const first = await loadConfirmation(cookie)
       const second = await loadConfirmation(cookie)
       const third = await loadConfirmation(cookie)
 
-      expect(first.reference).toMatch(referencePattern)
-      expect(second.reference).toBe(first.reference)
-      expect(third.reference).toBe(first.reference)
+      expect(first.statusCode).toBe(statusCodes.ok)
+      expect(second.result).toBe(first.result)
+      expect(third.result).toBe(first.result)
     })
 
-    test('Should keep the reference number when the user submits check answers again', async () => {
-      // /check-answers only reads the session, so it issues no cookie of its
-      // own; the journey it belongs to has to seed one first.
-      const cookie = await getSessionCookie(server, '/business-activities')
+    test('Should show the latest reference when the user submits check answers again', async () => {
+      const cookie = await sessionWithReference('PPP-123-45A')
 
-      const { reference } = await loadConfirmation(cookie)
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+        status: statusCodes.created,
+        json: async () => ({ reference: 'PPP-987-65Z' })
+      })
 
       const { statusCode, headers } = await server.inject({
         method: 'POST',
@@ -77,24 +102,29 @@ describe('#confirmationController', () => {
 
       expect(statusCode).toBe(statusCodes.redirect)
       expect(headers.location).toBe('/confirmation')
-      expect((await loadConfirmation(cookie)).reference).toBe(reference)
+
+      const { result } = await loadConfirmation(cookie)
+
+      expect(result).toEqual(expect.stringContaining('PPP-987-65Z'))
+      expect(result).not.toEqual(expect.stringContaining('PPP-123-45A'))
     })
 
-    test('Should give each session its own reference number', async () => {
-      const references = []
+    test('Should give each session the reference issued for it', async () => {
+      const first = await sessionWithReference('PPP-111-11A')
+      const second = await sessionWithReference('PPP-222-22B')
 
-      for (let session = 0; session < 5; session += 1) {
-        const cookie = await getSessionCookie(server, '/business-activities')
-        references.push((await loadConfirmation(cookie)).reference)
-      }
+      expect((await loadConfirmation(first)).result).toEqual(
+        expect.stringContaining('PPP-111-11A')
+      )
+      expect((await loadConfirmation(second)).result).toEqual(
+        expect.stringContaining('PPP-222-22B')
+      )
+    })
 
-      for (const reference of references) {
-        expect(reference).toMatch(referencePattern)
-      }
+    test('Should fail rather than invent a reference when the session has none', async () => {
+      const { statusCode } = await loadConfirmation()
 
-      // References are random, so two sessions could legitimately coincide.
-      // Sharing one reference across every session could not.
-      expect(new Set(references).size).toBeGreaterThan(1)
+      expect(statusCode).toBe(statusCodes.internalServerError)
     })
   })
 })
