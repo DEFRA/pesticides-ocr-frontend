@@ -39,32 +39,32 @@
     </form>
 
     {% if searched %}
-      {% if isFound %}
-      
-        {% set rows = [] %}
-        {% for key, value in registration %}
-          {% set rows = (rows.push({ key: { text: key }, value: { text: value } }), rows) %}
-        {% endfor %}
+    {% if isFound %}
 
-        {{ govukSummaryList({
-          card: {
-            title: {
-              text: "Registration details for " ~ reference
-            },
-            actions: {
-              items: [
-                {
-                  href: "#",
-                  text: "Export"
-                }
-              ]
+    {% set rows = [] %}
+    {% for key, value in registration %}
+    {% set rows = (rows.push({ key: { text: key }, value: { text: value } }), rows) %}
+    {% endfor %}
+
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Registration details for " ~ reference
+        },
+        actions: {
+          items: [
+            {
+              href: "/admin/export?reference=" ~ reference,
+              text: "Export"
             }
-          },
-          rows: rows }) }}
-      {% else %}
-        <h2 class="govuk-heading-m">No registration found</h2>
-        <p class="govuk-body">There does not appear to be a registration matching {{ reference }}.</p>
-      {% endif %}
+          ]
+        }
+      },
+      rows: rows }) }}
+    {% else %}
+    <h2 class="govuk-heading-m">No registration found</h2>
+    <p class="govuk-body">There does not appear to be a registration matching {{ reference }}.</p>
+    {% endif %}
     {% endif %}
 
   </div>
