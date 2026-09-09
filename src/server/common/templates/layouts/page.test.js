@@ -68,3 +68,32 @@ describe('#pageLayout header sign-out', () => {
     expect(statusCode).toBe(statusCodes.notFound)
   })
 })
+
+// Google Analytics (EQ-388) is production-only: the config element the client
+// loader reads must NOT be rendered outside production, so non-prod tiers never
+// load GTM. Tests run with NODE_ENV=test (isProduction false).
+describe('#pageLayout Google Analytics gating', () => {
+  let server
+
+  beforeAll(async () => {
+    server = await createServer()
+    await server.initialize()
+  })
+
+  afterAll(async () => {
+    await server.stop({ timeout: 0 })
+  })
+
+  test('does not render the analytics config outside production', async () => {
+    const { statusCode, result } = await server.inject({
+      method: 'GET',
+      url: '/'
+    })
+
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result).not.toContain('js-analytics-config')
+    expect(result).not.toContain('GTM-WS6QGKZN')
+    // The cookie banner only appears where analytics can run.
+    expect(result).not.toContain('govuk-cookie-banner')
+  })
+})

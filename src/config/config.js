@@ -122,6 +122,20 @@ export const config = convict({
     default: isProduction,
     env: 'ENABLE_SECURE_CONTEXT'
   },
+  analytics: {
+    enabled: {
+      doc: 'Load Google Tag Manager + show the cookie banner. Production only by default; set ANALYTICS_ENABLED=true to exercise it locally (EQ-388/EQ-363).',
+      format: Boolean,
+      default: isProduction,
+      env: 'ANALYTICS_ENABLED'
+    },
+    gtmId: {
+      doc: 'Google Tag Manager container id, overridable per environment.',
+      format: String,
+      default: 'GTM-WS6QGKZN',
+      env: 'ANALYTICS_GTM_ID'
+    }
+  },
   session: {
     cache: {
       engine: {
