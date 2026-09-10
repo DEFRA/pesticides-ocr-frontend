@@ -1,6 +1,7 @@
 import { buildAnswers } from './helpers/build-answers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import Boom from '@hapi/boom'
+import { config } from '#/config/config.js'
 
 export const get = {
   handler(request, h) {
@@ -16,7 +17,7 @@ export const post = {
   async handler(request, h) {
     const formSession = request.yar.get('formSession') ?? {}
 
-    const url = 'http://localhost:3001/register'
+    const url = `${config.get('backend.apiUrl')}/register`
     const postOptions = {
       method: 'POST',
       headers: {
@@ -25,18 +26,23 @@ export const post = {
       body: JSON.stringify(formSession)
     }
 
-    const response = await fetch(url, postOptions)
-
-    if (response.status === statusCodes.badRequest) {
-      return Boom.badRequest(`Failed to submit form data: ${response.statusText}`)
+    let response
+    try {
+      response = await fetch(url, postOptions)
+    } catch (error) {
+      return Boom.internal(`Failed to submit form data: ${error.message}`)
     }
 
-    if (response.status === statusCodes.created) {
-      const responseData = await response.json()
-      formSession['confirmation-reference'] = responseData.reference
-
-      request.yar.set('formSession', formSession)
+    if (response.status !== statusCodes.created) {
+      return Boom.boomify(new Error(`Failed to submit form data: ${response.statusText}`), {
+        statusCode: response.status
+      })
     }
+
+    const responseData = await response.json()
+    formSession['confirmation-reference'] = responseData.reference
+
+    request.yar.set('formSession', formSession)
 
     return h.redirect('/confirmation')
   }

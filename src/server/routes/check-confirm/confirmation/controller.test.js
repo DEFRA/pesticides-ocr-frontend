@@ -124,7 +124,7 @@ describe('#confirmationController', () => {
     test('Should fail rather than invent a reference when the session has none', async () => {
       const { statusCode } = await loadConfirmation()
 
-      expect(statusCode).toBe(statusCodes.internalServerError)
+      expect(statusCode).toBe(statusCodes.badData)
     })
   })
 })

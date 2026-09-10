@@ -390,10 +390,9 @@ describe('#checkAnswersController', () => {
       stubBackend({ status: statusCodes.internalServerError })
       const cookie = await getSessionCookie(server, '/business-activities')
 
-      const { statusCode, headers } = await submit(cookie)
+      const { statusCode } = await submit(cookie)
 
-      expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/confirmation')
+      expect(statusCode).toBe(statusCodes.internalServerError)
 
       // Nothing was stored, so the confirmation page has no reference to show.
       const confirmation = await server.inject({
@@ -402,7 +401,7 @@ describe('#checkAnswersController', () => {
         headers: { cookie }
       })
 
-      expect(confirmation.statusCode).toBe(statusCodes.internalServerError)
+      expect(confirmation.statusCode).toBe(statusCodes.badData)
     })
   })
 })
