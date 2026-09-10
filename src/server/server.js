@@ -97,7 +97,11 @@ export async function createServer() {
           roleValues: config
             .get('entra.roleValues')
             .split(',')
-            .map((role) => role.trim())
+            .map((role) => role.trim()),
+          // Custom API scope (api://<client-id>/access_as_user) so the forwarded
+          // access token's `aud` is our own client id. Empty = none. Requires
+          // @defra/hapi-oidc-auth >= 0.4.0 (older versions ignore it). EQ-442.
+          additionalScopes: config.get('entra.apiScope')
         },
         redirects: {
           postLogin: config.get('entra.postLoginRedirect'),
