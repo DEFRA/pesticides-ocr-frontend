@@ -303,6 +303,12 @@ export const config = convict({
       format: String,
       default: 'Case Officer',
       env: 'ENTRA_MOCK_DISPLAY_NAME'
+    },
+    apiScope: {
+      doc: 'Custom Entra API scope to request (e.g. api://<client-id>/access_as_user) so the forwarded access token\'s aud is our own client id, which the backend validates. Empty = request only the OIDC defaults. Set per tier via cdp-app-config (EQ-442). Requires @defra/hapi-oidc-auth >= 0.4.0.',
+      format: String,
+      default: '',
+      env: 'ENTRA_API_SCOPE'
     }
   },
   ocrBackend: {
