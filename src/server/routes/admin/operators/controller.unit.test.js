@@ -21,11 +21,11 @@ const TOKEN = 'header.payload.signature'
 
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.mocked(getAuthSession).mockReturnValue({ idTokenHint: TOKEN })
+  vi.mocked(getAuthSession).mockReturnValue({ token: TOKEN })
 })
 
 describe('operatorsController', () => {
-  test('forwards session.idTokenHint (and the search term) to searchOperators', async () => {
+  test('forwards session.token (and the search term) to searchOperators', async () => {
     const operators = [{ reference: 'OCR-1', businessName: 'Acme' }]
     vi.mocked(searchOperators).mockResolvedValue(operators)
     const h = { view: vi.fn().mockReturnValue('rendered') }
