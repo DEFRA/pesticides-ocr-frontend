@@ -7,11 +7,12 @@ import { searchOperators, toCsv } from './operators-data.js'
 // shared by the grid and the export so the two stay in lockstep.
 async function getFilteredOperators(request) {
   const search = (request.query.search ?? '').toString()
-  // Forward the signed-in case officer's Entra ID token to the backend (live
-  // mode). Its `aud` is the app's client id, which the backend verifies; the
-  // access token would carry a Graph audience and be rejected. In mock mode the
-  // session has no token and operators-data returns local sample data.
-  const { idTokenHint: token } = getAuthSession(request)
+  // Forward the signed-in case officer's Entra ACCESS token to the backend (live
+  // mode). With the `access_as_user` API scope on the app registration, the
+  // access token's `aud` is the app's own client id — which the backend verifies
+  // — and it carries `scp: access_as_user`. In mock mode the session has no token
+  // and operators-data returns local sample data.
+  const { token } = getAuthSession(request)
   const operators = await searchOperators({ query: search, token })
   return { search, operators }
 }
