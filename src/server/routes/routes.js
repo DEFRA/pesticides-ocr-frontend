@@ -1,7 +1,7 @@
 import { home } from './home/index.js'
 import { cookies } from './cookies/index.js'
 import { dashboard } from './dashboard/index.js'
-import { adminOperators } from './admin/operators/index.js'
+import { search } from './admin/search/index.js'
 import { businessActivities } from './qualifying-questions/business-activities/business-activities.js'
 import { mainCustomer } from './qualifying-questions/main-customer/main-customer.js'
 import { businessName } from './qualifying-questions/business-name/business-name.js'
@@ -19,12 +19,13 @@ import { additionalBusinessAddress } from './pro-users/additional-business-addre
 import { additionalBusinessContact } from './pro-users/additional-business-contact/additional-business-contact.js'
 import { additionalBusinessActivity } from './pro-users/additional-business-activity/additional-business-activity.js'
 import { checkAdditionalAddress } from './pro-users/check-additional-address/check-additional-address.js'
+import { exports } from './export/export.js'
 
 export const routes = [
   home,
   cookies,
   dashboard,
-  adminOperators,
+  search,
   businessActivities,
   mainCustomer,
   businessName,
@@ -41,7 +42,8 @@ export const routes = [
   additionalBusinessAddress,
   additionalBusinessContact,
   additionalBusinessActivity,
-  checkAdditionalAddress
+  checkAdditionalAddress,
+  exports
 ]
 
 export default routes
