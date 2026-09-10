@@ -305,6 +305,14 @@ export const config = convict({
       env: 'ENTRA_MOCK_DISPLAY_NAME'
     }
   },
+  backend: {
+    apiUrl: {
+      doc: 'Base URL of the OCR backend API (placeholder until the real service is deployed)',
+      format: String,
+      default: 'http://localhost:3001',
+      env: 'BACKEND_API_URL'
+    }
+  },
   tracing: {
     header: {
       doc: 'Which header to track',
