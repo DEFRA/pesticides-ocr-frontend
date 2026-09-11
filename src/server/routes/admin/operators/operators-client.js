@@ -1,13 +1,15 @@
 // Live-mode data access for the admin/enforcement UI (EQ-442): calls the
 // pesticides-ocr-backend read API (EQ-385) with the signed-in case officer's
-// Entra token forwarded as a bearer.
+// Entra ACCESS token forwarded as a bearer (per Microsoft guidance: access
+// tokens, not ID tokens, for API authorization).
 //
-// The backend is a single Entra app registration shared with this frontend, so
-// its configured audience is the frontend's own client id — which is the `aud`
-// of the ID token. We therefore forward the ID token (session.idTokenHint); the
-// access token would carry a Microsoft Graph audience and be rejected. If the
-// backend later becomes a standalone API resource (its own App ID URI + scope),
-// switch to a scoped access token here.
+// The API is exposed on the same app registration shared with this frontend, so
+// we request its custom scope (api://<client-id>/access_as_user, via the plugin's
+// additionalScopes / ENTRA_API_SCOPE) — that makes the access token's `aud` the
+// app's own client id, which the backend validates, and it carries
+// scp=access_as_user. Requires @defra/hapi-oidc-auth >= 0.4.0; until that dep
+// bump lands here the access token won't carry the scope, so this must not deploy
+// to a live tier ahead of the 0.4.0 upgrade.
 
 import { fetch } from 'undici'
 
