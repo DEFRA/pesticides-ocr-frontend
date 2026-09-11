@@ -1,5 +1,6 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
+import { config } from '#/config/config.js'
 
 // Complete a mock case-officer sign-in and return the authenticated session cookie.
 async function signInCaseOfficer(server) {
@@ -122,5 +123,28 @@ describe('#adminOperators (EQ-227)', () => {
 
     expect(statusCode).toBe(statusCodes.redirect)
     expect(headers.location).toContain('/auth/entra/sign-in')
+  })
+
+  // End-to-end proof (through the real Hapi pipeline) that in live mode the grid
+  // goes to the backend client, and a missing/expired forwarded token bounces the
+  // officer to re-authenticate rather than a dead-end error page — and never
+  // renders the mock grid as if it were live data. A mock sign-in session carries
+  // no forwardable token, so the live path raises a backend 401.
+  test('live mode redirects to re-authenticate when the forwarded token is missing/expired', async () => {
+    config.set('entra.mode', 'live')
+    try {
+      const { statusCode, headers, result } = await server.inject({
+        method: 'GET',
+        url: '/admin/operators',
+        headers: { cookie }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toContain('/auth/entra/sign-in')
+      // Never renders the mock grid as if it were live data.
+      expect(result).not.toEqual(expect.stringContaining('Pesticides Ltd'))
+    } finally {
+      config.set('entra.mode', 'mock')
+    }
   })
 })

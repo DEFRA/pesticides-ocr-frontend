@@ -46,17 +46,20 @@ export function catchAll(request, h) {
     return h.continue
   }
 
-  // Plugins (e.g. @defra/hapi-oidc-auth) throw plain errors carrying an intended
-  // `.statusCode` (401/422). Hapi boomifies those to a 500 `output.statusCode`,
-  // so recover the intended client-error code when present.
+  // Plugins (e.g. @defra/hapi-oidc-auth) and our own data clients throw plain
+  // errors carrying an intended `.statusCode` (e.g. 401/422, or 502 when the OCR
+  // backend is unreachable). Hapi boomifies those to a 500 `output.statusCode`,
+  // so recover the intended code when present — including 5xx, so an upstream
+  // failure surfaces as e.g. 502 rather than a generic 500. A genuine Boom error
+  // carries no own `.statusCode`, so `thrown` is undefined and the Boom status is
+  // kept; only an explicit thrown `.statusCode` is honoured.
   const boomStatus = response.output.statusCode
   const thrown = response.statusCode
-  const isRecoveredClientError =
+  const isRecoveredStatus =
     boomStatus >= statusCodes.internalServerError &&
     Number.isInteger(thrown) &&
-    thrown >= statusCodes.badRequest &&
-    thrown < statusCodes.internalServerError
-  const statusCode = isRecoveredClientError ? thrown : boomStatus
+    thrown >= statusCodes.badRequest
+  const statusCode = isRecoveredStatus ? thrown : boomStatus
   const errorMessage = statusCodeMessage(statusCode)
 
   if (statusCode >= statusCodes.internalServerError) {
@@ -70,7 +73,7 @@ export function catchAll(request, h) {
         `Plugin server error ${buildErrorLogMessage(request, statusCode)}`
       )
     }
-  } else if (isRecoveredClientError) {
+  } else if (isRecoveredStatus) {
     // The client-facing page shows only a generic message, so the specific
     // reason (e.g. why an Entra sign-in was rejected) is otherwise lost. Record
     // it server-side only for diagnosis — never surface it to the user.

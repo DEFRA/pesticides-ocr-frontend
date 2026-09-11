@@ -50,3 +50,25 @@ describe('config password validation', () => {
     expect(config.get('session.cookie.password')).toBe(longPassword)
   })
 })
+
+describe('entra.apiScope (EQ-442)', () => {
+  beforeEach(() => {
+    vi.resetModules()
+  })
+
+  test('defaults to empty (request only the OIDC defaults)', async () => {
+    const { config } = await import('./config.js')
+    expect(config.get('entra.apiScope')).toBe('')
+  })
+
+  test('reads ENTRA_API_SCOPE', async () => {
+    vi.stubEnv(
+      'ENTRA_API_SCOPE',
+      'api://66673eca-a40d-443c-b8e9-69ac0ebacb53/access_as_user'
+    )
+    const { config } = await import('./config.js')
+    expect(config.get('entra.apiScope')).toBe(
+      'api://66673eca-a40d-443c-b8e9-69ac0ebacb53/access_as_user'
+    )
+  })
+})
