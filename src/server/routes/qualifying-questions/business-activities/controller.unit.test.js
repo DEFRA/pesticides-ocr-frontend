@@ -16,7 +16,8 @@ function fakeRequest(initial = {}) {
       set: (key, value) => {
         store[key] = value
       }
-    }
+    },
+    logger: { info: vi.fn() }
   }
 }
 
@@ -36,6 +37,7 @@ describe('#businessActivities GET — journey-start beacon', () => {
     expect(recordJourneyStart).toHaveBeenCalledTimes(1)
     expect(recordJourneyStart).toHaveBeenCalledWith(request)
     expect(request.yar.get('journeyStarted')).toBe(true)
+    expect(request.logger.info).toHaveBeenCalledTimes(1)
   })
 
   test('does not fire again when the session is already marked', () => {
@@ -44,5 +46,6 @@ describe('#businessActivities GET — journey-start beacon', () => {
     get.handler(request, h)
 
     expect(recordJourneyStart).not.toHaveBeenCalled()
+    expect(request.logger.info).not.toHaveBeenCalled()
   })
 })

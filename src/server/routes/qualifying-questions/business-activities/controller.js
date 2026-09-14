@@ -11,6 +11,10 @@ export const get = {
     // write can never delay or break the page.
     if (!request.yar.get('journeyStarted')) {
       request.yar.set('journeyStarted', true)
+      // One line per session (this branch runs once per session), so the logs
+      // demonstrate the de-duplication: refreshes / back-navigation don't re-log.
+      // No PII — just the event.
+      request.logger.info('Journey start recorded for this session (EQ-283)')
       // Deliberately not awaited — the beacon is best-effort and self-contained
       // (it catches its own errors), so a floating promise is intended here.
       recordJourneyStart(request)
