@@ -1,8 +1,21 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
+import { recordJourneyStart } from '#/server/common/helpers/record-journey-start.js'
 
 export const get = {
   handler(request, h) {
     request.yar.set('formSession', request.yar.get('formSession') ?? {})
+
+    // Record the journey start once per session (consent-free, EQ-283). This is
+    // the first page after the "Start now" button. Set the flag first, then
+    // fire-and-forget the beacon (do not await) so a slow or failing metrics
+    // write can never delay or break the page.
+    if (!request.yar.get('journeyStarted')) {
+      request.yar.set('journeyStarted', true)
+      // Deliberately not awaited — the beacon is best-effort and self-contained
+      // (it catches its own errors), so a floating promise is intended here.
+      recordJourneyStart(request)
+    }
+
     return h.view('qualifying-questions/business-activities/business-activities')
   }
 }
