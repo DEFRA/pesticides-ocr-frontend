@@ -9,11 +9,35 @@
 // when the backend URL isn't configured (local/mock), so dev emits no failing
 // requests.
 
+import { randomUUID, createHmac } from 'node:crypto'
+
 import { fetch } from 'undici'
 
 import { config } from '#/config/config.js'
 
 const BEACON_TIMEOUT_MS = 2000
+const TOKEN_HEADER = 'x-journey-token'
+
+// Get-or-create the signed per-session token (EQ-472). One nonce per session,
+// signed with the secret shared with the backend, reused for every beacon in the
+// session so the backend records each event once (and rejects direct/forged
+// calls). Returns null when no secret is configured (local/unconfigured tiers),
+// so beacons are simply sent unsigned there.
+function sessionToken(request) {
+  const secret = config.get('journeyToken.secret')
+  if (!secret) {
+    return null
+  }
+
+  let token = request?.yar?.get('journeyToken')
+  if (!token) {
+    const nonce = randomUUID()
+    const signature = createHmac('sha256', secret).update(nonce).digest('hex')
+    token = `${nonce}.${signature}`
+    request?.yar?.set('journeyToken', token)
+  }
+  return token
+}
 
 async function fireBeacon(request, path) {
   const base = config.get('ocrBackend.url')
@@ -31,9 +55,12 @@ async function fireBeacon(request, path) {
     return
   }
 
+  const token = sessionToken(request)
+
   try {
     const response = await fetch(url, {
       method: 'POST',
+      headers: token ? { [TOKEN_HEADER]: token } : {},
       signal: AbortSignal.timeout(BEACON_TIMEOUT_MS)
     })
     // A reachable backend that answers non-2xx (its own error, or a misconfigured

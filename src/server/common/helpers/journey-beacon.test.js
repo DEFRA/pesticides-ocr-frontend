@@ -14,14 +14,18 @@ const BACKEND_URL = 'https://ocr-backend.test'
 const originalUrl = config.get('ocrBackend.url')
 const request = { logger: { warn: vi.fn() } }
 
+const originalSecret = config.get('journeyToken.secret')
+
 beforeEach(() => {
   vi.mocked(fetch).mockReset()
   request.logger.warn.mockReset()
   config.set('ocrBackend.url', BACKEND_URL)
+  config.set('journeyToken.secret', '')
 })
 
 afterEach(() => {
   config.set('ocrBackend.url', originalUrl)
+  config.set('journeyToken.secret', originalSecret)
 })
 
 describe('#journeyBeacon', () => {
@@ -50,6 +54,38 @@ describe('#journeyBeacon', () => {
       'https://ocr-backend.test/metrics/journey-not-eligible'
     )
     expect(opts.method).toBe('POST')
+  })
+
+  test('sends no token header when no secret is configured', async () => {
+    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 204 })
+
+    await recordJourneyStart(request)
+
+    const { headers } = vi.mocked(fetch).mock.calls[0][1]
+    expect(headers['x-journey-token']).toBeUndefined()
+  })
+
+  test('signs a per-session token and reuses it across events when a secret is set', async () => {
+    config.set('journeyToken.secret', 'shared-secret')
+    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 204 })
+    const store = {}
+    const req = {
+      logger: { warn: vi.fn() },
+      yar: {
+        get: (key) => store[key],
+        set: (key, value) => {
+          store[key] = value
+        }
+      }
+    }
+
+    await recordJourneyStart(req)
+    await recordJourneyNotEligible(req)
+
+    const first = vi.mocked(fetch).mock.calls[0][1].headers['x-journey-token']
+    const second = vi.mocked(fetch).mock.calls[1][1].headers['x-journey-token']
+    expect(first).toMatch(/^[^.]+\.[a-f0-9]+$/) // nonce.hmac
+    expect(second).toBe(first) // same token for every beacon in the session
   })
 
   test('no-ops when the backend URL is not configured (local/mock)', async () => {
