@@ -305,6 +305,14 @@ export const config = convict({
       env: 'ENTRA_MOCK_DISPLAY_NAME'
     }
   },
+  ocrBackend: {
+    url: {
+      doc: 'Base URL of the pesticides-ocr-backend service. Set to the CDP internal service-to-service address on deployed tiers; empty in local/mock. This is the single shared key for all backend calls (case-officer dashboard reads, registration submission, journey metrics) — do not add a second backend-URL config.',
+      format: String,
+      default: '',
+      env: 'OCR_BACKEND_URL'
+    }
+  },
   tracing: {
     header: {
       doc: 'Which header to track',
