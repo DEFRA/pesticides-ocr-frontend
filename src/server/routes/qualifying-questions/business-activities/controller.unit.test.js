@@ -1,10 +1,14 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 
-import { recordJourneyStart } from '#/server/common/helpers/journey-beacon.js'
+import {
+  recordJourneyStart,
+  recordOncePerSession
+} from '#/server/common/helpers/journey-beacon.js'
 import { get } from './controller.js'
 
 vi.mock('#/server/common/helpers/journey-beacon.js', () => ({
-  recordJourneyStart: vi.fn()
+  recordJourneyStart: vi.fn(),
+  recordOncePerSession: vi.fn()
 }))
 
 // Minimal request stand-in with an in-memory yar store.
@@ -16,36 +20,40 @@ function fakeRequest(initial = {}) {
       set: (key, value) => {
         store[key] = value
       }
-    },
-    logger: { info: vi.fn() }
+    }
   }
 }
 
 const h = { view: vi.fn(() => 'VIEW') }
 
 beforeEach(() => {
+  vi.mocked(recordOncePerSession).mockReset()
   vi.mocked(recordJourneyStart).mockReset()
   h.view.mockReset()
 })
 
-describe('#businessActivities GET — journey-start beacon', () => {
-  test('fires the beacon once on first visit and marks the session', () => {
+describe('#businessActivities GET', () => {
+  test('seeds the form session', () => {
     const request = fakeRequest()
 
     get.handler(request, h)
 
-    expect(recordJourneyStart).toHaveBeenCalledTimes(1)
-    expect(recordJourneyStart).toHaveBeenCalledWith(request)
-    expect(request.yar.get('journeyStarted')).toBe(true)
-    expect(request.logger.info).toHaveBeenCalledTimes(1)
+    expect(request.yar.get('formSession')).toEqual({})
   })
 
-  test('does not fire again when the session is already marked', () => {
-    const request = fakeRequest({ journeyStarted: true })
+  test('delegates the journey-start beacon to recordOncePerSession', () => {
+    const request = fakeRequest()
 
     get.handler(request, h)
 
-    expect(recordJourneyStart).not.toHaveBeenCalled()
-    expect(request.logger.info).not.toHaveBeenCalled()
+    expect(recordOncePerSession).toHaveBeenCalledTimes(1)
+    expect(recordOncePerSession).toHaveBeenCalledWith(
+      request,
+      expect.objectContaining({
+        sessionKey: 'journeyStarted',
+        record: recordJourneyStart,
+        logMessage: expect.stringContaining('Journey start recorded')
+      })
+    )
   })
 })

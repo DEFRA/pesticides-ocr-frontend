@@ -4,7 +4,8 @@ import { fetch } from 'undici'
 import { config } from '#/config/config.js'
 import {
   recordJourneyStart,
-  recordJourneyNotEligible
+  recordJourneyNotEligible,
+  recordOncePerSession
 } from './journey-beacon.js'
 
 vi.mock('undici', () => ({ fetch: vi.fn() }))
@@ -60,6 +61,13 @@ describe('#journeyBeacon', () => {
     expect(request.logger.warn).not.toHaveBeenCalled()
   })
 
+  test('warns when the backend responds non-2xx (still resolves)', async () => {
+    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 500 })
+
+    await expect(recordJourneyStart(request)).resolves.toBeUndefined()
+    expect(request.logger.warn).toHaveBeenCalledTimes(1)
+  })
+
   test('swallows a fetch failure and warns (never throws)', async () => {
     vi.mocked(fetch).mockRejectedValue(new Error('ECONNREFUSED'))
 
@@ -74,5 +82,46 @@ describe('#journeyBeacon', () => {
 
     expect(fetch).not.toHaveBeenCalled()
     expect(request.logger.warn).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('#recordOncePerSession', () => {
+  function fakeRequest(initial = {}) {
+    const store = { ...initial }
+    return {
+      yar: {
+        get: (key) => store[key],
+        set: (key, value) => {
+          store[key] = value
+        }
+      },
+      logger: { info: vi.fn() }
+    }
+  }
+
+  test('records once, sets the session flag, and logs', () => {
+    const record = vi.fn()
+    const req = fakeRequest()
+
+    recordOncePerSession(req, {
+      sessionKey: 'k',
+      record,
+      logMessage: 'msg'
+    })
+
+    expect(record).toHaveBeenCalledTimes(1)
+    expect(record).toHaveBeenCalledWith(req)
+    expect(req.yar.get('k')).toBe(true)
+    expect(req.logger.info).toHaveBeenCalledWith('msg')
+  })
+
+  test('no-ops when the session flag is already set', () => {
+    const record = vi.fn()
+    const req = fakeRequest({ k: true })
+
+    recordOncePerSession(req, { sessionKey: 'k', record, logMessage: 'msg' })
+
+    expect(record).not.toHaveBeenCalled()
+    expect(req.logger.info).not.toHaveBeenCalled()
   })
 })
