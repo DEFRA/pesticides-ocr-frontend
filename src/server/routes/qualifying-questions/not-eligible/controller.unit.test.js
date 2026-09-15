@@ -1,10 +1,10 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 
-import { recordJourneyStart } from '#/server/common/helpers/journey-beacon.js'
+import { recordJourneyNotEligible } from '#/server/common/helpers/journey-beacon.js'
 import { get } from './controller.js'
 
 vi.mock('#/server/common/helpers/journey-beacon.js', () => ({
-  recordJourneyStart: vi.fn()
+  recordJourneyNotEligible: vi.fn()
 }))
 
 // Minimal request stand-in with an in-memory yar store.
@@ -24,28 +24,28 @@ function fakeRequest(initial = {}) {
 const h = { view: vi.fn(() => 'VIEW') }
 
 beforeEach(() => {
-  vi.mocked(recordJourneyStart).mockReset()
+  vi.mocked(recordJourneyNotEligible).mockReset()
   h.view.mockReset()
 })
 
-describe('#businessActivities GET — journey-start beacon', () => {
+describe('#notEligible GET — journey not-eligible beacon', () => {
   test('fires the beacon once on first visit and marks the session', () => {
     const request = fakeRequest()
 
     get.handler(request, h)
 
-    expect(recordJourneyStart).toHaveBeenCalledTimes(1)
-    expect(recordJourneyStart).toHaveBeenCalledWith(request)
-    expect(request.yar.get('journeyStarted')).toBe(true)
+    expect(recordJourneyNotEligible).toHaveBeenCalledTimes(1)
+    expect(recordJourneyNotEligible).toHaveBeenCalledWith(request)
+    expect(request.yar.get('notEligibleRecorded')).toBe(true)
     expect(request.logger.info).toHaveBeenCalledTimes(1)
   })
 
   test('does not fire again when the session is already marked', () => {
-    const request = fakeRequest({ journeyStarted: true })
+    const request = fakeRequest({ notEligibleRecorded: true })
 
     get.handler(request, h)
 
-    expect(recordJourneyStart).not.toHaveBeenCalled()
+    expect(recordJourneyNotEligible).not.toHaveBeenCalled()
     expect(request.logger.info).not.toHaveBeenCalled()
   })
 })
