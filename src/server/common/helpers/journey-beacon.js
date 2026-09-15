@@ -23,6 +23,10 @@ const TOKEN_HEADER = 'x-journey-token'
 // session so the backend records each event once (and rejects direct/forged
 // calls). Returns null when no secret is configured (local/unconfigured tiers),
 // so beacons are simply sent unsigned there.
+//
+// WIRE-FORMAT CONTRACT: the `<nonce>.<hmac>` shape (sha256, hex digest, shared
+// JOURNEY_TOKEN_SECRET) must match the verifier in pesticides-ocr-backend
+// src/services/metrics/journey-token.js. Keep the two in sync.
 function sessionToken(request) {
   const secret = config.get('journeyToken.secret')
   if (!secret) {
