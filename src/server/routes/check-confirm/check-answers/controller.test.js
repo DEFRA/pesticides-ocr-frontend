@@ -3,6 +3,7 @@ import { vi } from 'vitest'
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie } from '#/test-helpers/session-helpers.js'
+import { config } from '#/config/config.js'
 
 describe('#checkAnswersController', () => {
   let server
@@ -306,6 +307,18 @@ describe('#checkAnswersController', () => {
   describe('POST /check-answers', () => {
     // The submission goes to the backend register endpoint, so the backend is
     // stubbed here rather than relied on being up.
+    const backendUrl = 'http://localhost:3001'
+    let configuredBackendUrl
+
+    beforeAll(() => {
+      configuredBackendUrl = config.get('ocrBackend.url')
+      config.set('ocrBackend.url', backendUrl)
+    })
+
+    afterAll(() => {
+      config.set('ocrBackend.url', configuredBackendUrl)
+    })
+
     const stubBackend = (response) =>
       vi.spyOn(globalThis, 'fetch').mockResolvedValue(response)
 
@@ -350,7 +363,7 @@ describe('#checkAnswersController', () => {
 
       const [url, options] = fetchSpy.mock.lastCall
 
-      expect(url).toBe('http://localhost:3001/register')
+      expect(url).toBe(`${backendUrl}/register`)
       expect(options.method).toBe('POST')
       expect(options.headers).toEqual({ 'Content-Type': 'application/json' })
       expect(JSON.parse(options.body)).toEqual(
