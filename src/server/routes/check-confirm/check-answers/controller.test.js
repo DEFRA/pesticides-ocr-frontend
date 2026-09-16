@@ -1,6 +1,9 @@
+import { vi } from 'vitest'
+
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie } from '#/test-helpers/session-helpers.js'
+import { config } from '#/config/config.js'
 
 describe('#checkAnswersController', () => {
   let server
@@ -302,15 +305,116 @@ describe('#checkAnswersController', () => {
   })
 
   describe('POST /check-answers', () => {
-    test('Should redirect to confirmation page', async () => {
-      const { statusCode, headers } = await server.inject({
+    // The submission goes to the backend register endpoint, so the backend is
+    // stubbed here rather than relied on being up.
+    const backendUrl = 'http://localhost:3001'
+    let configuredBackendUrl
+
+    beforeAll(() => {
+      configuredBackendUrl = config.get('ocrBackend.url')
+      config.set('ocrBackend.url', backendUrl)
+    })
+
+    afterAll(() => {
+      config.set('ocrBackend.url', configuredBackendUrl)
+    })
+
+    const stubBackend = (response) =>
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue(response)
+
+    const created = (reference = 'PPP-123-45A') => ({
+      status: statusCodes.created,
+      json: async () => ({ reference })
+    })
+
+    const submit = (cookie) =>
+      server.inject({
         method: 'POST',
         url: '/check-answers',
+        ...(cookie ? { headers: { cookie } } : {}),
         payload: {}
       })
 
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    test('Should redirect to confirmation page', async () => {
+      stubBackend(created())
+
+      const { statusCode, headers } = await submit()
+
       expect(statusCode).toBe(statusCodes.redirect)
       expect(headers.location).toBe('/confirmation')
+    })
+
+    test('Should send the answers held in session to the backend', async () => {
+      const fetchSpy = stubBackend(created())
+      const cookie = await getSessionCookie(server, '/business-activities')
+
+      await server.inject({
+        method: 'POST',
+        url: '/business-activities',
+        headers: { cookie },
+        payload: { businessActivities: ['manufacture', 'seller-amateur'] }
+      })
+
+      await submit(cookie)
+
+      const [url, options] = fetchSpy.mock.lastCall
+
+      expect(url).toBe(`${backendUrl}/register`)
+      expect(options.method).toBe('POST')
+      expect(options.headers).toEqual({ 'Content-Type': 'application/json' })
+      expect(JSON.parse(options.body)).toEqual(
+        expect.objectContaining({
+          businessActivities: ['manufacture', 'seller-amateur']
+        })
+      )
+    })
+
+    test('Should keep the reference the backend issued for the confirmation page', async () => {
+      stubBackend(created('PPP-987-65Z'))
+      const cookie = await getSessionCookie(server, '/business-activities')
+
+      await submit(cookie)
+
+      const { result } = await server.inject({
+        method: 'GET',
+        url: '/confirmation',
+        headers: { cookie }
+      })
+
+      expect(result).toEqual(expect.stringContaining('PPP-987-65Z'))
+    })
+
+    test('Should return a bad request when the backend rejects the answers', async () => {
+      stubBackend({
+        status: statusCodes.badRequest,
+        statusText: 'Bad Request'
+      })
+
+      const { statusCode } = await submit()
+
+      expect(statusCode).toBe(statusCodes.badRequest)
+    })
+
+    test('Should not record a reference when the backend did not create the registration', async () => {
+      stubBackend({ status: statusCodes.internalServerError })
+      const cookie = await getSessionCookie(server, '/business-activities')
+
+      const { statusCode } = await submit(cookie)
+
+      expect(statusCode).toBe(statusCodes.internalServerError)
+
+      // Nothing was stored, so the confirmation page has no reference to show.
+      const confirmation = await server.inject({
+        method: 'GET',
+        url: '/confirmation',
+        headers: { cookie }
+      })
+
+      expect(confirmation.statusCode).toBe(statusCodes.badData)
     })
   })
 })

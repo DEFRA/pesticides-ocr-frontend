@@ -49,7 +49,7 @@ function quantityLines(quantity = {}) {
 }
 
 export function buildAnswers(formData = {}) {
-  const contact = formData['primary-contact'] ?? {}
+  const contact = formData['primaryContact'] ?? {}
 
   return {
     businessActivities: labelsFor(businessActivityItems, formData['businessActivities']),

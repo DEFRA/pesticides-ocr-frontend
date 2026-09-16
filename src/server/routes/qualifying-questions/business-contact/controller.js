@@ -10,7 +10,7 @@ export const post = {
     const payload = request.payload
     const formSession = request.yar.get('formSession') ?? {}
 
-    formSession['primary-contact'] = payload
+    formSession['primaryContact'] = payload
     request.yar.set('formSession', formSession)
 
     return h.redirect('/address-activity')

@@ -61,7 +61,7 @@ describe('#buildAnswers', () => {
 
   test('Should split the contact details into separate answers', () => {
     const answers = buildAnswers({
-      'primary-contact': {
+      primaryContact: {
         contactName: 'John Smith',
         contactTelephone: '01234 567890',
         contactEmail: 'john.smith@pesticides.co.uk'
