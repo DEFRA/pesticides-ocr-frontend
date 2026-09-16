@@ -1,5 +1,6 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
+import { useTestBackendUrl } from '#/test-helpers/backend-helpers.js'
 
 async function signInCaseOfficer(server) {
   const start = await server.inject({ method: 'GET', url: '/auth/entra/start' })
@@ -23,6 +24,8 @@ describe('#searchController', () => {
   let server
   let cookie
   let fetchMock
+
+  useTestBackendUrl()
 
   beforeAll(async () => {
     server = await createServer()

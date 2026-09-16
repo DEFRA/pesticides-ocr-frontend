@@ -1,5 +1,9 @@
 import { searchRegistration } from './search.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
+import {
+  testBackendUrl,
+  useTestBackendUrl
+} from '#/test-helpers/backend-helpers.js'
 
 // Not in the shared status-codes constants, which only cover the codes the
 // journey itself returns.
@@ -13,6 +17,8 @@ const jsonResponse = (body, status = statusCodes.ok) =>
 
 describe('#searchRegistration', () => {
   let fetchMock
+
+  useTestBackendUrl()
 
   beforeEach(() => {
     fetchMock = vi.fn()
@@ -31,7 +37,7 @@ describe('#searchRegistration', () => {
     const [url, options] = fetchMock.mock.lastCall
 
     expect(url.toString()).toBe(
-      'http://localhost:3001/search?reference=PPP-ABC-123'
+      `${testBackendUrl}/search?reference=PPP-ABC-123`
     )
     expect(options).toEqual({
       method: 'GET',

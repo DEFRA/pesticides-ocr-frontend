@@ -3,7 +3,7 @@ import { config } from '#/config/config.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 
 export async function searchRegistration(reference) {
-  const url = new URL(`${config.get('backend.apiUrl')}/search`)
+  const url = new URL(`${config.get('ocrBackend.url')}/search`)
   url.searchParams.set('reference', reference)
   let response
 
