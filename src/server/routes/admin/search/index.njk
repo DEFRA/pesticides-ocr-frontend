@@ -1,0 +1,73 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% set title = "Search the register" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <h1 class="govuk-heading-l">Search the register</h1>
+
+    <form method="POST" action="/admin/search" novalidate>
+
+      {{ govukInput({
+        label: {
+          text: "Registration reference number"
+        },
+        hint: {
+          text: "For example, PP-ABC-123"
+        },
+        id: "registration-reference",
+        name: "registration-reference",
+        value: values["registration-reference"] if values,
+        classes: "govuk-!-width-two-thirds",
+        errorMessage: errors["registration-reference"] if errors["registration-reference"]
+      }) }}
+
+      {{ govukButton({
+        text: "Search",
+        type: "submit"
+      }) }}
+
+    </form>
+
+    {% if searched %}
+    {% if isFound %}
+
+    {% set rows = [] %}
+    {% for key, value in registration %}
+    {% set rows = (rows.push({ key: { text: key }, value: { text: value } }), rows) %}
+    {% endfor %}
+
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Registration details for " ~ reference
+        },
+        actions: {
+          items: [
+            {
+              href: "/admin/export?reference=" ~ reference,
+              text: "Export"
+            }
+          ]
+        }
+      },
+      rows: rows }) }}
+    {% else %}
+    <h2 class="govuk-heading-m">No registration found</h2>
+    <p class="govuk-body">There does not appear to be a registration matching {{ reference }}.</p>
+    {% endif %}
+    {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}

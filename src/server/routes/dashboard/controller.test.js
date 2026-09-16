@@ -29,7 +29,7 @@ describe('#dashboardController (protected)', () => {
   test('redirects an unauthenticated visitor to the Entra sign-in', async () => {
     const { statusCode, headers } = await server.inject({
       method: 'GET',
-      url: '/dashboard'
+      url: '/admin/dashboard'
     })
 
     expect(statusCode).toBe(statusCodes.redirect)
@@ -41,7 +41,7 @@ describe('#dashboardController (protected)', () => {
 
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/dashboard',
+      url: '/admin/dashboard',
       headers: { cookie }
     })
 
