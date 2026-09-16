@@ -17,7 +17,7 @@ export const post = {
   async handler(request, h) {
     const formSession = request.yar.get('formSession') ?? {}
 
-    const url = `${config.get('backend.apiUrl')}/register`
+    const url = `${config.get('ocrBackend.url')}/register`
     const postOptions = {
       method: 'POST',
       headers: {
