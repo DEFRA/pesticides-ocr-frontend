@@ -13,7 +13,7 @@ export const app = {
 
 export const validate = {
   payload: Joi.object({
-    'check-additional-address': Joi.string()
+    checkAdditionalAddress: Joi.string()
       .valid(...checkAdditionalAddressValues)
       .required()
       .messages({
@@ -24,7 +24,7 @@ export const validate = {
   }),
   failAction: viewFailAction(
     'pro-users/check-additional-address/check-additional-address', (request) => ({
-      address: buildLatestAddress(getSession(request, 'formSession')['additional-addresses'] ?? [])
+      address: buildLatestAddress(getSession(request, 'formSession')['additionalAddresses'] ?? [])
     })
   )
 }

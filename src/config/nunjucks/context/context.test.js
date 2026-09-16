@@ -58,6 +58,8 @@ describe('context and cache', () => {
         expect(contextResult).toEqual({
           assetPath: '/public/assets',
           account: null,
+          analyticsEnabled: false,
+          analyticsGtmId: 'GTM-WS6QGKZN',
           breadcrumbs: [],
           getAssetPath: expect.any(Function),
           navigation: [
@@ -150,6 +152,8 @@ describe('context and cache', () => {
         expect(contextResult).toEqual({
           assetPath: '/public/assets',
           account: null,
+          analyticsEnabled: false,
+          analyticsGtmId: 'GTM-WS6QGKZN',
           breadcrumbs: [],
           getAssetPath: expect.any(Function),
           navigation: [

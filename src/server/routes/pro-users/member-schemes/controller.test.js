@@ -39,8 +39,8 @@ describe('#memberSchemesController', () => {
 
     test('Should redirect to additional-addresses page when one scheme is selected', async () => {
       const { statusCode, headers } = await postSchemes({
-        'member-schemes': 'red-tractor',
-        'member-schemes-other': ''
+        memberSchemes: 'red-tractor',
+        memberSchemesOther: ''
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -49,8 +49,8 @@ describe('#memberSchemesController', () => {
 
     test('Should redirect to additional-addresses page when several schemes are selected', async () => {
       const { statusCode, headers } = await postSchemes({
-        'member-schemes': ['leaf', 'sqc'],
-        'member-schemes-other': ''
+        memberSchemes: ['leaf', 'sqc'],
+        memberSchemesOther: ''
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -59,7 +59,7 @@ describe('#memberSchemesController', () => {
 
     test('Should redirect to additional-addresses page when only Other is given', async () => {
       const { statusCode, headers } = await postSchemes({
-        'member-schemes-other': 'Vineyard assurance'
+        memberSchemesOther: 'Vineyard assurance'
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -68,7 +68,7 @@ describe('#memberSchemesController', () => {
 
     test('Should redirect to additional-addresses page when neither is given, as the question is optional', async () => {
       const { statusCode, headers } = await postSchemes({
-        'member-schemes-other': ''
+        memberSchemesOther: ''
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -77,8 +77,8 @@ describe('#memberSchemesController', () => {
 
     test('Should show an error when both a scheme and Other are given', async () => {
       const { statusCode, result } = await postSchemes({
-        'member-schemes': 'red-tractor',
-        'member-schemes-other': 'Vineyard assurance'
+        memberSchemes: 'red-tractor',
+        memberSchemesOther: 'Vineyard assurance'
       })
 
       expect(statusCode).toBe(statusCodes.ok)
@@ -87,8 +87,8 @@ describe('#memberSchemesController', () => {
 
     test('Should show an error when several schemes and Other are given', async () => {
       const { statusCode, result } = await postSchemes({
-        'member-schemes': ['leaf', 'sqc'],
-        'member-schemes-other': 'Vineyard assurance'
+        memberSchemes: ['leaf', 'sqc'],
+        memberSchemesOther: 'Vineyard assurance'
       })
 
       expect(statusCode).toBe(statusCodes.ok)
@@ -97,7 +97,7 @@ describe('#memberSchemesController', () => {
 
     test('Should show an error when Other is longer than 100 characters', async () => {
       const { statusCode, result } = await postSchemes({
-        'member-schemes-other': 'x'.repeat(101)
+        memberSchemesOther: 'x'.repeat(101)
       })
 
       expect(statusCode).toBe(statusCodes.ok)

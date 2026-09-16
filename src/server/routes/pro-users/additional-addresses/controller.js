@@ -6,7 +6,7 @@ export const get = {
 
 export const post = {
   handler(request, h) {
-    const payload = request.payload['additional-addresses']
+    const payload = request.payload['additionalAddresses']
 
     if (payload === 'no') {
       return h.redirect('/check-answers')

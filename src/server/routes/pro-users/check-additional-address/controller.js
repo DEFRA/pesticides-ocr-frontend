@@ -4,7 +4,7 @@ import { buildLatestAddress } from './helpers/build-latest-address.js'
 export const get = {
   handler(request, h) {
     const formSession = getSession(request, 'formSession')
-    const additionalAddresses = formSession['additional-addresses'] ?? []
+    const additionalAddresses = formSession['additionalAddresses'] ?? []
 
     return h.view('pro-users/check-additional-address/check-additional-address', {
       address: buildLatestAddress(additionalAddresses)
@@ -14,7 +14,7 @@ export const get = {
 
 export const post = {
   handler(request, h) {
-    const payload = request.payload['check-additional-address']
+    const payload = request.payload['checkAdditionalAddress']
 
     if (payload === 'yes') {
       return h.redirect('/additional-addresses/address')
@@ -27,11 +27,11 @@ export const post = {
 export const removeLatest = {
   handler(request, h) {
     const formSession = getSession(request, 'formSession')
-    const additionalAddresses = formSession['additional-addresses'] ?? []
+    const additionalAddresses = formSession['additionalAddresses'] ?? []
 
     additionalAddresses.pop()
 
-    formSession['additional-addresses'] = additionalAddresses
+    formSession['additionalAddresses'] = additionalAddresses
     request.yar.set('formSession', formSession)
 
     return h.redirect('/additional-addresses')

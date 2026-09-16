@@ -34,7 +34,7 @@ describe('#businessActivitiesController', () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-activities',
-        payload: { 'business-activities': ['manufacture'] }
+        payload: { businessActivities: ['manufacture'] }
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -45,7 +45,7 @@ describe('#businessActivitiesController', () => {
       const { result, statusCode } = await server.inject({
         method: 'POST',
         url: '/business-activities',
-        payload: { 'business-activities': [] }
+        payload: { businessActivities: [] }
       })
 
       expect(result).toEqual(expect.stringContaining('Select at least one business activity'))

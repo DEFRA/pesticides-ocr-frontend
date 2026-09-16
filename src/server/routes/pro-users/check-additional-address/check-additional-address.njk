@@ -67,14 +67,14 @@
     <form method="post" action="/check-additional-address" novalidate>
 
       {{ govukRadios({
-        name: "check-additional-address",
+        name: "checkAdditionalAddress",
         fieldset: {
           legend: {
             text: "Do you want to add another address?",
             classes: "govuk-fieldset__legend--m"
           }
         },
-        errorMessage: errors["check-additional-address"] if errors["check-additional-address"],
+        errorMessage: errors["checkAdditionalAddress"] if errors["checkAdditionalAddress"],
         items: items
       }) }}
 

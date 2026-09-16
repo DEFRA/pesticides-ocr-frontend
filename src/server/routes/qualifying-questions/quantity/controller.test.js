@@ -47,7 +47,7 @@ describe('#quantityController', () => {
       await server.inject({
         method: 'POST',
         url: '/business-activities',
-        payload: { 'business-activities': activities },
+        payload: { businessActivities: activities },
         headers: { cookie }
       })
 
@@ -63,9 +63,9 @@ describe('#quantityController', () => {
       const { statusCode, headers } = await postQuantityAfterActivities(
         ['seller-amateur'],
         {
-          'quantity-type': 'amount',
-          'quantity-amount': '80000',
-          'quantity-area': ''
+          quantityType: 'amount',
+          quantityAmount: '80000',
+          quantityArea: ''
         }
       )
 
@@ -77,9 +77,9 @@ describe('#quantityController', () => {
       const { statusCode, headers } = await postQuantityAfterActivities(
         ['seller-amateur'],
         {
-          'quantity-type': 'area',
-          'quantity-amount': '',
-          'quantity-area': '250'
+          quantityType: 'area',
+          quantityAmount: '',
+          quantityArea: '250'
         }
       )
 
@@ -91,9 +91,9 @@ describe('#quantityController', () => {
       const { statusCode, headers } = await postQuantityAfterActivities(
         ['seller-amateur', 'manufacture'],
         {
-          'quantity-type': 'amount',
-          'quantity-amount': '80000',
-          'quantity-area': ''
+          quantityType: 'amount',
+          quantityAmount: '80000',
+          quantityArea: ''
         }
       )
 
@@ -105,9 +105,9 @@ describe('#quantityController', () => {
       const { statusCode, headers } = await postQuantityAfterActivities(
         ['manufacture'],
         {
-          'quantity-type': 'amount',
-          'quantity-amount': '80000',
-          'quantity-area': ''
+          quantityType: 'amount',
+          quantityAmount: '80000',
+          quantityArea: ''
         }
       )
 
@@ -119,9 +119,9 @@ describe('#quantityController', () => {
       const { statusCode, headers } = await postQuantityAfterActivities(
         ['seller-amateur'],
         {
-          'quantity-type': 'amount',
-          'quantity-amount': '80000',
-          'quantity-area': 'not a number'
+          quantityType: 'amount',
+          quantityAmount: '80000',
+          quantityArea: 'not a number'
         }
       )
 
@@ -133,7 +133,7 @@ describe('#quantityController', () => {
       const { result, statusCode } = await injectWithSession(server, {
         method: 'POST',
         url: '/quantity',
-        payload: { 'quantity-type': '' }
+        payload: { quantityType: '' }
       })
 
       expect(result).toEqual(expect.stringContaining('Select how you want to give the quantity'))
@@ -145,9 +145,9 @@ describe('#quantityController', () => {
         method: 'POST',
         url: '/quantity',
         payload: {
-          'quantity-type': 'amount',
-          'quantity-amount': '',
-          'quantity-area': ''
+          quantityType: 'amount',
+          quantityAmount: '',
+          quantityArea: ''
         }
       })
 
@@ -160,9 +160,9 @@ describe('#quantityController', () => {
         method: 'POST',
         url: '/quantity',
         payload: {
-          'quantity-type': 'area',
-          'quantity-amount': '',
-          'quantity-area': ''
+          quantityType: 'area',
+          quantityAmount: '',
+          quantityArea: ''
         }
       })
 
@@ -175,9 +175,9 @@ describe('#quantityController', () => {
         method: 'POST',
         url: '/quantity',
         payload: {
-          'quantity-type': 'amount',
-          'quantity-amount': 'lots',
-          'quantity-area': ''
+          quantityType: 'amount',
+          quantityAmount: 'lots',
+          quantityArea: ''
         }
       })
 
@@ -190,9 +190,9 @@ describe('#quantityController', () => {
         method: 'POST',
         url: '/quantity',
         payload: {
-          'quantity-type': 'area',
-          'quantity-amount': '',
-          'quantity-area': 'not a number'
+          quantityType: 'area',
+          quantityAmount: '',
+          quantityArea: 'not a number'
         }
       })
 

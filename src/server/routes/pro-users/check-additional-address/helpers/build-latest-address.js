@@ -12,11 +12,11 @@ function labelsFor(items, values) {
 
 function addressLines(address = {}) {
   return toLines(
-    address['address-line-1'],
-    address['address-line-2'],
-    address['address-town'],
-    address['address-county'],
-    address['address-postcode']
+    address['addressLine1'],
+    address['addressLine2'],
+    address['addressTown'],
+    address['addressCounty'],
+    address['addressPostcode']
   )
 }
 
@@ -30,9 +30,9 @@ export function buildLatestAddress(additionalAddresses = []) {
   return {
     number: additionalAddresses.length,
     address: addressLines(entry.address),
-    contactName: toLines(entry.contact?.['contact-name']),
-    contactEmail: toLines(entry.contact?.['contact-email']),
-    contactTelephone: toLines(entry.contact?.['contact-telephone']),
+    contactName: toLines(entry.contact?.['contactName']),
+    contactEmail: toLines(entry.contact?.['contactEmail']),
+    contactTelephone: toLines(entry.contact?.['contactTelephone']),
     activity: labelsFor(additionalBusinessActivityItems, entry.activity)
   }
 }

@@ -122,6 +122,20 @@ export const config = convict({
     default: isProduction,
     env: 'ENABLE_SECURE_CONTEXT'
   },
+  analytics: {
+    enabled: {
+      doc: 'Load Google Tag Manager + show the cookie banner. Production only by default; set ANALYTICS_ENABLED=true to exercise it locally (EQ-388/EQ-363).',
+      format: Boolean,
+      default: isProduction,
+      env: 'ANALYTICS_ENABLED'
+    },
+    gtmId: {
+      doc: 'Google Tag Manager container id, overridable per environment.',
+      format: String,
+      default: 'GTM-WS6QGKZN',
+      env: 'ANALYTICS_GTM_ID'
+    }
+  },
   session: {
     cache: {
       engine: {
@@ -291,12 +305,12 @@ export const config = convict({
       env: 'ENTRA_MOCK_DISPLAY_NAME'
     }
   },
-  backend: {
-    apiUrl: {
-      doc: 'Base URL of the OCR backend API (placeholder until the real service is deployed)',
+  ocrBackend: {
+    url: {
+      doc: 'Base URL of the pesticides-ocr-backend service. Set to the CDP internal service-to-service address on deployed tiers; empty in local/mock. This is the single shared key for all backend calls (case-officer dashboard reads, registration submission, journey metrics) — do not add a second backend-URL config.',
       format: String,
-      default: 'http://localhost:3001',
-      env: 'BACKEND_API_URL'
+      default: '',
+      env: 'OCR_BACKEND_URL'
     }
   },
   tracing: {

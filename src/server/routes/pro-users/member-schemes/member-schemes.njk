@@ -16,7 +16,7 @@
     <form method="post" action="/member-schemes" novalidate>
 
       {{ govukCheckboxes({
-        name: "member-schemes",
+        name: "memberSchemes",
         fieldset: {
           legend: {
             text: "Are you a member of any official assurance schemes at this address? (optional)",
@@ -28,15 +28,15 @@
           text: "Select all that apply",
           classes: "govuk-!-margin-bottom-6"
         },
-        errorMessage: errors["member-schemes"] if errors["member-schemes"],
+        errorMessage: errors["memberSchemes"] if errors["memberSchemes"],
         items: items
       }) }}
 
       <h4 class="govuk-heading-s govuk-!-margin-top-6">or</h4>
 
       {{ govukTextarea({
-        name: "member-schemes-other",
-        id: "member-schemes-other",
+        name: "memberSchemesOther",
+        id: "memberSchemesOther",
         label: {
           text: "Other",
           classes: "govuk-!-margin-bottom-3"
@@ -44,7 +44,7 @@
         hint: {
           text: "Enter the name of the assurance schemes you are a member of if not shown"
         },
-        errorMessage: errors["member-schemes-other"] if errors["member-schemes-other"]
+        errorMessage: errors["memberSchemesOther"] if errors["memberSchemesOther"]
       }) }}
 
       {{ govukButton({

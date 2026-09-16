@@ -15,7 +15,7 @@
     <form method="post" action="/additional-addresses" novalidate>
 
       {{ govukRadios({
-        name: "additional-addresses",
+        name: "additionalAddresses",
         fieldset: {
           legend: {
             text: "Do you need to add any additional business addresses?",
@@ -27,7 +27,7 @@
           text: "You must register any additional address where you store PPPs and adjuvants. Do not add addresses where you store or apply PPPs for clients on their land.",
           classes: "govuk-!-margin-bottom-6"
         },
-        errorMessage: errors["additional-addresses"] if errors["additional-addresses"],
+        errorMessage: errors["additionalAddresses"] if errors["additionalAddresses"],
         items: items
       }) }}
 

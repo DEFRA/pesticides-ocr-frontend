@@ -1,4 +1,5 @@
 import { home } from './home/index.js'
+import { cookies } from './cookies/index.js'
 import { dashboard } from './dashboard/index.js'
 import { search } from './admin/search/index.js'
 import { businessActivities } from './qualifying-questions/business-activities/business-activities.js'
@@ -22,6 +23,7 @@ import { exports } from './export/export.js'
 
 export const routes = [
   home,
+  cookies,
   dashboard,
   search,
   businessActivities,

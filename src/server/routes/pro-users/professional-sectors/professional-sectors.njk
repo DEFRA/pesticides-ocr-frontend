@@ -14,7 +14,7 @@
     <form method="post" action="/professional-sectors" novalidate>
 
       {{ govukCheckboxes({
-        name: "professional-sectors",
+        name: "professionalSectors",
         fieldset: {
           legend: {
             text: "What is the main sector of your work involving PPPs or adjuvants?",
@@ -26,15 +26,15 @@
           text: "Select the sector that best describes the type of land or setting where the chemicals are applied.",
           classes: "govuk-!-margin-bottom-6"
         },
-        errorMessage: errors["professional-sectors"] if errors["professional-sectors"],
+        errorMessage: errors["professionalSectors"] if errors["professionalSectors"],
         items: items
       }) }}
 
       <h4 class="govuk-heading-s govuk-!-margin-top-6">or</h4>
 
       {{ govukTextarea({
-        name: "professional-sectors-other",
-        id: "professional-sectors-other",
+        name: "professionalSectorsOther",
+        id: "professionalSectorsOther",
         label: {
           text: "Other",
           classes: "govuk-!-margin-bottom-3"
@@ -42,7 +42,7 @@
         hint: {
           text: "Describe your main type of work in a few words"
         },
-        errorMessage: errors["professional-sectors-other"] if errors["professional-sectors-other"]
+        errorMessage: errors["professionalSectorsOther"] if errors["professionalSectorsOther"]
       }) }}
 
       {{ govukButton({

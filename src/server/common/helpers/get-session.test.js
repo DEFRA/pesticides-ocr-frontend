@@ -7,10 +7,10 @@ describe('#getSession', () => {
   const mockRequest = { yar: { get: mockYarGet } }
 
   test('Should return the stored session', () => {
-    mockYarGet.mockReturnValue({ 'business-name': 'Company 1' })
+    mockYarGet.mockReturnValue({ businessName: 'Company 1' })
 
     expect(getSession(mockRequest, 'formSession')).toEqual({
-      'business-name': 'Company 1'
+      businessName: 'Company 1'
     })
   })
 
@@ -27,9 +27,9 @@ describe('#getSession', () => {
     mockYarGet.mockReturnValue(formSession)
 
     const session = getSession(mockRequest, 'formSession')
-    session['business-name'] = 'Company 1'
+    session['businessName'] = 'Company 1'
 
-    expect(formSession).toEqual({ 'business-name': 'Company 1' })
+    expect(formSession).toEqual({ businessName: 'Company 1' })
   })
 
   test('Should return an empty session when yar has no value', () => {
@@ -48,7 +48,7 @@ describe('#getSession', () => {
     mockYarGet.mockReturnValue(null)
 
     const first = getSession(mockRequest, 'formSession')
-    first['business-name'] = 'Company 1'
+    first['businessName'] = 'Company 1'
 
     expect(getSession(mockRequest, 'formSession')).toEqual({})
   })

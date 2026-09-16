@@ -4,7 +4,7 @@ export const get = {
   handler(request, h) {
     request.yar.set('formSession', getSession(request, 'formSession'))
 
-    const currentAddressLineOne = getSession(request, 'formSession')['additional-addresses']?.at(-1)['address']['address-line-1']
+    const currentAddressLineOne = getSession(request, 'formSession')['additionalAddresses']?.at(-1)?.['address']?.['addressLine1']
 
     return h.view('pro-users/additional-business-activity/additional-business-activity', { currentAddressLineOne })
   }
@@ -12,9 +12,9 @@ export const get = {
 
 export const post = {
   handler(request, h) {
-    const payload = request.payload['address-activities']
+    const payload = request.payload['addressActivities']
     const formSession = getSession(request, 'formSession')
-    const additionalAddresses = formSession['additional-addresses'] ?? []
+    const additionalAddresses = formSession['additionalAddresses'] ?? []
     const current = additionalAddresses.at(-1)
 
     if (current) {
@@ -23,7 +23,7 @@ export const post = {
       additionalAddresses.push({ activity: payload })
     }
 
-    formSession['additional-addresses'] = additionalAddresses
+    formSession['additionalAddresses'] = additionalAddresses
     request.yar.set('formSession', formSession)
 
     return h.redirect('/check-additional-address')

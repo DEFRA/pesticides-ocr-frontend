@@ -12,11 +12,11 @@ const selectSectorOrOther =
 
 export const validate = {
   payload: Joi.object({
-    'professional-sectors': Joi.array()
+    professionalSectors: Joi.array()
       .items(Joi.string().valid(...professionalSectorsValues))
       .single()
       .min(1)
-      .when('professional-sectors-other', {
+      .when('professionalSectorsOther', {
         is: Joi.exist(),
         then: Joi.forbidden(),
         otherwise: Joi.required()
@@ -28,7 +28,7 @@ export const validate = {
         'array.min': selectSectorOrOther,
         'array.base': selectSectorOrOther
       }),
-    'professional-sectors-other': Joi.string()
+    professionalSectorsOther: Joi.string()
       .trim()
       .max(100)
       .empty('')

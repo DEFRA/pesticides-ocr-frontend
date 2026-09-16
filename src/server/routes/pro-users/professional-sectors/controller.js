@@ -7,11 +7,11 @@ export const get = {
 
 export const post = {
   handler(request, h) {
-    const sectors = request.payload['professional-sectors']
-    const other = request.payload['professional-sectors-other']
+    const sectors = request.payload['professionalSectors']
+    const other = request.payload['professionalSectorsOther']
     const formSession = request.yar.get('formSession') ?? {}
 
-    formSession['professional-sectors'] = sectors ?? [other]
+    formSession['professionalSectors'] = sectors ?? [other]
     request.yar.set('formSession', formSession)
 
     return h.redirect('/member-schemes')

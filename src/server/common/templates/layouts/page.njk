@@ -22,6 +22,20 @@
   <link href="{{ getAssetPath('src/client/stylesheets/application.scss') }}" rel="stylesheet">
 {% endblock %}
 
+{% block bodyStart %}
+  {# Google Analytics config for the client loader (EQ-388). Rendered in
+     production only (analyticsEnabled), so non-prod tiers never load GTM. The
+     loader (client/javascripts/analytics/load-analytics.js, run from
+     application.js) reads the container id from here and applies Google Consent
+     Mode v2 — analytics default 'denied' until the cookie banner (EQ-363) grants
+     it. Container id stays here (hardcoded), not in code. #}
+  {% if analyticsEnabled %}
+  <div id="js-analytics-config" data-gtm-id="{{ analyticsGtmId }}" hidden></div>
+  {# Cookie consent banner (EQ-363) — only where analytics can run. #}
+  {% include "partials/cookie-banner.njk" %}
+  {% endif %}
+{% endblock %}
+
 {% block header %}
   {# Keep the govukHeader macro (so we inherit upstream GOV.UK Frontend changes)
      and overlay the signed-in account block into the blue bar via CSS. #}

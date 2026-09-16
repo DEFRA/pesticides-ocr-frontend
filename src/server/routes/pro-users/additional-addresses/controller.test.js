@@ -56,7 +56,7 @@ describe('#additionalAddressesController', () => {
 
     test('Should redirect to the address page when Yes is selected', async () => {
       const { statusCode, headers } = await postAddresses({
-        'additional-addresses': 'yes'
+        additionalAddresses: 'yes'
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -65,7 +65,7 @@ describe('#additionalAddressesController', () => {
 
     test('Should redirect to check-answers page when No is selected', async () => {
       const { statusCode, headers } = await postAddresses({
-        'additional-addresses': 'no'
+        additionalAddresses: 'no'
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -81,7 +81,7 @@ describe('#additionalAddressesController', () => {
 
     test('Should return view with error message when an unknown value is submitted', async () => {
       const { statusCode, result } = await postAddresses({
-        'additional-addresses': 'maybe'
+        additionalAddresses: 'maybe'
       })
 
       expect(statusCode).toBe(statusCodes.ok)
@@ -90,7 +90,7 @@ describe('#additionalAddressesController', () => {
 
     test('Should return view with error message when the field is empty', async () => {
       const { statusCode, result } = await postAddresses({
-        'additional-addresses': ''
+        additionalAddresses: ''
       })
 
       expect(statusCode).toBe(statusCodes.ok)

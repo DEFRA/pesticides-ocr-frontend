@@ -1,6 +1,9 @@
+import { vi } from 'vitest'
+
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie } from '#/test-helpers/session-helpers.js'
+import { config } from '#/config/config.js'
 
 describe('#checkAnswersController', () => {
   let server
@@ -22,19 +25,19 @@ describe('#checkAnswersController', () => {
       server.inject({ method: 'POST', url, headers: { cookie }, payload })
 
     await post('/additional-addresses/address', {
-      'address-line-1': 'Lowfield Farm',
-      'address-town': 'Leeds',
-      'address-postcode': 'LS1 1AA',
+      addressLine1: 'Lowfield Farm',
+      addressTown: 'Leeds',
+      addressPostcode: 'LS1 1AA',
       ...overrides.address
     })
     await post('/additional-addresses/contact', {
-      'contact-name': 'Jane Doe',
-      'contact-telephone': '01111 222333',
-      'contact-email': 'jane.doe@pesticides.co.uk',
+      contactName: 'Jane Doe',
+      contactTelephone: '01111 222333',
+      contactEmail: 'jane.doe@pesticides.co.uk',
       ...overrides.contact
     })
     await post('/additional-addresses/activity', {
-      'address-activities': overrides.activity ?? ['store']
+      addressActivities: overrides.activity ?? ['store']
     })
   }
 
@@ -63,13 +66,13 @@ describe('#checkAnswersController', () => {
         server.inject({ method: 'POST', url, headers: { cookie }, payload })
 
       await answer('/business-activities', {
-        'business-activities': ['manufacture', 'seller-amateur']
+        businessActivities: ['manufacture', 'seller-amateur']
       })
-      await answer('/address-activity', { 'address-activities': ['store'] })
+      await answer('/address-activity', { addressActivities: ['store'] })
       await answer('/quantity', {
-        'quantity-type': 'area',
-        'quantity-amount': '',
-        'quantity-area': '67'
+        quantityType: 'area',
+        quantityAmount: '',
+        quantityArea: '67'
       })
 
       const { result } = await server.inject({
@@ -112,14 +115,14 @@ describe('#checkAnswersController', () => {
       }
 
       const area = await titleFor({
-        'quantity-type': 'area',
-        'quantity-amount': '',
-        'quantity-area': '67'
+        quantityType: 'area',
+        quantityAmount: '',
+        quantityArea: '67'
       })
       const amount = await titleFor({
-        'quantity-type': 'amount',
-        'quantity-amount': '80000',
-        'quantity-area': ''
+        quantityType: 'amount',
+        quantityAmount: '80000',
+        quantityArea: ''
       })
 
       expect(area).toEqual(
@@ -143,7 +146,7 @@ describe('#checkAnswersController', () => {
         method: 'POST',
         url: '/business-activities',
         headers: { cookie },
-        payload: { 'business-activities': ['seller-amateur'] }
+        payload: { businessActivities: ['seller-amateur'] }
       })
 
       const { result } = await server.inject({
@@ -162,7 +165,7 @@ describe('#checkAnswersController', () => {
         method: 'POST',
         url: '/business-name',
         headers: { cookie },
-        payload: { 'business-name': '<img src=x onerror=alert(1)>' }
+        payload: { businessName: '<img src=x onerror=alert(1)>' }
       })
 
       const { result } = await server.inject({
@@ -183,7 +186,7 @@ describe('#checkAnswersController', () => {
         const cookie = await newSessionCookie()
         await addAnAddress(cookie)
         await addAnAddress(cookie, {
-          address: { 'address-line-1': 'Highfield Farm' }
+          address: { addressLine1: 'Highfield Farm' }
         })
 
         const { result } = await loadAnswers(cookie)
@@ -203,7 +206,7 @@ describe('#checkAnswersController', () => {
         const cookie = await newSessionCookie()
         await addAnAddress(cookie)
         await addAnAddress(cookie, {
-          address: { 'address-line-1': 'Highfield Farm' }
+          address: { addressLine1: 'Highfield Farm' }
         })
 
         const { result } = await loadAnswers(cookie)
@@ -246,7 +249,7 @@ describe('#checkAnswersController', () => {
         const cookie = await newSessionCookie()
         await addAnAddress(cookie)
         await addAnAddress(cookie, {
-          address: { 'address-line-1': 'Highfield Farm' }
+          address: { addressLine1: 'Highfield Farm' }
         })
 
         const { result } = await loadAnswers(cookie)
@@ -290,7 +293,7 @@ describe('#checkAnswersController', () => {
       test('Should escape additional address answers rather than trusting them as markup', async () => {
         const cookie = await newSessionCookie()
         await addAnAddress(cookie, {
-          address: { 'address-line-1': '<img src=x onerror=alert(1)>' }
+          address: { addressLine1: '<img src=x onerror=alert(1)>' }
         })
 
         const { result } = await loadAnswers(cookie)
@@ -302,15 +305,116 @@ describe('#checkAnswersController', () => {
   })
 
   describe('POST /check-answers', () => {
-    test('Should redirect to confirmation page', async () => {
-      const { statusCode, headers } = await server.inject({
+    // The submission goes to the backend register endpoint, so the backend is
+    // stubbed here rather than relied on being up.
+    const backendUrl = 'http://localhost:3001'
+    let configuredBackendUrl
+
+    beforeAll(() => {
+      configuredBackendUrl = config.get('ocrBackend.url')
+      config.set('ocrBackend.url', backendUrl)
+    })
+
+    afterAll(() => {
+      config.set('ocrBackend.url', configuredBackendUrl)
+    })
+
+    const stubBackend = (response) =>
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue(response)
+
+    const created = (reference = 'PPP-123-45A') => ({
+      status: statusCodes.created,
+      json: async () => ({ reference })
+    })
+
+    const submit = (cookie) =>
+      server.inject({
         method: 'POST',
         url: '/check-answers',
+        ...(cookie ? { headers: { cookie } } : {}),
         payload: {}
       })
 
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    test('Should redirect to confirmation page', async () => {
+      stubBackend(created())
+
+      const { statusCode, headers } = await submit()
+
       expect(statusCode).toBe(statusCodes.redirect)
       expect(headers.location).toBe('/confirmation')
+    })
+
+    test('Should send the answers held in session to the backend', async () => {
+      const fetchSpy = stubBackend(created())
+      const cookie = await getSessionCookie(server, '/business-activities')
+
+      await server.inject({
+        method: 'POST',
+        url: '/business-activities',
+        headers: { cookie },
+        payload: { businessActivities: ['manufacture', 'seller-amateur'] }
+      })
+
+      await submit(cookie)
+
+      const [url, options] = fetchSpy.mock.lastCall
+
+      expect(url).toBe(`${backendUrl}/register`)
+      expect(options.method).toBe('POST')
+      expect(options.headers).toEqual({ 'Content-Type': 'application/json' })
+      expect(JSON.parse(options.body)).toEqual(
+        expect.objectContaining({
+          businessActivities: ['manufacture', 'seller-amateur']
+        })
+      )
+    })
+
+    test('Should keep the reference the backend issued for the confirmation page', async () => {
+      stubBackend(created('PPP-987-65Z'))
+      const cookie = await getSessionCookie(server, '/business-activities')
+
+      await submit(cookie)
+
+      const { result } = await server.inject({
+        method: 'GET',
+        url: '/confirmation',
+        headers: { cookie }
+      })
+
+      expect(result).toEqual(expect.stringContaining('PPP-987-65Z'))
+    })
+
+    test('Should return a bad request when the backend rejects the answers', async () => {
+      stubBackend({
+        status: statusCodes.badRequest,
+        statusText: 'Bad Request'
+      })
+
+      const { statusCode } = await submit()
+
+      expect(statusCode).toBe(statusCodes.badRequest)
+    })
+
+    test('Should not record a reference when the backend did not create the registration', async () => {
+      stubBackend({ status: statusCodes.internalServerError })
+      const cookie = await getSessionCookie(server, '/business-activities')
+
+      const { statusCode } = await submit(cookie)
+
+      expect(statusCode).toBe(statusCodes.internalServerError)
+
+      // Nothing was stored, so the confirmation page has no reference to show.
+      const confirmation = await server.inject({
+        method: 'GET',
+        url: '/confirmation',
+        headers: { cookie }
+      })
+
+      expect(confirmation.statusCode).toBe(statusCodes.badData)
     })
   })
 })

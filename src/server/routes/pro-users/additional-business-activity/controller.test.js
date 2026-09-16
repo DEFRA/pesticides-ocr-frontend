@@ -5,10 +5,16 @@ import {
   injectWithSession,
   sessionResponseToolkit
 } from '#/test-helpers/session-helpers.js'
-import { post as postHandler } from './controller.js'
+import { get as getHandler, post as postHandler } from './controller.js'
 
 describe('#additionalBusinessActivityController', () => {
   let server
+
+  const address = {
+    addressLine1: 'Lower Meadow Barn',
+    addressTown: 'Farm town',
+    addressPostcode: 'LS1 1AA'
+  }
 
   beforeAll(async () => {
     server = await createServer()
@@ -60,7 +66,7 @@ describe('#additionalBusinessActivityController', () => {
 
     test('Should redirect to check-additional-address page', async () => {
       const { statusCode, headers } = await postActivity({
-        'address-activities': ['use']
+        addressActivities: ['use']
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -69,7 +75,7 @@ describe('#additionalBusinessActivityController', () => {
 
     test('Should redirect when several activities are selected', async () => {
       const { statusCode, headers } = await postActivity({
-        'address-activities': ['use', 'store', 'records']
+        addressActivities: ['use', 'store', 'records']
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -78,7 +84,7 @@ describe('#additionalBusinessActivityController', () => {
 
     test('Should return view with error message when nothing is selected', async () => {
       const { statusCode, result } = await postActivity({
-        'address-activities': []
+        addressActivities: []
       })
 
       expect(statusCode).toBe(statusCodes.ok)
@@ -89,7 +95,7 @@ describe('#additionalBusinessActivityController', () => {
 
     test('Should return view with error message when an unknown value is sent', async () => {
       const { statusCode, result } = await postActivity({
-        'address-activities': ['disposal']
+        addressActivities: ['disposal']
       })
 
       expect(statusCode).toBe(statusCodes.ok)
@@ -100,20 +106,14 @@ describe('#additionalBusinessActivityController', () => {
   })
 
   describe('Session', () => {
-    const address = {
-      'address-line-1': '36 Portland Road',
-      'address-town': 'Northallerton',
-      'address-postcode': 'DL62BQ'
-    }
-
     const contact = {
-      'contact-name': 'Matthew Quinton',
-      'contact-telephone': '07376235617',
-      'contact-email': 'MQuinton@proton.me'
+      contactName: 'John Smith',
+      contactTelephone: '01234 567890',
+      contactEmail: 'john.smith@pesticides.co.uk'
     }
 
     const activity = ['use', 'store']
-    const activityPayload = { 'address-activities': activity }
+    const activityPayload = { addressActivities: activity }
 
     const savePayload = (payload, formSession) => {
       const { request, readSession } = createSessionRequest({
@@ -128,22 +128,22 @@ describe('#additionalBusinessActivityController', () => {
 
     test('Should merge the activity into the address entry', () => {
       const formSession = savePayload(activityPayload, {
-        'additional-addresses': [{ address, contact }]
+        additionalAddresses: [{ address, contact }]
       })
 
-      expect(formSession['additional-addresses']).toEqual([
+      expect(formSession['additionalAddresses']).toEqual([
         { address, contact, activity }
       ])
     })
 
     test('Should complete only the most recent entry', () => {
-      const existing = { address: { 'address-town': 'Leeds' }, contact: {} }
+      const existing = { address: { addressTown: 'Leeds' }, contact: {} }
 
       const formSession = savePayload(activityPayload, {
-        'additional-addresses': [existing, { address, contact }]
+        additionalAddresses: [existing, { address, contact }]
       })
 
-      expect(formSession['additional-addresses']).toEqual([
+      expect(formSession['additionalAddresses']).toEqual([
         existing,
         { address, contact, activity }
       ])
@@ -152,13 +152,41 @@ describe('#additionalBusinessActivityController', () => {
     test('Should start an entry when there is no address to complete', () => {
       const formSession = savePayload(activityPayload)
 
-      expect(formSession['additional-addresses']).toEqual([{ activity }])
+      expect(formSession['additionalAddresses']).toEqual([{ activity }])
     })
 
     test('Should preserve other answers already in the session', () => {
-      const formSession = savePayload(activityPayload, { 'business-name': 'Company 1' })
+      const formSession = savePayload(activityPayload, { businessName: 'Company 1' })
 
-      expect(formSession['business-name']).toBe('Company 1')
+      expect(formSession['businessName']).toBe('Company 1')
+    })
+  })
+
+  describe('Address line one hint', () => {
+    const readContext = (formSession) => {
+      const { request } = createSessionRequest({ formSession })
+
+      return getHandler.handler(request, sessionResponseToolkit).context
+    }
+
+    test('Should read the first line of the most recent additional address', () => {
+      const { currentAddressLineOne } = readContext({
+        additionalAddresses: [{ address: { addressLine1: 'Leeds Road' } }, { address }]
+      })
+
+      expect(currentAddressLineOne).toBe('Lower Meadow Barn')
+    })
+
+    test('Should be undefined when no additional address has been started', () => {
+      expect(readContext().currentAddressLineOne).toBeUndefined()
+    })
+
+    test('Should be undefined when the latest entry has no address yet', () => {
+      const { currentAddressLineOne } = readContext({
+        additionalAddresses: [{ activity: ['use'] }]
+      })
+
+      expect(currentAddressLineOne).toBeUndefined()
     })
   })
 })

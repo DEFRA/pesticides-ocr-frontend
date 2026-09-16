@@ -15,7 +15,7 @@
     <form method="post" action="/business-activities" novalidate>
 
       {{ govukCheckboxes({
-        name: "business-activities",      
+        name: "businessActivities",      
         fieldset: {
           legend: {
             text: "What are your business’s activities with plant protection products (PPPs)?",
@@ -27,7 +27,7 @@
           text: "Select all that apply.",
           classes: "govuk-!-margin-bottom-6"
         },
-        errorMessage: errors["business-activities"] if errors["business-activities"],
+        errorMessage: errors["businessActivities"] if errors["businessActivities"],
         items: items
       }) }}
 

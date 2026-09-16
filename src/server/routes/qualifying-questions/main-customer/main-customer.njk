@@ -15,7 +15,7 @@
     <form method="post" action="/main-customer" novalidate>
 
       {{ govukRadios({
-        name: "main-customer",
+        name: "mainCustomer",
         fieldset: {
           legend: {
             text: "Is your main customer a professional user or amateur user?",
@@ -23,7 +23,7 @@
             classes: "govuk-fieldset__legend--l govuk-!-margin-bottom-6"
           }
         },
-        errorMessage: errors["main-customer"] if errors["main-customer"],
+        errorMessage: errors["mainCustomer"] if errors["mainCustomer"],
         items: items
       }) }}
 

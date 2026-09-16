@@ -12,7 +12,7 @@ export const app = {
 
 export const validate = {
   payload: Joi.object({
-    'additional-addresses': Joi.string()
+    additionalAddresses: Joi.string()
       .valid(...additionalAddressesValues)
       .required()
       .messages({
