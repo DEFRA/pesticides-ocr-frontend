@@ -31,6 +31,39 @@ function registerMockIdentity(server) {
   })
 }
 
+// Microsoft Entra case-officer sign-in plugin registration + options. Extracted
+// from createServer to keep that function within the function-length limit.
+function entraAuthPlugin() {
+  return {
+    plugin: hapiOidcAuth,
+    options: {
+      entra: {
+        mode: config.get('entra.mode'),
+        tenantId: config.get('entra.tenantId'),
+        clientId: config.get('entra.clientId'),
+        clientSecret: config.get('entra.clientSecret'),
+        publicBaseUrl: config.get('entra.publicBaseUrl'),
+        redirectPath: config.get('entra.redirectPath'),
+        signOutRedirectUrl: config.get('entra.signOutRedirectUrl'),
+        // roleValues is a comma-separated string; split + trim so multiple
+        // roles work (the plugin matches an array of values, not one literal).
+        roleValues: config
+          .get('entra.roleValues')
+          .split(',')
+          .map((role) => role.trim()),
+        // Custom API scope (api://<client-id>/access_as_user) so the forwarded
+        // access token's `aud` is our own client id. Empty = none. Requires
+        // @defra/hapi-oidc-auth >= 0.4.0 (older versions ignore it). EQ-442.
+        additionalScopes: config.get('entra.apiScope')
+      },
+      redirects: {
+        postLogin: config.get('entra.postLoginRedirect'),
+        signOut: config.get('entra.postSignOutRedirect')
+      }
+    }
+  }
+}
+
 export async function createServer() {
   const server = hapi.server({
     host: config.get('host'),
@@ -81,34 +114,7 @@ export async function createServer() {
     // Case-officer (HSE/Defra staff) sign-in via Microsoft Entra ID. Registered
     // after sessionCache (@hapi/yar) and nunjucksConfig (@hapi/vision) since it
     // relies on both. The applicant register journey stays unauthenticated.
-    {
-      plugin: hapiOidcAuth,
-      options: {
-        entra: {
-          mode: config.get('entra.mode'),
-          tenantId: config.get('entra.tenantId'),
-          clientId: config.get('entra.clientId'),
-          clientSecret: config.get('entra.clientSecret'),
-          publicBaseUrl: config.get('entra.publicBaseUrl'),
-          redirectPath: config.get('entra.redirectPath'),
-          signOutRedirectUrl: config.get('entra.signOutRedirectUrl'),
-          // roleValues is a comma-separated string; split + trim so multiple
-          // roles work (the plugin matches an array of values, not one literal).
-          roleValues: config
-            .get('entra.roleValues')
-            .split(',')
-            .map((role) => role.trim()),
-          // Custom API scope (api://<client-id>/access_as_user) so the forwarded
-          // access token's `aud` is our own client id. Empty = none. Requires
-          // @defra/hapi-oidc-auth >= 0.4.0 (older versions ignore it). EQ-442.
-          additionalScopes: config.get('entra.apiScope')
-        },
-        redirects: {
-          postLogin: config.get('entra.postLoginRedirect'),
-          signOut: config.get('entra.postSignOutRedirect')
-        }
-      }
-    },
+    entraAuthPlugin(),
     router // Register all the controllers/routes defined in src/server/router.js
   ])
 
