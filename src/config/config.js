@@ -303,6 +303,12 @@ export const config = convict({
       format: String,
       default: 'Case Officer',
       env: 'ENTRA_MOCK_DISPLAY_NAME'
+    },
+    apiScope: {
+      doc: 'Custom Entra API scope to request — the FULL App-ID URI (e.g. api://<client-id>/access_as_user) — so the forwarded access token\'s aud is our own client id, which the backend validates. Empty = request only the OIDC defaults. Set per tier via cdp-app-config (EQ-442). Requires @defra/hapi-oidc-auth >= 0.4.0. Note: the backend does not yet enforce the scp claim (that is pending in pesticides-ocr-backend #15 / ENTRA_REQUIRED_SCOPE, held last in the EQ-442 rollout); when it does, that env must hold only the SHORT scope name (access_as_user), not this full URI.',
+      format: String,
+      default: '',
+      env: 'ENTRA_API_SCOPE'
     }
   },
   ocrBackend: {

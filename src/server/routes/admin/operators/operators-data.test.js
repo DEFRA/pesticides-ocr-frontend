@@ -1,8 +1,24 @@
+import { describe, test, expect, vi, afterEach } from 'vitest'
+
+import { config } from '#/config/config.js'
 import {
   searchOperators,
   getOperatorById,
   toCsv
 } from './operators-data.js'
+import {
+  fetchOperators,
+  fetchOperatorByReference
+} from './operators-client.js'
+
+vi.mock('./operators-client.js', () => ({
+  fetchOperators: vi.fn(),
+  fetchOperatorByReference: vi.fn()
+}))
+
+// The default mode in the test env is 'mock', so the describe blocks below
+// exercise the built-in sample data. The 'live mode' block flips the mode and
+// asserts delegation to the backend client instead.
 
 describe('#searchOperators', () => {
   test('returns all operators when the query is blank', async () => {
@@ -95,5 +111,36 @@ describe('#toCsv', () => {
     expect(() =>
       toCsv([{ reference: 'X', businessName: 'No nested fields' }])
     ).not.toThrow()
+  })
+})
+
+describe('live mode delegates to the backend client', () => {
+  const originalMode = config.get('entra.mode')
+
+  afterEach(() => {
+    config.set('entra.mode', originalMode)
+    vi.clearAllMocks()
+  })
+
+  test('searchOperators forwards the query + token to fetchOperators', async () => {
+    config.set('entra.mode', 'live')
+    const backendResult = [{ reference: 'OCR-9', businessName: 'Live Co' }]
+    vi.mocked(fetchOperators).mockResolvedValue(backendResult)
+
+    const result = await searchOperators({ query: 'live', token: 'tok' })
+
+    expect(result).toBe(backendResult)
+    expect(fetchOperators).toHaveBeenCalledWith({ query: 'live', token: 'tok' })
+  })
+
+  test('getOperatorById forwards the reference + token to fetchOperatorByReference', async () => {
+    config.set('entra.mode', 'live')
+    const operator = { reference: 'OCR-9', businessName: 'Live Co' }
+    vi.mocked(fetchOperatorByReference).mockResolvedValue(operator)
+
+    const result = await getOperatorById('OCR-9', 'tok')
+
+    expect(result).toBe(operator)
+    expect(fetchOperatorByReference).toHaveBeenCalledWith('OCR-9', 'tok')
   })
 })
