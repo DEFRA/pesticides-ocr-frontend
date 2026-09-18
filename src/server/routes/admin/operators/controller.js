@@ -12,7 +12,20 @@ async function getFilteredOperators(request) {
   // access token's `aud` is the app's own client id — which the backend verifies
   // — and it carries `scp: access_as_user`. In mock mode the session has no token
   // and operators-data returns local sample data.
-  const { token } = getAuthSession(request)
+  const { token, idTokenHint } = getAuthSession(request)
+  // Defence in depth: @defra/hapi-oidc-auth (<= 0.4.0) falls back to the ID token
+  // when the access token is absent (`token: accessToken || idToken`). An ID token
+  // forwarded as an API bearer would be accepted by the backend today (the `scp`
+  // check is still pending — pesticides-ocr-backend #15), so refuse to forward it
+  // and bounce the officer to re-authenticate for a fresh access token instead.
+  // The proper fix is upstream: the plugin should throw when the access token is
+  // missing rather than substitute the ID token.
+  if (token && token === idTokenHint) {
+    throw Object.assign(
+      new Error('Forwarded token is an ID token, not an access token'),
+      { statusCode: statusCodes.unauthorized }
+    )
+  }
   const operators = await searchOperators({ query: search, token })
   return { search, operators }
 }

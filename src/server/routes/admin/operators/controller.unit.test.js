@@ -54,6 +54,26 @@ describe('operatorsController', () => {
 
     expect(searchOperators).toHaveBeenCalledWith({ query: '', token: TOKEN })
   })
+
+  test('refuses to forward an ID token (plugin access-token fallback) and re-authenticates', async () => {
+    // The plugin's `token: accessToken || idToken` fallback makes the forwarded
+    // token identical to the ID token when the access token is absent — never
+    // send that to the backend; bounce to re-authenticate for a fresh one.
+    vi.mocked(getAuthSession).mockReturnValue({
+      token: TOKEN,
+      idTokenHint: TOKEN
+    })
+    const h = { redirect: vi.fn().mockReturnValue('redirected'), view: vi.fn() }
+
+    const result = await operatorsController.handler({ query: {} }, h)
+
+    expect(searchOperators).not.toHaveBeenCalled()
+    expect(h.redirect).toHaveBeenCalledWith(
+      expect.stringContaining('/auth/entra/sign-in')
+    )
+    expect(h.view).not.toHaveBeenCalled()
+    expect(result).toBe('redirected')
+  })
 })
 
 describe('operatorsExportController', () => {

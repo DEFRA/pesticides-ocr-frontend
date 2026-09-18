@@ -7,9 +7,9 @@
 // we request its custom scope (api://<client-id>/access_as_user, via the plugin's
 // additionalScopes / ENTRA_API_SCOPE) — that makes the access token's `aud` the
 // app's own client id, which the backend validates, and it carries
-// scp=access_as_user. Requires @defra/hapi-oidc-auth >= 0.4.0; until that dep
-// bump lands here the access token won't carry the scope, so this must not deploy
-// to a live tier ahead of the 0.4.0 upgrade.
+// scp=access_as_user. This requires @defra/hapi-oidc-auth >= 0.4.0 to honour
+// additionalScopes — this PR bumps the dependency to 0.4.0, so do not downgrade
+// below it.
 
 import { fetch } from 'undici'
 
