@@ -14,9 +14,10 @@ async function signInCaseOfficer(server) {
   return (setCookie ? setCookie[0] : startCookie).split(';')[0]
 }
 
-const jsonResponse = (body, status = statusCodes.ok) =>
+const jsonResponse = (body, status = statusCodes.ok, statusText = '') =>
   new Response(JSON.stringify(body), {
     status,
+    statusText,
     headers: { 'content-type': 'application/json' }
   })
 
@@ -203,9 +204,14 @@ describe('#searchController', () => {
 
       expect(statusCode).toBe(statusCodes.ok)
       expect(result).toEqual(expect.stringContaining('There is a problem'))
+      expect(result).toEqual(
+        expect.stringContaining('Search API unavailable')
+      )
     })
 
-    test('Should show the reason on the search page when the search API rejects the request', async () => {
+    // The summary shows the HTTP status text of the rejection, not the message
+    // in the API's own error body.
+    test('Should show the status text on the search page when the search API rejects the request', async () => {
       fetchMock.mockResolvedValue(
         jsonResponse(
           {
@@ -213,7 +219,8 @@ describe('#searchController', () => {
             error: 'Bad Request',
             message: 'Invalid reference number'
           },
-          statusCodes.badRequest
+          statusCodes.badRequest,
+          'Bad Request'
         )
       )
 
@@ -224,7 +231,7 @@ describe('#searchController', () => {
       expect(statusCode).toBe(statusCodes.ok)
       expect(result).toEqual(expect.stringContaining('There is a problem'))
       expect(result).toEqual(
-        expect.stringContaining('Invalid reference number')
+        expect.stringContaining('There was an error: Bad Request')
       )
     })
 
@@ -236,7 +243,8 @@ describe('#searchController', () => {
             error: 'Internal Server Error',
             message: 'An internal server error occurred'
           },
-          statusCodes.internalServerError
+          statusCodes.internalServerError,
+          'Internal Server Error'
         )
       )
 
