@@ -19,13 +19,14 @@ export async function searchRegistration(reference) {
   }
 
   if (response.status === statusCodes.notFound) {
-    return { statusCode: statusCodes.notFound, message: 'Registration not found' }
+    return { isFound: false, message: 'Registration not found 2' }
   }
 
   if (!response.ok) {
-    const error = await response.json()
-    return Boom.badRequest(`${error.message}`)
+    return Boom.boomify(new Error(`There was an error: ${response.statusText}`), {
+      statusCode: response.status
+    })
   }
 
-  return response.json()
+  return { isFound: true, data: await response.json() }
 }
