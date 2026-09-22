@@ -11,3 +11,15 @@ export function buildErrorSummary(error) {
   }
   return { errors, errorList }
 }
+
+export function buildManualErrorSummary(thrownError) {
+  if (!thrownError) { return {} }
+  const errors = {}
+  const errorList = []
+  for (const { error: key, message } of thrownError) {
+    if (errors[key]) { continue }
+    errors[key] = { text: key }
+    errorList.push({ text: message, href: '#' })
+  }
+  return { errors, errorList }
+}
