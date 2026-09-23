@@ -8,6 +8,7 @@ export const statusCodes = {
   imATeapot: 418,
   badData: 422,
   internalServerError: 500,
+  badGateway: 502,
   created: 201,
   redirect: 302
 }

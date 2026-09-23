@@ -1,15 +1,27 @@
-// Stubbed operator-data access for the admin/enforcement UI (EQ-227).
+// Operator-data access for the admin/enforcement UI (EQ-227) — the single seam
+// between the admin UI and the OCR backend.
 //
-// This is the single seam between the admin UI and the OCR backend. The backend
-// operator API does not exist yet (pesticides-ocr-backend is still the CDP
-// scaffold), so this module returns mock data with a fixed contract. When the
-// backend endpoints land, replace the bodies of `searchOperators` /
-// `getOperatorById` / `toCsv` inputs with real calls — the contract (the
-// Operator shape + these function signatures) stays the same, so the routes,
-// views and tests don't change.
+// In LIVE mode this delegates to the pesticides-ocr-backend read API (EQ-385)
+// via ./operators-client.js, forwarding the case officer's Entra token (EQ-442).
+// In MOCK mode (local demo / UCD, no live backend or token) it returns the
+// built-in sample data below. Either way the contract (the Operator shape + the
+// function signatures) is identical, so the routes, views and CSV export don't
+// care which backs it.
 //
 // Maps to Arin's wireframe: Search API (searchOperators query), Dashboard API
 // (the grid rows), Export API (toCsv).
+
+import { config } from '#/config/config.js'
+
+import {
+  fetchOperators,
+  fetchOperatorByReference
+} from './operators-client.js'
+
+// Live mode calls the real backend; mock mode uses the sample data below.
+function isLiveMode() {
+  return config.get('entra.mode') === 'live'
+}
 
 /**
  * A registered operator (organisation), as shown in the admin grid.
@@ -125,13 +137,8 @@ const OPERATORS = [
 const includesCi = (haystack, needle) =>
   String(haystack).toLowerCase().includes(needle)
 
-/**
- * Search/list operators for the grid (Search API + Dashboard API).
- * A blank query returns all operators.
- * @param {{ query?: string }} [options]
- * @returns {Promise<Operator[]>}
- */
-export async function searchOperators({ query = '' } = {}) {
+// Mock-mode filter over the sample data (blank query returns all).
+function searchMockOperators(query) {
   const q = query.trim().toLowerCase()
   if (!q) {
     return OPERATORS
@@ -147,12 +154,31 @@ export async function searchOperators({ query = '' } = {}) {
 }
 
 /**
+ * Search/list operators for the grid (Search API + Dashboard API).
+ * A blank query returns all operators. In live mode `token` is forwarded to the
+ * backend; in mock mode it is ignored.
+ * @param {{ query?: string, token?: string }} [options]
+ * @returns {Promise<Operator[]>}
+ */
+export async function searchOperators({ query = '', token = '' } = {}) {
+  if (isLiveMode()) {
+    return fetchOperators({ query, token })
+  }
+  return searchMockOperators(query)
+}
+
+/**
  * Fetch a single operator by registration reference (for the detail view — a
- * later slice).
+ * later slice). In live mode `token` is forwarded to the backend; in mock mode
+ * it is ignored.
  * @param {string} reference
+ * @param {string} [token]
  * @returns {Promise<Operator | null>}
  */
-export async function getOperatorById(reference) {
+export async function getOperatorById(reference, token = '') {
+  if (isLiveMode()) {
+    return fetchOperatorByReference(reference, token)
+  }
   return OPERATORS.find((op) => op.reference === reference) ?? null
 }
 
