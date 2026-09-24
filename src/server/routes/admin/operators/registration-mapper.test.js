@@ -72,15 +72,79 @@ describe('toOperatorView', () => {
     expect(operator.quantity).toBe('1,500 hectares')
   })
 
-  test('prefers a stored mainCustomer/status/country when present', () => {
+  // The seed data (and anything else written straight to the database) stores
+  // the quantity as the string the form submitted.
+  test('formats a quantity stored as a numeric string', () => {
     const operator = toOperatorView({
       ...storedDoc,
-      mainCustomer: 'Professional users',
+      quantity: { quantityType: 'amount', quantity: '80000' }
+    })
+
+    expect(operator.quantity).toBe('80,000 litres or kilograms')
+  })
+
+  test.each([
+    ['an empty string', ''],
+    ['whitespace', '   '],
+    ['a non-numeric string', 'lots'],
+    ['a hex string', '0x10'],
+    ['an exponent string', '1e3'],
+    ['NaN', Number.NaN],
+    ['Infinity', Infinity],
+    ['null', null]
+  ])('leaves the quantity empty for %s', (_description, value) => {
+    const operator = toOperatorView({
+      ...storedDoc,
+      quantity: { quantityType: 'amount', quantity: value }
+    })
+
+    expect(operator.quantity).toBe('')
+  })
+
+  test('uses the journey label for every business activity', () => {
+    const operator = toOperatorView({
+      ...storedDoc,
+      businessActivities: ['use-professional', 'seller-amateur']
+    })
+
+    expect(operator.activities).toEqual([
+      'Use professional PPPs as part of work',
+      'Sell amateur PPPs'
+    ])
+  })
+
+  test.each([
+    ['professional', 'Professional user'],
+    ['amateur', 'Amateur user'],
+    ['both', 'Both professional and amateur users']
+  ])('labels a stored mainCustomer of %s', (code, label) => {
+    expect(toOperatorView({ ...storedDoc, mainCustomer: code }).mainCustomer).toBe(
+      label
+    )
+  })
+
+  test.each([
+    ['missing', undefined],
+    ['empty', '']
+  ])('shows N/A when mainCustomer is %s', (_description, value) => {
+    expect(
+      toOperatorView({ ...storedDoc, mainCustomer: value }).mainCustomer
+    ).toBe('N/A')
+  })
+
+  test('falls back to the raw value for an unknown mainCustomer', () => {
+    expect(
+      toOperatorView({ ...storedDoc, mainCustomer: 'wholesale' }).mainCustomer
+    ).toBe('wholesale')
+  })
+
+  test('prefers a stored status/country when present', () => {
+    const operator = toOperatorView({
+      ...storedDoc,
       status: 'Suspended',
       address: { ...storedDoc.address, addressCountry: 'England' }
     })
 
-    expect(operator.mainCustomer).toBe('Professional users')
     expect(operator.status).toBe('Suspended')
     expect(operator.address.country).toBe('England')
   })

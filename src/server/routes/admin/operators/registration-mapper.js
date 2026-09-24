@@ -7,6 +7,11 @@
 // presentation concern, so it belongs on this side of the seam. That also keeps
 // display strings out of an API other consumers share.
 
+import { businessActivityItems } from '#/server/routes/qualifying-questions/business-activities/items.js'
+import { addressActivityItems } from '#/server/routes/qualifying-questions/address-activity/items.js'
+import { mainCustomerItems } from '#/server/routes/qualifying-questions/main-customer/items.js'
+import { quantityTypeItems } from '#/server/routes/qualifying-questions/quantity/items.js'
+
 // --- POC mapping defaults --------------------------------------------------
 // Fields the Operator contract needs but the register journey does not (yet)
 // persist. These are the EQ-385 "data-model mapping" open decisions — confirm
@@ -23,36 +28,48 @@ const DEFAULT_MAIN_CUSTOMER = 'N/A'
 
 const ISO_DATE_LENGTH = 10
 
-// Coded slug -> display label. Stored values are the register-form codes; the
-// grid shows human labels. Unknown codes fall back to the raw slug.
-const BUSINESS_ACTIVITY_LABELS = {
-  manufacture: 'Manufacture, process or import',
-  market: 'Place on the market or distribute',
-  'seller-professional': 'Sell professional PPPs',
-  'seller-amateur': 'Sell amateur PPPs',
-  'use-professional': 'Use professional PPPs'
-}
+// Coded value -> display label, taken from the journey's own option lists so the
+// grid shows exactly what the applicant was asked and can't drift from it.
+// Stored values are the register-form codes; unknown codes fall back to the raw
+// value.
+const labelsByValue = (items) =>
+  Object.fromEntries(items.map(({ value, text }) => [value, text]))
 
-const ADDRESS_ACTIVITY_LABELS = {
-  use: 'Use plant protection products (PPPs) or adjuvants',
-  store: 'Store plant protection products (PPPs) or adjuvants',
-  records: 'Keep records of plant protection products (PPPs)'
-}
+const BUSINESS_ACTIVITY_LABELS = labelsByValue(businessActivityItems)
+const ADDRESS_ACTIVITY_LABELS = labelsByValue(addressActivityItems)
+const MAIN_CUSTOMER_LABELS = labelsByValue(mainCustomerItems)
+
+const QUANTITY_UNITS = Object.fromEntries(
+  quantityTypeItems.map(({ value, unit }) => [value, unit])
+)
 
 const labelFor = (map) => (code) => map[code] ?? code
 
-// Format the structured stored quantity into the grid's display string. The
-// journey records only a number + type (not a specific unit), so `amount` is
-// rendered as "N litres or kilograms" and `area` as hectares.
+// A quantity may be stored as a number (the backend's /register validation
+// converts it) or as a numeric string (records written straight to the
+// database, such as the seed data). Strings must be plain decimals, so forms
+// Number() would otherwise accept, like '0x10' or '1e3', don't slip through.
+// Anything else is treated as absent.
+const DECIMAL_PATTERN = /^\s*\d+(\.\d+)?\s*$/
+
+function toQuantityNumber(value) {
+  const number =
+    typeof value === 'string' && DECIMAL_PATTERN.test(value)
+      ? Number(value)
+      : value
+  return typeof number === 'number' && Number.isFinite(number) ? number : null
+}
+
+// Format the structured stored quantity into the grid's display string, using
+// the journey's unit for the quantity type (amount -> "litres or kilograms",
+// area -> "hectares"). An unrecognised type falls back to the amount unit.
 function formatQuantity(quantity) {
-  if (!quantity || typeof quantity.quantity !== 'number') {
+  const amount = toQuantityNumber(quantity?.quantity)
+  if (amount === null) {
     return ''
   }
-  const amount = quantity.quantity.toLocaleString('en-GB')
-  if (quantity.quantityType === 'area') {
-    return `${amount} hectares`
-  }
-  return `${amount} litres or kilograms`
+  const unit = QUANTITY_UNITS[quantity.quantityType] ?? QUANTITY_UNITS.amount
+  return `${amount.toLocaleString('en-GB')} ${unit}`
 }
 
 // `submittedAt` (a Date, or its JSON string over the wire) -> yyyy-mm-dd,
@@ -100,7 +117,9 @@ export function toOperatorView(doc = {}) {
     activities: (doc.businessActivities ?? []).map(
       labelFor(BUSINESS_ACTIVITY_LABELS)
     ),
-    mainCustomer: doc.mainCustomer ?? DEFAULT_MAIN_CUSTOMER,
+    mainCustomer: doc.mainCustomer
+      ? labelFor(MAIN_CUSTOMER_LABELS)(doc.mainCustomer)
+      : DEFAULT_MAIN_CUSTOMER,
     address: mapAddress(doc.address),
     contact: mapContact(doc.primaryContact),
     addressActivities: (doc.addressActivities ?? []).map(
