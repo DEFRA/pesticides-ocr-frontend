@@ -33,9 +33,11 @@ function getCookie(name) {
 }
 
 function setCookie(name, value, { days } = {}) {
-  // URL-encode on write so the JSON value is a valid cookie-octet and matches
-  // the server-set cookie's encoding (getCookie decodes on read).
-  let str = `${name}=${encodeURIComponent(value)}; path=/; SameSite=Lax`
+  // Written as plain JSON, like aqie-front-end, so the value is readable as-is in
+  // browser dev tools. The server accepts it (strictHeader: false) and writes the
+  // same plain form on the no-JS path. getCookie still decodes on read, so older
+  // URL-encoded cookies keep working.
+  let str = `${name}=${value}; path=/; SameSite=Lax`
   if (days) {
     const date = new Date()
     date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000)

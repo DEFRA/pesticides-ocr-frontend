@@ -66,6 +66,24 @@ describe('cookie-functions (EQ-363)', () => {
     expect(lastConsentUpdate()?.[2].analytics_storage).toBe('granted')
   })
 
+  // Readable as-is in dev tools (the Value column), matching aqie-front-end and
+  // the server's no-JS path.
+  test('writes the consent cookie as plain JSON', () => {
+    setConsentCookie({ analytics: false })
+
+    expect(document.cookie).toContain(
+      'ocr_cookies_analytics={"analytics":false,"version":1}'
+    )
+  })
+
+  test('still reads an older URL-encoded consent cookie', () => {
+    document.cookie = `ocr_cookies_analytics=${encodeURIComponent(
+      JSON.stringify({ analytics: true, version: 1 })
+    )}`
+
+    expect(getConsentCookie()).toMatchObject({ analytics: true, version: 1 })
+  })
+
   test('rejecting stores analytics=false, denies consent and deletes _ga cookies', () => {
     // NOTE: this fake jar keys cookies by name only, so it proves deletion is
     // *attempted* for the right names — not that the real-browser Domain match

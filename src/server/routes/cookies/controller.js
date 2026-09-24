@@ -13,7 +13,9 @@ import {
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
 
 // Read the current analytics choice from the request's consent cookie, tolerant
-// of a missing/malformed/old-version value (treated as "not accepted").
+// of a missing/malformed/old-version value (treated as "not accepted"). Decoding
+// first also reads cookies written URL-encoded before the value became plain
+// JSON; decoding plain JSON leaves it unchanged.
 function currentAnalyticsChoice(request) {
   const raw = request.state?.[CONSENT_COOKIE_NAME]
   if (!raw) {
@@ -48,11 +50,10 @@ export const postCookies = {
     }
 
     const analytics = request.payload?.cookies?.analytics === 'yes'
-    // URL-encoded so the JSON is a valid cookie value; the client reads it with
-    // decodeURIComponent (see cookie-functions.js), so both paths agree.
-    const value = encodeURIComponent(
-      JSON.stringify({ analytics, version: CONSENT_COOKIE_VERSION })
-    )
+    // Plain JSON, the same form the client writes (see cookie-functions.js), so
+    // both paths agree and the value is readable in dev tools. Allowed because
+    // the server runs with strictHeader: false.
+    const value = JSON.stringify({ analytics, version: CONSENT_COOKIE_VERSION })
 
     return h.redirect('/cookies?saved=true').state(CONSENT_COOKIE_NAME, value, {
       path: '/',
