@@ -319,6 +319,15 @@ export const config = convict({
       env: 'OCR_BACKEND_URL'
     }
   },
+  journeyToken: {
+    secret: {
+      doc: 'Shared HMAC secret for signing journey-tracking beacon tokens (EQ-472). Set via CDP Secrets — the SAME value as the backend JOURNEY_TOKEN_SECRET, per tier; never committed. Empty = beacons are sent unsigned (local/unconfigured tiers).',
+      format: String,
+      default: '',
+      env: 'JOURNEY_TOKEN_SECRET',
+      sensitive: true
+    }
+  },
   tracing: {
     header: {
       doc: 'Which header to track',
