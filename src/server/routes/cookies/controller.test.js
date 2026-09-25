@@ -88,7 +88,7 @@ describe('#cookies route (EQ-363)', () => {
     expect(headers['set-cookie']).toBeUndefined()
   })
 
-  // Plain JSON is what's written now; URL-encoded is what older cookies hold.
+  // Plain JSON is the written form; URL-encoded values are still accepted.
   test.each([
     ['plain JSON', JSON.stringify({ analytics: true, version: 1 })],
     [

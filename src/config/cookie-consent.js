@@ -10,7 +10,6 @@ export const CONSENT_COOKIE_VERSION = 1
 
 export const CONSENT_COOKIE_MAX_AGE_DAYS = 365
 
-// The /cookies form's radio field name. A no-JS browser posts it as this flat
-// key (Hapi doesn't expand bracket notation), so the server validates and reads
-// it by exactly this name.
+// The /cookies radio field, as a no-JS browser posts it: a flat key, since Hapi
+// doesn't expand bracket notation.
 export const CONSENT_FORM_FIELD = 'cookies[analytics]'

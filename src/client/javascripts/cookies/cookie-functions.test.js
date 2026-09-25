@@ -66,8 +66,8 @@ describe('cookie-functions (EQ-363)', () => {
     expect(lastConsentUpdate()?.[2].analytics_storage).toBe('granted')
   })
 
-  // Readable as-is in dev tools (the Value column), matching aqie-front-end and
-  // the server's no-JS path.
+  // Readable as-is in dev tools (the Value column), and the same form the
+  // server's no-JS path writes.
   test('writes the consent cookie as plain JSON', () => {
     setConsentCookie({ analytics: false })
 
