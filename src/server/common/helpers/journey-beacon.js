@@ -11,8 +11,6 @@
 
 import { randomUUID, createHmac } from 'node:crypto'
 
-import { fetch } from 'undici'
-
 import { config } from '#/config/config.js'
 
 const BEACON_TIMEOUT_MS = 2000

@@ -1,5 +1,4 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
-import { fetch } from 'undici'
 
 import { config } from '#/config/config.js'
 import {
@@ -7,12 +6,13 @@ import {
   fetchOperatorByReference
 } from './operators-client.js'
 
-vi.mock('undici', () => ({ fetch: vi.fn() }))
+const fetch = vi.fn()
+vi.stubGlobal('fetch', fetch)
 
 const BACKEND_URL = 'https://ocr-backend.test'
 const TOKEN = 'header.payload.signature'
 
-// Minimal undici Response stand-in.
+// Minimal Response stand-in.
 const response = (status, body) => ({
   ok: status >= 200 && status < 300,
   status,
