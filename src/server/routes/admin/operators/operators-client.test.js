@@ -31,15 +31,16 @@ afterEach(() => {
 })
 
 describe('#fetchOperators', () => {
-  test('GETs /operators with the forwarded bearer token and returns the body', async () => {
-    const operators = [{ reference: 'OCR-1', businessName: 'Acme' }]
-    vi.mocked(fetch).mockResolvedValue(response(200, operators))
+  test('GETs /search with the forwarded bearer token and returns the body', async () => {
+    const registrations = [{ reference: 'OCR-1', businessName: 'Acme' }]
+    vi.mocked(fetch).mockResolvedValue(response(200, registrations))
 
     const result = await fetchOperators({ token: TOKEN })
 
-    expect(result).toEqual(operators)
+    expect(result).toEqual(registrations)
     const [url, options] = vi.mocked(fetch).mock.calls[0]
-    expect(url.toString()).toBe(`${BACKEND_URL}/operators`)
+    // A blank term is sent explicitly: /search treats it as "match everything".
+    expect(url.toString()).toBe(`${BACKEND_URL}/search?q=`)
     expect(options.headers.authorization).toBe(`Bearer ${TOKEN}`)
     expect(options.headers.accept).toBe('application/json')
   })
@@ -50,9 +51,7 @@ describe('#fetchOperators', () => {
     await fetchOperators({ query: 'green acres', token: TOKEN })
 
     const [url] = vi.mocked(fetch).mock.calls[0]
-    expect(url.toString()).toBe(
-      `${BACKEND_URL}/operators?search=green%20acres`
-    )
+    expect(url.toString()).toBe(`${BACKEND_URL}/search?q=green%20acres`)
   })
 
   test('throws with the upstream status on a non-2xx response', async () => {
@@ -62,22 +61,38 @@ describe('#fetchOperators', () => {
       statusCode: 403
     })
   })
+
+  test('throws 502 when a 2xx response is not a list', async () => {
+    vi.mocked(fetch).mockResolvedValue(response(200, { reference: 'OCR-1' }))
+
+    await expect(fetchOperators({ token: TOKEN })).rejects.toMatchObject({
+      statusCode: 502
+    })
+  })
 })
 
 describe('#fetchOperatorByReference', () => {
-  test('returns the operator on 200', async () => {
-    const operator = { reference: 'OCR-1', businessName: 'Acme' }
-    vi.mocked(fetch).mockResolvedValue(response(200, operator))
+  test('returns the registration on 200', async () => {
+    const registration = { reference: 'OCR-1', businessName: 'Acme' }
+    vi.mocked(fetch).mockResolvedValue(response(200, registration))
 
-    expect(await fetchOperatorByReference('OCR-1', TOKEN)).toEqual(operator)
+    expect(await fetchOperatorByReference('OCR-1', TOKEN)).toEqual(registration)
     const [url] = vi.mocked(fetch).mock.calls[0]
-    expect(url.toString()).toBe(`${BACKEND_URL}/operators/OCR-1`)
+    expect(url.toString()).toBe(`${BACKEND_URL}/search?reference=OCR-1`)
   })
 
   test('maps a 404 to null (genuine not-found, not an error)', async () => {
     vi.mocked(fetch).mockResolvedValue(response(404, { message: 'Not Found' }))
 
     expect(await fetchOperatorByReference('OCR-nope', TOKEN)).toBeNull()
+  })
+
+  test('maps a 400 to null (a malformed reference matches nothing)', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      response(400, { message: 'Invalid reference number' })
+    )
+
+    expect(await fetchOperatorByReference('not-a-reference', TOKEN)).toBeNull()
   })
 
   test('throws with the upstream status on other non-2xx responses', async () => {
@@ -88,13 +103,15 @@ describe('#fetchOperatorByReference', () => {
     ).rejects.toMatchObject({ statusCode: 500 })
   })
 
-  test('encodes the reference into the path', async () => {
+  test('encodes the reference into the query string', async () => {
     vi.mocked(fetch).mockResolvedValue(response(200, {}))
 
     await fetchOperatorByReference('OCR/../secret', TOKEN)
 
     const [url] = vi.mocked(fetch).mock.calls[0]
-    expect(url.toString()).toBe(`${BACKEND_URL}/operators/OCR%2F..%2Fsecret`)
+    expect(url.toString()).toBe(
+      `${BACKEND_URL}/search?reference=OCR%2F..%2Fsecret`
+    )
   })
 })
 

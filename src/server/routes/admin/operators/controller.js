@@ -15,9 +15,10 @@ async function getFilteredOperators(request) {
   const { token, idTokenHint } = getAuthSession(request)
   // Defence in depth: @defra/hapi-oidc-auth (<= 0.4.0) falls back to the ID token
   // when the access token is absent (`token: accessToken || idToken`). An ID token
-  // forwarded as an API bearer would be accepted by the backend today (the `scp`
-  // check is still pending — pesticides-ocr-backend #15), so refuse to forward it
-  // and bounce the officer to re-authenticate for a fresh access token instead.
+  // forwarded as an API bearer would be accepted by any backend tier that doesn't
+  // set ENTRA_REQUIRED_SCOPE (the `scp` check from pesticides-ocr-backend #15 is
+  // config-gated), so refuse to forward it and bounce the officer to
+  // re-authenticate for a fresh access token instead.
   // The proper fix is upstream: the plugin should throw when the access token is
   // missing rather than substitute the ID token.
   if (token && token === idTokenHint) {

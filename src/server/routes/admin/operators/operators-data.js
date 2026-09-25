@@ -1,12 +1,13 @@
 // Operator-data access for the admin/enforcement UI (EQ-227) — the single seam
 // between the admin UI and the OCR backend.
 //
-// In LIVE mode this delegates to the pesticides-ocr-backend read API (EQ-385)
-// via ./operators-client.js, forwarding the case officer's Entra token (EQ-442).
-// In MOCK mode (local demo / UCD, no live backend or token) it returns the
-// built-in sample data below. Either way the contract (the Operator shape + the
-// function signatures) is identical, so the routes, views and CSV export don't
-// care which backs it.
+// In LIVE mode this delegates to the pesticides-ocr-backend search API
+// (EQ-366) via ./operators-client.js, forwarding the case officer's Entra token
+// (EQ-442), then maps the stored registrations it returns onto the Operator
+// shape via ./registration-mapper.js. In MOCK mode (local demo / UCD, no live
+// backend or token) it returns the built-in sample data below, already in that
+// shape. Either way the contract (the Operator shape + the function signatures)
+// is identical, so the routes, views and CSV export don't care which backs it.
 //
 // Maps to Arin's wireframe: Search API (searchOperators query), Dashboard API
 // (the grid rows), Export API (toCsv).
@@ -17,6 +18,7 @@ import {
   fetchOperators,
   fetchOperatorByReference
 } from './operators-client.js'
+import { toOperatorView } from './registration-mapper.js'
 
 // Live mode calls the real backend; mock mode uses the sample data below.
 function isLiveMode() {
@@ -162,7 +164,8 @@ function searchMockOperators(query) {
  */
 export async function searchOperators({ query = '', token = '' } = {}) {
   if (isLiveMode()) {
-    return fetchOperators({ query, token })
+    const registrations = await fetchOperators({ query, token })
+    return registrations.map(toOperatorView)
   }
   return searchMockOperators(query)
 }
@@ -177,7 +180,8 @@ export async function searchOperators({ query = '', token = '' } = {}) {
  */
 export async function getOperatorById(reference, token = '') {
   if (isLiveMode()) {
-    return fetchOperatorByReference(reference, token)
+    const registration = await fetchOperatorByReference(reference, token)
+    return registration ? toOperatorView(registration) : null
   }
   return OPERATORS.find((op) => op.reference === reference) ?? null
 }

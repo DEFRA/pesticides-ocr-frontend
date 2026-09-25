@@ -1,5 +1,5 @@
 // Live-mode data access for the admin/enforcement UI (EQ-442): calls the
-// pesticides-ocr-backend read API (EQ-385) with the signed-in case officer's
+// pesticides-ocr-backend search API (EQ-366) with the signed-in case officer's
 // Entra ACCESS token forwarded as a bearer (per Microsoft guidance: access
 // tokens, not ID tokens, for API authorization).
 //
@@ -8,8 +8,7 @@
 // additionalScopes / ENTRA_API_SCOPE) — that makes the access token's `aud` the
 // app's own client id, which the backend validates, and it carries
 // scp=access_as_user. This requires @defra/hapi-oidc-auth >= 0.4.0 to honour
-// additionalScopes — this PR bumps the dependency to 0.4.0, so do not downgrade
-// below it.
+// additionalScopes, so do not downgrade the dependency below it.
 
 import { fetch } from 'undici'
 
@@ -99,36 +98,50 @@ async function backendGet(pathAndQuery, token) {
   }
 }
 
-// List/search operators (backend GET /operators[?search=]).
+// List/search registrations (backend GET /search?q=). A blank term matches
+// everything, which is what the unfiltered grid asks for. The backend returns
+// stored registrations, so callers map them for display.
 export async function fetchOperators({ query = '', token = '' } = {}) {
-  const path = query
-    ? `/operators?search=${encodeURIComponent(query)}`
-    : '/operators'
-  const res = await backendGet(path, token)
+  const res = await backendGet(`/search?q=${encodeURIComponent(query)}`, token)
   if (!res.ok) {
     throw backendError(
       res.status,
-      `OCR backend GET /operators returned ${res.status}`
+      `OCR backend GET /search returned ${res.status}`
     )
   }
-  return parseJson(res, 'GET /operators')
+  const registrations = await parseJson(res, 'GET /search')
+  // Callers map over the result, so anything but a list is an upstream fault,
+  // surfaced like an unparseable body rather than as a TypeError 500.
+  if (!Array.isArray(registrations)) {
+    throw backendError(
+      statusCodes.badGateway,
+      'OCR backend GET /search returned a non-list body'
+    )
+  }
+  return registrations
 }
 
-// Fetch a single operator by reference (backend GET /operators/{reference}).
-// A 404 is a genuine "not found" and maps to null (not an error).
+// Fetch a single registration by reference (backend GET /search?reference=).
+// A 404 is a genuine "not found" and maps to null (not an error). So does a
+// 400: the backend rejects a malformed reference before looking it up, and a
+// malformed reference can't match a record either. `reference` is the only
+// parameter sent, so a 400 here can only mean the reference was rejected.
 export async function fetchOperatorByReference(reference, token = '') {
   const res = await backendGet(
-    `/operators/${encodeURIComponent(reference)}`,
+    `/search?reference=${encodeURIComponent(reference)}`,
     token
   )
-  if (res.status === statusCodes.notFound) {
+  if (
+    res.status === statusCodes.notFound ||
+    res.status === statusCodes.badRequest
+  ) {
     return null
   }
   if (!res.ok) {
     throw backendError(
       res.status,
-      `OCR backend GET /operators/{reference} returned ${res.status}`
+      `OCR backend GET /search?reference= returned ${res.status}`
     )
   }
-  return parseJson(res, 'GET /operators/{reference}')
+  return parseJson(res, 'GET /search?reference=')
 }

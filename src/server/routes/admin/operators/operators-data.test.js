@@ -122,25 +122,61 @@ describe('live mode delegates to the backend client', () => {
     vi.clearAllMocks()
   })
 
+  // The backend now returns stored registrations, so this layer maps them onto
+  // the Operator shape the grid and the CSV expect.
+  const storedRegistration = {
+    reference: 'OCR-9',
+    businessName: 'Live Co',
+    businessActivities: ['manufacture'],
+    address: {
+      addressLine1: 'Farm',
+      addressTown: 'Town',
+      addressPostcode: 'P1'
+    },
+    primaryContact: { contactName: 'Jo', contactEmail: 'jo@x.test' },
+    submittedAt: '2026-03-11T09:30:00.000Z'
+  }
+
   test('searchOperators forwards the query + token to fetchOperators', async () => {
     config.set('entra.mode', 'live')
-    const backendResult = [{ reference: 'OCR-9', businessName: 'Live Co' }]
-    vi.mocked(fetchOperators).mockResolvedValue(backendResult)
+    vi.mocked(fetchOperators).mockResolvedValue([storedRegistration])
 
-    const result = await searchOperators({ query: 'live', token: 'tok' })
+    await searchOperators({ query: 'live', token: 'tok' })
 
-    expect(result).toBe(backendResult)
     expect(fetchOperators).toHaveBeenCalledWith({ query: 'live', token: 'tok' })
+  })
+
+  test('searchOperators maps stored registrations onto the Operator shape', async () => {
+    config.set('entra.mode', 'live')
+    vi.mocked(fetchOperators).mockResolvedValue([storedRegistration])
+
+    const [operator] = await searchOperators({ query: 'live', token: 'tok' })
+
+    expect(operator.businessName).toBe('Live Co')
+    // Coded slugs become display labels, and the nested stored names flatten.
+    expect(operator.activities).toEqual(['Manufacture, process or import'])
+    expect(operator.contact.name).toBe('Jo')
+    expect(operator.address.town).toBe('Town')
+    expect(operator.registeredDate).toBe('2026-03-11')
+    // Fields the register journey does not persist get their POC defaults.
+    expect(operator.status).toBe('Registered')
   })
 
   test('getOperatorById forwards the reference + token to fetchOperatorByReference', async () => {
     config.set('entra.mode', 'live')
-    const operator = { reference: 'OCR-9', businessName: 'Live Co' }
-    vi.mocked(fetchOperatorByReference).mockResolvedValue(operator)
+    vi.mocked(fetchOperatorByReference).mockResolvedValue(storedRegistration)
 
     const result = await getOperatorById('OCR-9', 'tok')
 
-    expect(result).toBe(operator)
+    expect(result.reference).toBe('OCR-9')
+    expect(result.activities).toEqual(['Manufacture, process or import'])
     expect(fetchOperatorByReference).toHaveBeenCalledWith('OCR-9', 'tok')
+  })
+
+  test('getOperatorById keeps a not-found null rather than mapping it', async () => {
+    config.set('entra.mode', 'live')
+    vi.mocked(fetchOperatorByReference).mockResolvedValue(null)
+
+    expect(await getOperatorById('OCR-nope', 'tok')).toBeNull()
   })
 })
