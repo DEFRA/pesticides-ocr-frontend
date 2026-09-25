@@ -61,25 +61,11 @@ disable setting `SESSION_CACHE_ENGINE=false` or changing the default value in `s
 
 ## Proxy
 
-We are using forward-proxy which is set up by default. To make use of this: `import { fetch } from 'undici'` then
-because of the `setGlobalDispatcher(new ProxyAgent(proxyUrl))` calls will use the ProxyAgent Dispatcher
-
-If you are not using Wreck, Axios or Undici or a similar http that uses `Request`. Then you may have to provide the
-proxy dispatcher:
-
-To add the dispatcher to your own client:
-
-```javascript
-import { ProxyAgent } from 'undici'
-
-return await fetch(url, {
-  dispatcher: new ProxyAgent({
-    uri: proxyUrl,
-    keepAliveTimeout: 10,
-    keepAliveMaxTimeout: 10
-  })
-})
-```
+Use Node's global `fetch`. With `NODE_USE_ENV_PROXY=1` (set for CDP in
+cdp-app-config) it routes through the forward proxy from `HTTP(S)_PROXY`,
+and skips it for hosts in `NO_PROXY`, such as other `*.cdp-int.defra.cloud`
+services. Don't import `fetch` from `undici`: it isn't a runtime dependency,
+so the production image (`npm ci --omit=dev`) fails to start.
 
 ## Local Development
 

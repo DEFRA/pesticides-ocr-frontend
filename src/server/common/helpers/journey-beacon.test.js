@@ -1,5 +1,4 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
-import { fetch } from 'undici'
 
 import { config } from '#/config/config.js'
 import {
@@ -8,7 +7,8 @@ import {
   recordOncePerSession
 } from './journey-beacon.js'
 
-vi.mock('undici', () => ({ fetch: vi.fn() }))
+const fetch = vi.fn()
+vi.stubGlobal('fetch', fetch)
 
 const BACKEND_URL = 'https://ocr-backend.test'
 const originalUrl = config.get('ocrBackend.url')

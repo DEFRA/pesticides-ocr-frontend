@@ -10,8 +10,6 @@
 // scp=access_as_user. This requires @defra/hapi-oidc-auth >= 0.4.0 to honour
 // additionalScopes, so do not downgrade the dependency below it.
 
-import { fetch } from 'undici'
-
 import { config } from '#/config/config.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 
