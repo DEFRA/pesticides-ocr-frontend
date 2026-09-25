@@ -13,6 +13,20 @@ describe('#cookies route (EQ-363)', () => {
     await server.stop({ timeout: 0 })
   })
 
+  // Post the preferences form exactly as a browser does without JS: form-encoded,
+  // with the radio as the flat field name cookies[analytics].
+  function postForm(analytics, headers = {}) {
+    return server.inject({
+      method: 'POST',
+      url: '/cookies',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        ...headers
+      },
+      payload: new URLSearchParams({ 'cookies[analytics]': analytics }).toString()
+    })
+  }
+
   test('GET /cookies renders the preferences page', async () => {
     const { statusCode, result } = await server.inject({
       method: 'GET',
@@ -26,11 +40,7 @@ describe('#cookies route (EQ-363)', () => {
   })
 
   test('POST /cookies (no-JS) stores the choice and redirects with success', async () => {
-    const { statusCode, headers } = await server.inject({
-      method: 'POST',
-      url: '/cookies',
-      payload: { cookies: { analytics: 'yes' } }
-    })
+    const { statusCode, headers } = await postForm('yes')
 
     expect(statusCode).toBe(statusCodes.redirect)
     expect(headers.location).toBe('/cookies?saved=true')
@@ -43,11 +53,7 @@ describe('#cookies route (EQ-363)', () => {
   })
 
   test('POST /cookies with reject stores analytics=false', async () => {
-    const { headers } = await server.inject({
-      method: 'POST',
-      url: '/cookies',
-      payload: { cookies: { analytics: 'no' } }
-    })
+    const { headers } = await postForm('no')
     const setCookie = [].concat(headers['set-cookie'] ?? []).join(';')
     expect(setCookie).toContain(
       'ocr_cookies_analytics={"analytics":false,"version":1}'
@@ -55,31 +61,22 @@ describe('#cookies route (EQ-363)', () => {
   })
 
   test('POST /cookies rejects a cross-origin submission', async () => {
-    const { statusCode } = await server.inject({
-      method: 'POST',
-      url: '/cookies',
-      headers: { origin: 'https://evil.example' },
-      payload: { cookies: { analytics: 'yes' } }
+    const { statusCode } = await postForm('yes', {
+      origin: 'https://evil.example'
     })
     expect(statusCode).toBe(statusCodes.forbidden)
   })
 
   test('POST /cookies allows a same-origin submission', async () => {
-    const { statusCode } = await server.inject({
-      method: 'POST',
-      url: '/cookies',
-      headers: { origin: 'http://localhost:3000', host: 'localhost:3000' },
-      payload: { cookies: { analytics: 'yes' } }
+    const { statusCode } = await postForm('yes', {
+      origin: 'http://localhost:3000',
+      host: 'localhost:3000'
     })
     expect(statusCode).toBe(statusCodes.redirect)
   })
 
   test('POST /cookies with an invalid payload redirects back (validation)', async () => {
-    const { statusCode, headers } = await server.inject({
-      method: 'POST',
-      url: '/cookies',
-      payload: { cookies: { analytics: 'maybe' } }
-    })
+    const { statusCode, headers } = await postForm('maybe')
     expect(statusCode).toBe(statusCodes.redirect)
     expect(headers.location).toBe('/cookies')
   })

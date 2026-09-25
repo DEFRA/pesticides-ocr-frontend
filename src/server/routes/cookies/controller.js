@@ -4,7 +4,8 @@ import { config } from '#/config/config.js'
 import {
   CONSENT_COOKIE_NAME,
   CONSENT_COOKIE_VERSION,
-  CONSENT_COOKIE_MAX_AGE_DAYS
+  CONSENT_COOKIE_MAX_AGE_DAYS,
+  CONSENT_FORM_FIELD
 } from '#/config/cookie-consent.js'
 
 // /cookies page (EQ-363). GET renders the preferences page (pre-filled from the
@@ -49,7 +50,7 @@ export const postCookies = {
       return Boom.forbidden('Cross-origin request rejected')
     }
 
-    const analytics = request.payload?.cookies?.analytics === 'yes'
+    const analytics = request.payload?.[CONSENT_FORM_FIELD] === 'yes'
     // Plain JSON, the same form the client writes (see cookie-functions.js), so
     // both paths agree and the value is readable in dev tools. Allowed because
     // the server runs with strictHeader: false.
