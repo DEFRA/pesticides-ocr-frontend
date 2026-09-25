@@ -30,6 +30,17 @@ function currentAnalyticsChoice(request) {
   }
 }
 
+// The host an Origin header names, or null when it can't be parsed. Browsers
+// send the literal `null` from sandboxed frames and some redirects; treating an
+// unparseable origin as foreign turns that into a 403 rather than a 500.
+function originHost(origin) {
+  try {
+    return new URL(origin).host
+  } catch {
+    return null
+  }
+}
+
 export const getCookies = {
   handler(request, h) {
     return h.view('cookies/index', {
@@ -46,7 +57,7 @@ export const postCookies = {
     // cross-site forged submission (which would opt a user in/out without their
     // knowledge). Browsers send Origin on form POSTs and scripts can't forge it.
     const { origin } = request.headers
-    if (origin && new URL(origin).host !== request.info.host) {
+    if (origin && originHost(origin) !== request.info.host) {
       return Boom.forbidden('Cross-origin request rejected')
     }
 

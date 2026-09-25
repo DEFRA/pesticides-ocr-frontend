@@ -67,6 +67,12 @@ describe('#cookies route (EQ-363)', () => {
     expect(statusCode).toBe(statusCodes.forbidden)
   })
 
+  // Sandboxed frames and some redirects send the literal Origin: null.
+  test('POST /cookies rejects an unparseable origin with 403, not 500', async () => {
+    const { statusCode } = await postForm('yes', { origin: 'null' })
+    expect(statusCode).toBe(statusCodes.forbidden)
+  })
+
   test('POST /cookies allows a same-origin submission', async () => {
     const { statusCode } = await postForm('yes', {
       origin: 'http://localhost:3000',
@@ -79,6 +85,7 @@ describe('#cookies route (EQ-363)', () => {
     const { statusCode, headers } = await postForm('maybe')
     expect(statusCode).toBe(statusCodes.redirect)
     expect(headers.location).toBe('/cookies')
+    expect(headers['set-cookie']).toBeUndefined()
   })
 
   // Plain JSON is what's written now; URL-encoded is what older cookies hold.

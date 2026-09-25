@@ -26,7 +26,7 @@ function getCookie(name) {
   for (const part of document.cookie.split(';')) {
     const cookie = part.trim()
     if (cookie.startsWith(nameEQ)) {
-      return decodeURIComponent(cookie.substring(nameEQ.length))
+      return cookie.substring(nameEQ.length)
     }
   }
   return null
@@ -35,8 +35,8 @@ function getCookie(name) {
 function setCookie(name, value, { days } = {}) {
   // Written as plain JSON, like aqie-front-end, so the value is readable as-is in
   // browser dev tools. The server accepts it (strictHeader: false) and writes the
-  // same plain form on the no-JS path. getCookie still decodes on read, so older
-  // URL-encoded cookies keep working.
+  // same plain form on the no-JS path. getConsentCookie still decodes on read,
+  // so older URL-encoded cookies keep working.
   let str = `${name}=${value}; path=/; SameSite=Lax`
   if (days) {
     const date = new Date()
@@ -77,8 +77,11 @@ export function getConsentCookie() {
   if (!raw) {
     return null
   }
+  // Decoding reads older URL-encoded cookies (and leaves plain JSON unchanged).
+  // It sits inside the try so a tampered value such as '%zz' is treated as
+  // malformed rather than throwing and breaking the banner.
   try {
-    return JSON.parse(raw)
+    return JSON.parse(decodeURIComponent(raw))
   } catch {
     return null
   }
