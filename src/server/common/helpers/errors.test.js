@@ -209,11 +209,11 @@ describe('#catchAll', () => {
   })
 
   test('Should recover a data-client-thrown 5xx .statusCode (e.g. 502) instead of the boomified 500', () => {
-    // operators-client throws a plain Error with .statusCode = 502 when the OCR
+    // search-client throws a plain Error with .statusCode = 502 when the OCR
     // backend is unreachable/misconfigured; Hapi boomifies it to a 500 output, so
     // catchAll must surface the intended 502 and log it as a server error.
     const request = {
-      path: '/admin/operators',
+      path: '/admin/search',
       response: {
         isBoom: true,
         stack: mockStack,

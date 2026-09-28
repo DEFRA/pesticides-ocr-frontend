@@ -1,11 +1,5 @@
-// Maps stored registration documents onto the Operator contract the admin grid
-// renders (EQ-227, EQ-385).
-//
-// This used to live in the backend. It moved here when the backend's /operators
-// API was folded into /search (EQ-366): search returns registrations as stored,
-// and turning them into display text — labels, defaults, formatting — is a
-// presentation concern, so it belongs on this side of the seam. That also keeps
-// display strings out of an API other consumers share.
+// Maps stored registration documents, as the backend's /search returns them,
+// onto the RegistrationView the admin grid renders (EQ-227, EQ-385).
 
 import { businessActivityItems } from '#/server/routes/qualifying-questions/business-activities/items.js'
 import { addressActivityItems } from '#/server/routes/qualifying-questions/address-activity/items.js'
@@ -13,7 +7,7 @@ import { mainCustomerItems } from '#/server/routes/qualifying-questions/main-cus
 import { quantityTypeItems } from '#/server/routes/qualifying-questions/quantity/items.js'
 
 // --- POC mapping defaults --------------------------------------------------
-// Fields the Operator contract needs but the register journey does not (yet)
+// Fields the RegistrationView needs but the register journey does not (yet)
 // persist. These are the EQ-385 "data-model mapping" open decisions — confirm
 // with HSE/Yankui before production. Isolated here so a decision changes one
 // place.
@@ -81,7 +75,7 @@ function toIsoDate(value) {
     : ''
 }
 
-// The Operator contract carries only line1/town/postcode/country; the stored
+// A RegistrationView carries only line1/town/postcode/country; the stored
 // address.line2/county are intentionally dropped (not shown on the grid).
 function mapAddress(address = {}) {
   return {
@@ -101,16 +95,16 @@ function mapContact(contact = {}) {
 }
 
 /**
- * Map a stored registration onto the Operator contract.
+ * Map a stored registration onto a RegistrationView.
  *
  * Stored fields with no place in the contract are intentionally omitted:
  * address.line2/county (see mapAddress), and additionalAddresses /
  * professionalSectors / memberSchemes — see the EQ-385 data-model decision.
  *
  * @param {object} doc stored registration, as returned by the backend /search
- * @returns {import('./operators-data.js').Operator}
+ * @returns {import('./search-data.js').RegistrationView}
  */
-export function toOperatorView(doc = {}) {
+export function toRegistrationView(doc = {}) {
   return {
     reference: doc.reference ?? '',
     businessName: doc.businessName ?? '',

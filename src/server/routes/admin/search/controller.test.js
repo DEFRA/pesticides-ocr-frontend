@@ -15,7 +15,7 @@ async function signInCaseOfficer(server) {
   return (setCookie ? setCookie[0] : startCookie).split(';')[0]
 }
 
-describe('#adminOperators (EQ-227)', () => {
+describe('#adminSearch (EQ-227)', () => {
   let server
   let cookie
 
@@ -32,7 +32,7 @@ describe('#adminOperators (EQ-227)', () => {
   test('redirects an unauthenticated visitor to the Entra sign-in', async () => {
     const { statusCode, headers } = await server.inject({
       method: 'GET',
-      url: '/admin/operators'
+      url: '/admin/search'
     })
 
     expect(statusCode).toBe(statusCodes.redirect)
@@ -42,7 +42,7 @@ describe('#adminOperators (EQ-227)', () => {
   test('lists registered operators for a signed-in case officer', async () => {
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/admin/operators',
+      url: '/admin/search',
       headers: { cookie }
     })
 
@@ -54,7 +54,7 @@ describe('#adminOperators (EQ-227)', () => {
   test('filters the grid by the search query', async () => {
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/admin/operators?search=Green',
+      url: '/admin/search?search=Green',
       headers: { cookie }
     })
 
@@ -66,18 +66,18 @@ describe('#adminOperators (EQ-227)', () => {
   test('an over-length search is rejected and falls back to the unfiltered list', async () => {
     const { statusCode, headers } = await server.inject({
       method: 'GET',
-      url: `/admin/operators?search=${'a'.repeat(101)}`,
+      url: `/admin/search?search=${'a'.repeat(101)}`,
       headers: { cookie }
     })
 
     expect(statusCode).toBe(statusCodes.redirect)
-    expect(headers.location).toBe('/admin/operators')
+    expect(headers.location).toBe('/admin/search')
   })
 
   test('shows the empty state when nothing matches the search', async () => {
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/admin/operators?search=zzzznomatch',
+      url: '/admin/search?search=zzzznomatch',
       headers: { cookie }
     })
 
@@ -88,23 +88,23 @@ describe('#adminOperators (EQ-227)', () => {
     expect(result).not.toEqual(expect.stringContaining('Pesticides Ltd'))
   })
 
-  test('an over-length search from an unauthenticated visitor never leaks operator data', async () => {
+  test('an over-length search from an unauthenticated visitor never leaks registration data', async () => {
     // Query validation (and its failAction) runs before requireAuthorised, so
-    // verify the pre-auth failAction only redirects and never emits operator data.
+    // verify the pre-auth failAction only redirects and never emits registration data.
     const { statusCode, result, headers } = await server.inject({
       method: 'GET',
-      url: `/admin/operators?search=${'a'.repeat(101)}`
+      url: `/admin/search?search=${'a'.repeat(101)}`
     })
 
     expect(statusCode).toBe(statusCodes.redirect)
-    expect(headers.location).toBe('/admin/operators')
+    expect(headers.location).toBe('/admin/search')
     expect(result).not.toEqual(expect.stringContaining('Pesticides Ltd'))
   })
 
-  test('exports the (filtered) operators as a CSV download', async () => {
+  test('exports the (filtered) registrations as a CSV download', async () => {
     const res = await server.inject({
       method: 'GET',
-      url: '/admin/operators/export?search=Green',
+      url: '/admin/export?search=Green',
       headers: { cookie }
     })
 
@@ -118,7 +118,7 @@ describe('#adminOperators (EQ-227)', () => {
   test('export requires authentication', async () => {
     const { statusCode, headers } = await server.inject({
       method: 'GET',
-      url: '/admin/operators/export'
+      url: '/admin/export'
     })
 
     expect(statusCode).toBe(statusCodes.redirect)
@@ -135,7 +135,7 @@ describe('#adminOperators (EQ-227)', () => {
     try {
       const { statusCode, headers, result } = await server.inject({
         method: 'GET',
-        url: '/admin/operators',
+        url: '/admin/search',
         headers: { cookie }
       })
 

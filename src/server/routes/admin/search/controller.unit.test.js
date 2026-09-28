@@ -8,14 +8,14 @@ vi.mock('@defra/hapi-oidc-auth', () => ({
   getAuthSession: vi.fn(),
   PAGE_PATHS: { ENTRA_SIGN_IN: '/auth/entra/sign-in' }
 }))
-vi.mock('./operators-data.js', () => ({
-  searchOperators: vi.fn(),
+vi.mock('./search-data.js', () => ({
+  searchRegistrations: vi.fn(),
   toCsv: vi.fn()
 }))
 
 import { getAuthSession } from '@defra/hapi-oidc-auth'
-import { searchOperators, toCsv } from './operators-data.js'
-import { operatorsController, operatorsExportController } from './controller.js'
+import { searchRegistrations, toCsv } from './search-data.js'
+import { searchController, exportController } from './controller.js'
 
 const TOKEN = 'header.payload.signature'
 
@@ -24,22 +24,22 @@ beforeEach(() => {
   vi.mocked(getAuthSession).mockReturnValue({ token: TOKEN })
 })
 
-describe('operatorsController', () => {
-  test('forwards session.token (and the search term) to searchOperators', async () => {
-    const operators = [{ reference: 'OCR-1', businessName: 'Acme' }]
-    vi.mocked(searchOperators).mockResolvedValue(operators)
+describe('searchController', () => {
+  test('forwards session.token (and the search term) to searchRegistrations', async () => {
+    const registrations = [{ reference: 'OCR-1', businessName: 'Acme' }]
+    vi.mocked(searchRegistrations).mockResolvedValue(registrations)
     const h = { view: vi.fn().mockReturnValue('rendered') }
     const request = { query: { search: 'acme' } }
 
-    const result = await operatorsController.handler(request, h)
+    const result = await searchController.handler(request, h)
 
     expect(getAuthSession).toHaveBeenCalledWith(request)
-    expect(searchOperators).toHaveBeenCalledWith({
+    expect(searchRegistrations).toHaveBeenCalledWith({
       query: 'acme',
       token: TOKEN
     })
-    expect(h.view).toHaveBeenCalledWith('admin/operators/index', {
-      operators,
+    expect(h.view).toHaveBeenCalledWith('admin/search/index', {
+      registrations,
       search: 'acme',
       total: 1
     })
@@ -47,12 +47,12 @@ describe('operatorsController', () => {
   })
 
   test('treats a missing search query as an empty string', async () => {
-    vi.mocked(searchOperators).mockResolvedValue([])
+    vi.mocked(searchRegistrations).mockResolvedValue([])
     const h = { view: vi.fn().mockReturnValue('rendered') }
 
-    await operatorsController.handler({ query: {} }, h)
+    await searchController.handler({ query: {} }, h)
 
-    expect(searchOperators).toHaveBeenCalledWith({ query: '', token: TOKEN })
+    expect(searchRegistrations).toHaveBeenCalledWith({ query: '', token: TOKEN })
   })
 
   test('refuses to forward an ID token (plugin access-token fallback) and re-authenticates', async () => {
@@ -65,9 +65,9 @@ describe('operatorsController', () => {
     })
     const h = { redirect: vi.fn().mockReturnValue('redirected'), view: vi.fn() }
 
-    const result = await operatorsController.handler({ query: {} }, h)
+    const result = await searchController.handler({ query: {} }, h)
 
-    expect(searchOperators).not.toHaveBeenCalled()
+    expect(searchRegistrations).not.toHaveBeenCalled()
     expect(h.redirect).toHaveBeenCalledWith(
       expect.stringContaining('/auth/entra/sign-in')
     )
@@ -76,10 +76,10 @@ describe('operatorsController', () => {
   })
 })
 
-describe('operatorsExportController', () => {
+describe('exportController', () => {
   test('forwards the same token and streams the CSV of the filtered view', async () => {
-    const operators = [{ reference: 'OCR-1', businessName: 'Acme' }]
-    vi.mocked(searchOperators).mockResolvedValue(operators)
+    const registrations = [{ reference: 'OCR-1', businessName: 'Acme' }]
+    vi.mocked(searchRegistrations).mockResolvedValue(registrations)
     vi.mocked(toCsv).mockReturnValue('csv-body')
     const chained = {
       type: vi.fn().mockReturnThis(),
@@ -87,13 +87,13 @@ describe('operatorsExportController', () => {
     }
     const h = { response: vi.fn().mockReturnValue(chained) }
 
-    await operatorsExportController.handler({ query: { search: 'acme' } }, h)
+    await exportController.handler({ query: { search: 'acme' } }, h)
 
-    expect(searchOperators).toHaveBeenCalledWith({
+    expect(searchRegistrations).toHaveBeenCalledWith({
       query: 'acme',
       token: TOKEN
     })
-    expect(toCsv).toHaveBeenCalledWith(operators)
+    expect(toCsv).toHaveBeenCalledWith(registrations)
     expect(h.response).toHaveBeenCalledWith('csv-body')
     expect(chained.type).toHaveBeenCalledWith('text/csv')
     expect(chained.header).toHaveBeenCalledWith(
@@ -108,10 +108,10 @@ describe('backend error handling', () => {
     Object.assign(new Error(`backend ${statusCode}`), { statusCode })
 
   test('redirects to re-authenticate on a backend 401 (missing/expired token)', async () => {
-    vi.mocked(searchOperators).mockRejectedValue(backendError(401))
+    vi.mocked(searchRegistrations).mockRejectedValue(backendError(401))
     const h = { redirect: vi.fn().mockReturnValue('redirected'), view: vi.fn() }
 
-    const result = await operatorsController.handler({ query: {} }, h)
+    const result = await searchController.handler({ query: {} }, h)
 
     expect(h.redirect).toHaveBeenCalledWith(
       expect.stringContaining('/auth/entra/sign-in')
@@ -121,20 +121,20 @@ describe('backend error handling', () => {
   })
 
   test('rethrows a non-401 backend error (e.g. 502) for the shared error page', async () => {
-    vi.mocked(searchOperators).mockRejectedValue(backendError(502))
+    vi.mocked(searchRegistrations).mockRejectedValue(backendError(502))
     const h = { redirect: vi.fn(), view: vi.fn() }
 
     await expect(
-      operatorsController.handler({ query: {} }, h)
+      searchController.handler({ query: {} }, h)
     ).rejects.toMatchObject({ statusCode: 502 })
     expect(h.redirect).not.toHaveBeenCalled()
   })
 
   test('export also redirects to re-authenticate on a backend 401', async () => {
-    vi.mocked(searchOperators).mockRejectedValue(backendError(401))
+    vi.mocked(searchRegistrations).mockRejectedValue(backendError(401))
     const h = { redirect: vi.fn().mockReturnValue('redirected'), response: vi.fn() }
 
-    await operatorsExportController.handler({ query: {} }, h)
+    await exportController.handler({ query: {} }, h)
 
     expect(h.redirect).toHaveBeenCalledWith(
       expect.stringContaining('/auth/entra/sign-in')

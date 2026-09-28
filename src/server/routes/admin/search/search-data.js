@@ -1,24 +1,17 @@
-// Operator-data access for the admin/enforcement UI (EQ-227) — the single seam
-// between the admin UI and the OCR backend.
-//
-// In LIVE mode this delegates to the pesticides-ocr-backend search API
-// (EQ-366) via ./operators-client.js, forwarding the case officer's Entra token
-// (EQ-442), then maps the stored registrations it returns onto the Operator
-// shape via ./registration-mapper.js. In MOCK mode (local demo / UCD, no live
-// backend or token) it returns the built-in sample data below, already in that
-// shape. Either way the contract (the Operator shape + the function signatures)
-// is identical, so the routes, views and CSV export don't care which backs it.
-//
-// Maps to Arin's wireframe: Search API (searchOperators query), Dashboard API
-// (the grid rows), Export API (toCsv).
+// Registration data for the admin search UI (EQ-227), the single seam between
+// it and the OCR backend. LIVE mode calls the backend search API via
+// ./search-client.js with the case officer's Entra token and maps the stored
+// registrations with ./registration-mapper.js; MOCK mode (local demo / UCD)
+// returns the sample data below, already in that shape. Callers get the same
+// RegistrationView shape either way.
 
 import { config } from '#/config/config.js'
 
 import {
-  fetchOperators,
-  fetchOperatorByReference
-} from './operators-client.js'
-import { toOperatorView } from './registration-mapper.js'
+  fetchSearchResults,
+  fetchRegistrationByReference
+} from './search-client.js'
+import { toRegistrationView } from './registration-mapper.js'
 
 // Live mode calls the real backend; mock mode uses the sample data below.
 function isLiveMode() {
@@ -26,8 +19,8 @@ function isLiveMode() {
 }
 
 /**
- * A registered operator (organisation), as shown in the admin grid.
- * @typedef {object} Operator
+ * A registration as shown in the admin grid.
+ * @typedef {object} RegistrationView
  * @property {string} reference          registration reference (e.g. OCR-2026-000123)
  * @property {string} businessName
  * @property {string[]} activities       business PPP activities
@@ -46,9 +39,9 @@ const STATUS = { REGISTERED: 'Registered', PENDING: 'Pending', SUSPENDED: 'Suspe
 const ACTIVITY = { USE: 'Use PPPs', STORE: 'Store PPPs', RECORDS: 'Keep records' }
 const COUNTRY = { ENGLAND: 'England', WALES: 'Wales', SCOTLAND: 'Scotland' }
 
-// Build an Operator from a compact row so the shape is declared once, not per
-// record (keeps the mock data DRY).
-const toOperator = ([
+// Build a RegistrationView from a compact row so the shape is declared once,
+// not per record.
+const toMockRegistration = ([
   reference,
   businessName,
   activities,
@@ -72,8 +65,8 @@ const toOperator = ([
   status
 })
 
-/** @type {Operator[]} */
-const OPERATORS = [
+/** @type {RegistrationView[]} */
+const MOCK_REGISTRATIONS = [
   [
     'OCR-2026-000101',
     'Pesticides Ltd',
@@ -134,18 +127,18 @@ const OPERATORS = [
     '2026-07-14',
     STATUS.REGISTERED
   ]
-].map(toOperator)
+].map(toMockRegistration)
 
 const includesCi = (haystack, needle) =>
   String(haystack).toLowerCase().includes(needle)
 
 // Mock-mode filter over the sample data (blank query returns all).
-function searchMockOperators(query) {
+function searchMockRegistrations(query) {
   const q = query.trim().toLowerCase()
   if (!q) {
-    return OPERATORS
+    return MOCK_REGISTRATIONS
   }
-  return OPERATORS.filter(
+  return MOCK_REGISTRATIONS.filter(
     (op) =>
       includesCi(op.reference, q) ||
       includesCi(op.businessName, q) ||
@@ -156,34 +149,33 @@ function searchMockOperators(query) {
 }
 
 /**
- * Search/list operators for the grid (Search API + Dashboard API).
- * A blank query returns all operators. In live mode `token` is forwarded to the
- * backend; in mock mode it is ignored.
+ * Search/list registrations for the grid. A blank query returns all of them.
+ * In live mode `token` is forwarded to the backend; in mock mode it is ignored.
  * @param {{ query?: string, token?: string }} [options]
- * @returns {Promise<Operator[]>}
+ * @returns {Promise<RegistrationView[]>}
  */
-export async function searchOperators({ query = '', token = '' } = {}) {
+export async function searchRegistrations({ query = '', token = '' } = {}) {
   if (isLiveMode()) {
-    const registrations = await fetchOperators({ query, token })
-    return registrations.map(toOperatorView)
+    const registrations = await fetchSearchResults({ query, token })
+    return registrations.map(toRegistrationView)
   }
-  return searchMockOperators(query)
+  return searchMockRegistrations(query)
 }
 
 /**
- * Fetch a single operator by registration reference (for the detail view — a
+ * Fetch a single registration by reference (for the detail view — a
  * later slice). In live mode `token` is forwarded to the backend; in mock mode
  * it is ignored.
  * @param {string} reference
  * @param {string} [token]
- * @returns {Promise<Operator | null>}
+ * @returns {Promise<RegistrationView | null>}
  */
-export async function getOperatorById(reference, token = '') {
+export async function getRegistrationByReference(reference, token = '') {
   if (isLiveMode()) {
-    const registration = await fetchOperatorByReference(reference, token)
-    return registration ? toOperatorView(registration) : null
+    const registration = await fetchRegistrationByReference(reference, token)
+    return registration ? toRegistrationView(registration) : null
   }
-  return OPERATORS.find((op) => op.reference === reference) ?? null
+  return MOCK_REGISTRATIONS.find((op) => op.reference === reference) ?? null
 }
 
 // Getters are null-safe so real backend data with a missing contact/address/
@@ -205,7 +197,7 @@ const CSV_COLUMNS = [
 
 // Formula-injection prefixes: a cell starting with any of these is treated as a
 // formula by Excel/Sheets. Prefix such values with a single quote so they render
-// as text — matters once operator-supplied names flow through this seam.
+// as text — matters because applicant-supplied names flow through this seam.
 const CSV_FORMULA_PREFIXES = /^[=+\-@\t\r]/
 
 // Quote a CSV field (RFC 4180), escape embedded quotes, and neutralise formula
@@ -217,14 +209,14 @@ const csvCell = (value) => {
 }
 
 /**
- * Render operators as CSV (Export API). CSV opens directly in Excel; a true
+ * Render registrations as CSV. CSV opens directly in Excel; a true
  * .xlsx can replace this later if HSE require native formatting.
- * @param {Operator[]} operators
+ * @param {RegistrationView[]} registrations
  * @returns {string}
  */
-export function toCsv(operators) {
+export function toCsv(registrations) {
   const header = CSV_COLUMNS.map(([name]) => csvCell(name)).join(',')
-  const rows = operators.map((op) =>
+  const rows = registrations.map((op) =>
     CSV_COLUMNS.map(([, get]) => csvCell(get(op))).join(',')
   )
   return [header, ...rows].join('\r\n')

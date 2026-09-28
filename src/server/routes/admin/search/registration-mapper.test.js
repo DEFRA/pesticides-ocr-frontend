@@ -1,4 +1,4 @@
-import { toOperatorView } from './registration-mapper.js'
+import { toRegistrationView } from './registration-mapper.js'
 
 // A representative stored registration, as the backend's /search returns it.
 // Dates arrive as ISO strings over the wire rather than as Date objects.
@@ -23,9 +23,9 @@ const storedDoc = {
   quantity: { quantityType: 'amount', quantity: 80000 }
 }
 
-describe('toOperatorView', () => {
-  test('maps stored fields onto the Operator contract', () => {
-    expect(toOperatorView(storedDoc)).toEqual({
+describe('toRegistrationView', () => {
+  test('maps stored fields onto a RegistrationView', () => {
+    expect(toRegistrationView(storedDoc)).toEqual({
       reference: 'PPP-A1B-2C3',
       businessName: 'Pesticides Ltd',
       activities: [
@@ -55,32 +55,32 @@ describe('toOperatorView', () => {
   })
 
   test('accepts a Date as well as an ISO string for submittedAt', () => {
-    const operator = toOperatorView({
+    const view = toRegistrationView({
       ...storedDoc,
       submittedAt: new Date('2026-03-11T09:30:00.000Z')
     })
 
-    expect(operator.registeredDate).toBe('2026-03-11')
+    expect(view.registeredDate).toBe('2026-03-11')
   })
 
   test('formats an area quantity as hectares', () => {
-    const operator = toOperatorView({
+    const view = toRegistrationView({
       ...storedDoc,
       quantity: { quantityType: 'area', quantity: 1500 }
     })
 
-    expect(operator.quantity).toBe('1,500 hectares')
+    expect(view.quantity).toBe('1,500 hectares')
   })
 
   // The seed data (and anything else written straight to the database) stores
   // the quantity as the string the form submitted.
   test('formats a quantity stored as a numeric string', () => {
-    const operator = toOperatorView({
+    const view = toRegistrationView({
       ...storedDoc,
       quantity: { quantityType: 'amount', quantity: '80000' }
     })
 
-    expect(operator.quantity).toBe('80,000 litres or kilograms')
+    expect(view.quantity).toBe('80,000 litres or kilograms')
   })
 
   test.each([
@@ -93,21 +93,21 @@ describe('toOperatorView', () => {
     ['Infinity', Infinity],
     ['null', null]
   ])('leaves the quantity empty for %s', (_description, value) => {
-    const operator = toOperatorView({
+    const view = toRegistrationView({
       ...storedDoc,
       quantity: { quantityType: 'amount', quantity: value }
     })
 
-    expect(operator.quantity).toBe('')
+    expect(view.quantity).toBe('')
   })
 
   test('uses the journey label for every business activity', () => {
-    const operator = toOperatorView({
+    const view = toRegistrationView({
       ...storedDoc,
       businessActivities: ['use-professional', 'seller-amateur']
     })
 
-    expect(operator.activities).toEqual([
+    expect(view.activities).toEqual([
       'Use professional PPPs as part of work',
       'Sell amateur PPPs'
     ])
@@ -118,7 +118,7 @@ describe('toOperatorView', () => {
     ['amateur', 'Amateur user'],
     ['both', 'Both professional and amateur users']
   ])('labels a stored mainCustomer of %s', (code, label) => {
-    expect(toOperatorView({ ...storedDoc, mainCustomer: code }).mainCustomer).toBe(
+    expect(toRegistrationView({ ...storedDoc, mainCustomer: code }).mainCustomer).toBe(
       label
     )
   })
@@ -128,68 +128,68 @@ describe('toOperatorView', () => {
     ['empty', '']
   ])('shows N/A when mainCustomer is %s', (_description, value) => {
     expect(
-      toOperatorView({ ...storedDoc, mainCustomer: value }).mainCustomer
+      toRegistrationView({ ...storedDoc, mainCustomer: value }).mainCustomer
     ).toBe('N/A')
   })
 
   test('falls back to the raw value for an unknown mainCustomer', () => {
     expect(
-      toOperatorView({ ...storedDoc, mainCustomer: 'wholesale' }).mainCustomer
+      toRegistrationView({ ...storedDoc, mainCustomer: 'wholesale' }).mainCustomer
     ).toBe('wholesale')
   })
 
   test('prefers a stored status/country when present', () => {
-    const operator = toOperatorView({
+    const view = toRegistrationView({
       ...storedDoc,
       status: 'Suspended',
       address: { ...storedDoc.address, addressCountry: 'England' }
     })
 
-    expect(operator.status).toBe('Suspended')
-    expect(operator.address.country).toBe('England')
+    expect(view.status).toBe('Suspended')
+    expect(view.address.country).toBe('England')
   })
 
   test('falls back to the raw slug for an unknown activity code', () => {
-    const operator = toOperatorView({
+    const view = toRegistrationView({
       ...storedDoc,
       businessActivities: ['manufacture', 'some-new-code']
     })
 
-    expect(operator.activities).toEqual([
+    expect(view.activities).toEqual([
       'Manufacture, process or import',
       'some-new-code'
     ])
   })
 
   test('tolerates a sparse document without throwing', () => {
-    const operator = toOperatorView({ reference: 'PPP-ZZZ-999' })
+    const view = toRegistrationView({ reference: 'PPP-ZZZ-999' })
 
-    expect(operator.reference).toBe('PPP-ZZZ-999')
-    expect(operator.businessName).toBe('')
-    expect(operator.activities).toEqual([])
-    expect(operator.addressActivities).toEqual([])
-    expect(operator.quantity).toBe('')
-    expect(operator.registeredDate).toBe('')
-    expect(operator.address).toEqual({
+    expect(view.reference).toBe('PPP-ZZZ-999')
+    expect(view.businessName).toBe('')
+    expect(view.activities).toEqual([])
+    expect(view.addressActivities).toEqual([])
+    expect(view.quantity).toBe('')
+    expect(view.registeredDate).toBe('')
+    expect(view.address).toEqual({
       line1: '',
       town: '',
       postcode: '',
       country: ''
     })
-    expect(operator.contact).toEqual({ name: '', email: '', telephone: '' })
-    expect(operator.status).toBe('Registered')
+    expect(view.contact).toEqual({ name: '', email: '', telephone: '' })
+    expect(view.status).toBe('Registered')
   })
 
   test('tolerates being called with nothing at all', () => {
-    expect(() => toOperatorView()).not.toThrow()
+    expect(() => toRegistrationView()).not.toThrow()
   })
 
   test('leaves the date empty when it is unparseable', () => {
-    expect(toOperatorView({ submittedAt: 'not-a-date' }).registeredDate).toBe('')
+    expect(toRegistrationView({ submittedAt: 'not-a-date' }).registeredDate).toBe('')
   })
 
-  test('omits stored fields not in the Operator contract', () => {
-    const operator = toOperatorView({
+  test('omits stored fields not in a RegistrationView', () => {
+    const view = toRegistrationView({
       ...storedDoc,
       address: {
         ...storedDoc.address,
@@ -201,10 +201,10 @@ describe('toOperatorView', () => {
       additionalAddresses: [{ address: {}, contact: {}, activity: ['use'] }]
     })
 
-    expect(operator.address).not.toHaveProperty('line2')
-    expect(operator.address).not.toHaveProperty('county')
-    expect(operator).not.toHaveProperty('professionalSectors')
-    expect(operator).not.toHaveProperty('memberSchemes')
-    expect(operator).not.toHaveProperty('additionalAddresses')
+    expect(view.address).not.toHaveProperty('line2')
+    expect(view.address).not.toHaveProperty('county')
+    expect(view).not.toHaveProperty('professionalSectors')
+    expect(view).not.toHaveProperty('memberSchemes')
+    expect(view).not.toHaveProperty('additionalAddresses')
   })
 })

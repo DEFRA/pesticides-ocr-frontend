@@ -1,40 +1,40 @@
 import Joi from 'joi'
 import { requireAuthorised } from '@defra/hapi-oidc-auth'
 
-import { operatorsController, operatorsExportController } from './controller.js'
+import { searchController, exportController } from './controller.js'
 import { app } from './options.js'
 
 const MAX_SEARCH_LENGTH = 100
-const OPERATORS_PATH = '/admin/operators'
-const OPERATORS_EXPORT_PATH = `${OPERATORS_PATH}/export`
+const SEARCH_PATH = '/admin/search'
+const EXPORT_PATH = '/admin/export'
 
-// Bound the search query before it reaches the (future) backend API: a trimmed
+// Bound the search query before it reaches the backend API: a trimmed
 // string, optional/empty allowed, capped length; unknown query params stripped.
 // An invalid/oversized query falls back to the unfiltered list rather than a 400.
 //
 // NOTE: Hapi runs query validation (and this failAction) BEFORE route `pre`
 // handlers, i.e. before `requireAuthorised`. So this must stay a side-effect-free
 // unconditional local redirect only — never log/reflect the raw query or emit
-// any operator data here, or it becomes a pre-auth information-disclosure path.
+// any registration data here, or it becomes a pre-auth information-disclosure path.
 const validate = {
   query: Joi.object({
     search: Joi.string().trim().max(MAX_SEARCH_LENGTH).allow('').default('')
   }),
   options: { stripUnknown: true },
-  failAction: (_request, h) => h.redirect(OPERATORS_PATH).takeover()
+  failAction: (_request, h) => h.redirect(SEARCH_PATH).takeover()
 }
 
-// Enforcement-officer / admin view of registered operators (EQ-227). Both routes
+// Case-officer search and export of registrations (EQ-227). Both routes
 // sit behind the case-officer Entra auth (requireAuthorised → role case_officer).
-export const adminOperators = {
+export const adminSearch = {
   plugin: {
-    name: 'admin-operators',
+    name: 'admin-search',
     register(server) {
       server.route([
         {
           method: 'GET',
-          path: OPERATORS_PATH,
-          ...operatorsController,
+          path: SEARCH_PATH,
+          ...searchController,
           options: {
             app,
             validate,
@@ -43,8 +43,8 @@ export const adminOperators = {
         },
         {
           method: 'GET',
-          path: OPERATORS_EXPORT_PATH,
-          ...operatorsExportController,
+          path: EXPORT_PATH,
+          ...exportController,
           options: {
             app,
             validate,

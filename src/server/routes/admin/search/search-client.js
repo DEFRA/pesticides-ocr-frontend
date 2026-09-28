@@ -18,7 +18,7 @@ import { statusCodes } from '#/server/common/constants/status-codes.js'
 // @defra/hapi-oidc-auth surfaces its client errors). An upstream failure
 // (unreachable backend, non-JSON body, or a backend 5xx) is surfaced as 502 so
 // it renders the generic error page and is logged as a server error — we never
-// fall through to an empty list, which would present "no operators" as live truth.
+// fall through to an empty list, which would present "no registrations" as live truth.
 function backendError(statusCode, message) {
   const error = new Error(message)
   error.statusCode = statusCode
@@ -99,7 +99,7 @@ async function backendGet(pathAndQuery, token) {
 // List/search registrations (backend GET /search?q=). A blank term matches
 // everything, which is what the unfiltered grid asks for. The backend returns
 // stored registrations, so callers map them for display.
-export async function fetchOperators({ query = '', token = '' } = {}) {
+export async function fetchSearchResults({ query = '', token = '' } = {}) {
   const res = await backendGet(`/search?q=${encodeURIComponent(query)}`, token)
   if (!res.ok) {
     throw backendError(
@@ -124,7 +124,7 @@ export async function fetchOperators({ query = '', token = '' } = {}) {
 // 400: the backend rejects a malformed reference before looking it up, and a
 // malformed reference can't match a record either. `reference` is the only
 // parameter sent, so a 400 here can only mean the reference was rejected.
-export async function fetchOperatorByReference(reference, token = '') {
+export async function fetchRegistrationByReference(reference, token = '') {
   const res = await backendGet(
     `/search?reference=${encodeURIComponent(reference)}`,
     token
