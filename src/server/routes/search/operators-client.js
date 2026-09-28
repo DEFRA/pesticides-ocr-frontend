@@ -120,19 +120,16 @@ export async function fetchOperators({ query = '', token = '' } = {}) {
 }
 
 // Fetch a single registration by reference (backend GET /search?reference=).
-// A 404 is a genuine "not found" and maps to null (not an error). So does a
-// 400: the backend rejects a malformed reference before looking it up, and a
-// malformed reference can't match a record either. `reference` is the only
-// parameter sent, so a 400 here can only mean the reference was rejected.
+// A 404 is a genuine "not found" and maps to null (not an error). Anything else
+// non-2xx throws with the upstream status — including a 400, which is how the
+// backend rejects a malformed reference, so the search page can tell the
+// officer the format is wrong rather than that nothing matched.
 export async function fetchOperatorByReference(reference, token = '') {
   const res = await backendGet(
     `/search?reference=${encodeURIComponent(reference)}`,
     token
   )
-  if (
-    res.status === statusCodes.notFound ||
-    res.status === statusCodes.badRequest
-  ) {
+  if (res.status === statusCodes.notFound) {
     return null
   }
   if (!res.ok) {

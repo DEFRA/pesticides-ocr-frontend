@@ -87,12 +87,14 @@ describe('#fetchOperatorByReference', () => {
     expect(await fetchOperatorByReference('OCR-nope', TOKEN)).toBeNull()
   })
 
-  test('maps a 400 to null (a malformed reference matches nothing)', async () => {
+  test('throws a 400 (malformed reference) rather than treating it as not-found', async () => {
     vi.mocked(fetch).mockResolvedValue(
       response(400, { message: 'Invalid reference number' })
     )
 
-    expect(await fetchOperatorByReference('not-a-reference', TOKEN)).toBeNull()
+    await expect(
+      fetchOperatorByReference('not-a-reference', TOKEN)
+    ).rejects.toMatchObject({ statusCode: 400 })
   })
 
   test('throws with the upstream status on other non-2xx responses', async () => {

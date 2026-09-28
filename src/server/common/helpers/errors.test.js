@@ -213,7 +213,7 @@ describe('#catchAll', () => {
     // backend is unreachable/misconfigured; Hapi boomifies it to a 500 output, so
     // catchAll must surface the intended 502 and log it as a server error.
     const request = {
-      path: '/admin/operators',
+      path: '/search',
       response: {
         isBoom: true,
         stack: mockStack,

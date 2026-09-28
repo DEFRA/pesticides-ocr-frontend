@@ -1,0 +1,79 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <form method="get" action="/search" novalidate>
+      {{ govukInput({
+        label: {
+          text: "Search the register",
+          classes: "govuk-label--l",
+          isPageHeading: true
+        },
+        hint: { text: "Search for a reference, such as PPP-1A2-B3C" },
+        id: "reference",
+        name: "reference",
+        value: reference,
+        classes: "govuk-input--width-20",
+        spellcheck: false,
+        autocomplete: "off",
+        errorMessage: errors["reference"] if errors and errors["reference"]
+      }) }}
+
+      {{ govukButton({ text: "Search" }) }}
+    </form>
+
+    {% if notFound %}
+    <p class="govuk-body">No results found</p>
+    {% endif %}
+
+    {% if operator %}
+    {% set addressHtml %}
+    {%- for line in [operator.address.line1, operator.address.town, operator.address.postcode, operator.address.country] | select -%}
+    {{ line }}{% if not loop.last %}<br>{% endif %}
+    {%- endfor -%}
+    {% endset %}
+    {% set contactHtml %}
+    {%- for line in [operator.contact.name, operator.contact.email, operator.contact.telephone] | select -%}
+    {{ line }}{% if not loop.last %}<br>{% endif %}
+    {%- endfor -%}
+    {% endset %}
+
+    {{ govukSummaryList({
+        card: {
+          title: { text: operator.businessName or operator.reference },
+          actions: {
+            items: [
+              {
+                href: "#",
+                text: "Export",
+                visuallyHiddenText: operator.reference
+              }
+            ]
+          }
+        },
+        rows: [
+          { key: { text: "Reference" }, value: { text: operator.reference } },
+          { key: { text: "Status" }, value: { text: operator.status } },
+          { key: { text: "Registered" }, value: { text: operator.registeredDate | formatDate("d MMMM yyyy") if operator.registeredDate } },
+          { key: { text: "Business activities" }, value: { text: operator.activities | join(", ") } },
+          { key: { text: "Main customer" }, value: { text: operator.mainCustomer } },
+          { key: { text: "Address" }, value: { html: addressHtml } },
+          { key: { text: "Contact" }, value: { html: contactHtml } },
+          { key: { text: "Address activities" }, value: { text: operator.addressActivities | join(", ") } },
+          { key: { text: "Quantity" }, value: { text: operator.quantity } }
+        ]
+      }) }}
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
