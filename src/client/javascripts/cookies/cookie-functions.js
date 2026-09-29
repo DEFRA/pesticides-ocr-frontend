@@ -26,16 +26,16 @@ function getCookie(name) {
   for (const part of document.cookie.split(';')) {
     const cookie = part.trim()
     if (cookie.startsWith(nameEQ)) {
-      return decodeURIComponent(cookie.substring(nameEQ.length))
+      return cookie.substring(nameEQ.length)
     }
   }
   return null
 }
 
 function setCookie(name, value, { days } = {}) {
-  // URL-encode on write so the JSON value is a valid cookie-octet and matches
-  // the server-set cookie's encoding (getCookie decodes on read).
-  let str = `${name}=${encodeURIComponent(value)}; path=/; SameSite=Lax`
+  // Plain JSON, so it's readable in dev tools; the server allows it
+  // (strictHeader: false).
+  let str = `${name}=${value}; path=/; SameSite=Lax`
   if (days) {
     const date = new Date()
     date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000)
@@ -75,8 +75,10 @@ export function getConsentCookie() {
   if (!raw) {
     return null
   }
+  // Decoding also reads URL-encoded values; it's inside the try so an
+  // undecodable one is treated as malformed rather than throwing.
   try {
-    return JSON.parse(raw)
+    return JSON.parse(decodeURIComponent(raw))
   } catch {
     return null
   }

@@ -1,13 +1,12 @@
 import Joi from 'joi'
 
+import { CONSENT_FORM_FIELD } from '#/config/cookie-consent.js'
 import { getCookies, postCookies } from './controller.js'
 
 // Restrict the consent choice to the two valid values (matches the app's
 // convention of validating POST payloads).
 const cookiePreferencesSchema = Joi.object({
-  cookies: Joi.object({
-    analytics: Joi.string().valid('yes', 'no').required()
-  }).required()
+  [CONSENT_FORM_FIELD]: Joi.string().valid('yes', 'no').required()
 })
 
 export const cookies = {

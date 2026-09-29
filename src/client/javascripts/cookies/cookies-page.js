@@ -6,6 +6,7 @@
  * without a page reload. Progressive enhancement: without JS the form posts to
  * the server route, which sets the same cookie.
  */
+import { CONSENT_FORM_FIELD } from '#/config/cookie-consent.js'
 import { getConsentCookie, setConsentCookie } from './cookie-functions.js'
 
 export function initCookiesPage() {
@@ -20,7 +21,7 @@ export function initCookiesPage() {
   // Pre-select the radio matching the stored preference (default: no).
   const current = consent?.analytics ? 'yes' : 'no'
   const $radio = $form.querySelector(
-    `input[name="cookies[analytics]"][value="${current}"]`
+    `input[name="${CONSENT_FORM_FIELD}"][value="${current}"]`
   )
   if ($radio) {
     $radio.checked = true
@@ -29,7 +30,7 @@ export function initCookiesPage() {
   $form.addEventListener('submit', (event) => {
     event.preventDefault()
     const $selected = $form.querySelector(
-      'input[name="cookies[analytics]"]:checked'
+      `input[name="${CONSENT_FORM_FIELD}"]:checked`
     )
     setConsentCookie({ analytics: $selected?.value === 'yes' })
 

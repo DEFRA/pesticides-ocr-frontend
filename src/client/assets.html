@@ -2,6 +2,7 @@
 <!-- Used to tell Vite about assets loaded directly by HTML -->
 <!-- Only need as HTML is not being processed by vite at the moment -->
 <!-- ?no-inline is required to keep the asset as a file for later importing in templates -->
+<!-- No web manifest: its relative icon paths don't survive the build. -->
 <html lang="en">
   <head>
     <title>Just for Vite</title>
@@ -33,10 +34,6 @@
       rel="apple-touch-icon"
       href="../../node_modules/govuk-frontend/dist/govuk/assets/images/govuk-icon-512.png?no-inline"
     />
-    <link
-      rel="manifest"
-      href="../../node_modules/govuk-frontend/dist/govuk/assets/manifest.json?no-inline"
-    />
 
     <!-- Govuk Rebrand -->
     <link
@@ -65,10 +62,6 @@
     <link
       rel="apple-touch-icon"
       href="../../node_modules/govuk-frontend/dist/govuk/assets/rebrand/images/govuk-icon-512.png?no-inline"
-    />
-    <link
-      rel="manifest"
-      href="../../node_modules/govuk-frontend/dist/govuk/assets/rebrand/manifest.json?no-inline"
     />
 
     <!-- App -->

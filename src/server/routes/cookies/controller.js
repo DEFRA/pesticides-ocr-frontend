@@ -4,7 +4,8 @@ import { config } from '#/config/config.js'
 import {
   CONSENT_COOKIE_NAME,
   CONSENT_COOKIE_VERSION,
-  CONSENT_COOKIE_MAX_AGE_DAYS
+  CONSENT_COOKIE_MAX_AGE_DAYS,
+  CONSENT_FORM_FIELD
 } from '#/config/cookie-consent.js'
 
 // /cookies page (EQ-363). GET renders the preferences page (pre-filled from the
@@ -13,7 +14,8 @@ import {
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
 
 // Read the current analytics choice from the request's consent cookie, tolerant
-// of a missing/malformed/old-version value (treated as "not accepted").
+// of a missing/malformed/old-version value (treated as "not accepted"). Decoding
+// also reads URL-encoded values.
 function currentAnalyticsChoice(request) {
   const raw = request.state?.[CONSENT_COOKIE_NAME]
   if (!raw) {
@@ -24,6 +26,16 @@ function currentAnalyticsChoice(request) {
     return consent.version >= CONSENT_COOKIE_VERSION && Boolean(consent.analytics)
   } catch {
     return false
+  }
+}
+
+// The Origin header's host, or null if unparseable (browsers send the literal
+// `null` from sandboxed frames), which the guard then treats as foreign.
+function originHost(origin) {
+  try {
+    return new URL(origin).host
+  } catch {
+    return null
   }
 }
 
@@ -43,16 +55,13 @@ export const postCookies = {
     // cross-site forged submission (which would opt a user in/out without their
     // knowledge). Browsers send Origin on form POSTs and scripts can't forge it.
     const { origin } = request.headers
-    if (origin && new URL(origin).host !== request.info.host) {
+    if (origin && originHost(origin) !== request.info.host) {
       return Boom.forbidden('Cross-origin request rejected')
     }
 
-    const analytics = request.payload?.cookies?.analytics === 'yes'
-    // URL-encoded so the JSON is a valid cookie value; the client reads it with
-    // decodeURIComponent (see cookie-functions.js), so both paths agree.
-    const value = encodeURIComponent(
-      JSON.stringify({ analytics, version: CONSENT_COOKIE_VERSION })
-    )
+    const analytics = request.payload?.[CONSENT_FORM_FIELD] === 'yes'
+    // Plain JSON, matching what the client writes.
+    const value = JSON.stringify({ analytics, version: CONSENT_COOKIE_VERSION })
 
     return h.redirect('/cookies?saved=true').state(CONSENT_COOKIE_NAME, value, {
       path: '/',
