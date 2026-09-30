@@ -106,6 +106,13 @@ describe('cookie-functions (EQ-363)', () => {
     expect(document.cookie).not.toContain('_ga_ABC=')
   })
 
+  test('pushes the consent update as an arguments object, which GTM requires', () => {
+    setConsentCookie({ analytics: true })
+    expect(Object.prototype.toString.call(lastConsentUpdate())).toBe(
+      '[object Arguments]'
+    )
+  })
+
   test('applyConsent with no cookie defaults to denied', () => {
     applyConsent()
     expect(lastConsentUpdate()?.[2].analytics_storage).toBe('denied')

@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach } from 'vitest'
 
-import { loadAnalytics } from './load-analytics.js'
+import { gtag, loadAnalytics } from './load-analytics.js'
 
 // The loader is browser code; stub the minimal window/document it touches so it
 // can run under the node test environment.
@@ -28,6 +28,20 @@ describe('loadAnalytics (EQ-388)', () => {
     loadAnalytics('GTM-TEST')
     expect(consentDefault()?.[2].analytics_storage).toBe('denied')
     expect(consentDefault()?.[2].ad_storage).toBe('denied')
+  })
+
+  test('pushes the consent default as an arguments object, which GTM requires', () => {
+    loadAnalytics('GTM-TEST')
+    expect(Object.prototype.toString.call(consentDefault())).toBe(
+      '[object Arguments]'
+    )
+  })
+
+  test('gtag creates the dataLayer if the page has none yet', () => {
+    global.window = {}
+    gtag('consent', 'update', { analytics_storage: 'denied' })
+    expect(window.dataLayer).toHaveLength(1)
+    expect(window.dataLayer[0][0]).toBe('consent')
   })
 
   test('grants analytics_storage only when consent.analytics is true', () => {
