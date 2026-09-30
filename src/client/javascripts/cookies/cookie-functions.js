@@ -21,6 +21,11 @@ const DEFAULT_CONSENT = { analytics: false }
 // GA4 analytics cookies (_ga and _ga_*), deleted on reject/withdrawal.
 const ANALYTICS_COOKIE_PREFIXES = ['_ga']
 
+// Pushed when the user newly accepts analytics. The GTM container's GA4 tag has
+// a trigger on it, because its page-load trigger already ran while consent was
+// still denied, so without it tracking would only start on the next page.
+export const CONSENT_GRANTED_EVENT = 'analytics_consent_granted'
+
 function getCookie(name) {
   const nameEQ = `${name}=`
   for (const part of document.cookie.split(';')) {
@@ -89,9 +94,15 @@ export function isValidConsentCookie(consent) {
   return Boolean(consent) && consent.version >= CONSENT_COOKIE_VERSION
 }
 
-/** Persist the user's choice, then apply it. */
+/**
+ * Persist the user's choice, then apply it. A new acceptance also pushes
+ * CONSENT_GRANTED_EVENT so GTM tracks the current page.
+ */
 export function setConsentCookie(options) {
   const consent = getConsentCookie() || { ...DEFAULT_CONSENT }
+  // If analytics was already accepted, GTM's page-load tags ran with consent
+  // granted, so pushing the event again would double-count the page.
+  const alreadyGranted = Boolean(consent.analytics)
   Object.assign(consent, options)
   delete consent.essential
   consent.version = CONSENT_COOKIE_VERSION
@@ -99,6 +110,10 @@ export function setConsentCookie(options) {
     days: CONSENT_COOKIE_MAX_AGE_DAYS
   })
   applyConsent()
+
+  if (consent.analytics && !alreadyGranted) {
+    window.dataLayer.push({ event: CONSENT_GRANTED_EVENT })
+  }
 }
 
 function deleteAnalyticsCookies() {
