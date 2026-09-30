@@ -6,7 +6,7 @@
  * JSON cookie; analytics only run once the user has accepted.
  */
 
-import { loadAnalytics } from '../analytics/load-analytics.js'
+import { gtag, loadAnalytics } from '../analytics/load-analytics.js'
 import {
   CONSENT_COOKIE_NAME,
   CONSENT_COOKIE_VERSION,
@@ -118,23 +118,14 @@ function deleteAnalyticsCookies() {
 export function applyConsent() {
   const consent = getConsentCookie() || DEFAULT_CONSENT
   const config = document.getElementById('js-analytics-config')
-  window.dataLayer = window.dataLayer || []
 
   if (consent.analytics) {
     if (config) {
       loadAnalytics(config.dataset.gtmId, { analytics: true })
     }
-    window.dataLayer.push([
-      'consent',
-      'update',
-      { analytics_storage: 'granted' }
-    ])
+    gtag('consent', 'update', { analytics_storage: 'granted' })
   } else {
-    window.dataLayer.push([
-      'consent',
-      'update',
-      { analytics_storage: 'denied' }
-    ])
+    gtag('consent', 'update', { analytics_storage: 'denied' })
     deleteAnalyticsCookies()
   }
 }
