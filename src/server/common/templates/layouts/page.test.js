@@ -1,23 +1,6 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
-
-// Complete a mock case-officer sign-in and return the authenticated session cookie.
-async function signInCaseOfficer(server) {
-  const start = await server.inject({ method: 'GET', url: '/auth/entra/start' })
-  const startCookie = start.headers['set-cookie'][0].split(';')[0]
-  const callback = await server.inject({
-    method: 'GET',
-    url: start.headers.location,
-    headers: { cookie: startCookie }
-  })
-  const setCookie = callback.headers['set-cookie']
-  // Fail loudly rather than silently falling back to the pre-auth cookie, which
-  // would let a broken sign-in flow masquerade as authenticated in the tests.
-  if (!setCookie?.length) {
-    throw new Error('Expected a session cookie after the OIDC callback')
-  }
-  return setCookie[0].split(';')[0]
-}
+import { signInCaseOfficer } from '#/test-helpers/session-helpers.js'
 
 // The header sign-out is security-relevant: @defra/hapi-oidc-auth 0.3.0 makes
 // /auth/sign-out POST-only (logout-CSRF fix), so the header control must submit

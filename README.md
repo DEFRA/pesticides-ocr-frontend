@@ -93,6 +93,17 @@ To run the application in `development` mode run:
 npm run dev
 ```
 
+#### Case-officer search
+
+The case-officer search (`/search`) reads from [pesticides-ocr-backend](https://github.com/DEFRA/pesticides-ocr-backend); there is no local sample data. To use it locally, run the backend (its auth defaults to mock mode locally) and point this service at it in `.env`:
+
+```bash
+OCR_BACKEND_URL='http://localhost:3001'
+REFERENCE_PREFIX='PPP'
+```
+
+`REFERENCE_PREFIX` must match the backend's, and defaults to `PPP`. In mock sign-in mode (the local default), the frontend forwards an unsigned token built from the mock identity, which only a backend in mock auth mode accepts.
+
 ### Production
 
 To mimic the application running in `production` mode locally run:

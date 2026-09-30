@@ -1,5 +1,5 @@
-// Maps stored registration documents onto the Operator contract the admin grid
-// renders (EQ-227, EQ-385).
+// Maps stored registration documents onto the Operator contract the search
+// results render (EQ-227, EQ-385).
 //
 // This used to live in the backend. It moved here when the backend's /operators
 // API was folded into /search (EQ-366): search returns registrations as stored,
@@ -29,7 +29,7 @@ const DEFAULT_MAIN_CUSTOMER = 'N/A'
 const ISO_DATE_LENGTH = 10
 
 // Coded value -> display label, taken from the journey's own option lists so the
-// grid shows exactly what the applicant was asked and can't drift from it.
+// results show exactly what the applicant was asked and can't drift from it.
 // Stored values are the register-form codes; unknown codes fall back to the raw
 // value.
 const labelsByValue = (items) =>
@@ -60,7 +60,7 @@ function toQuantityNumber(value) {
   return typeof number === 'number' && Number.isFinite(number) ? number : null
 }
 
-// Format the structured stored quantity into the grid's display string, using
+// Format the structured stored quantity into its display string, using
 // the journey's unit for the quantity type (amount -> "litres or kilograms",
 // area -> "hectares"). An unrecognised type falls back to the amount unit.
 function formatQuantity(quantity) {
@@ -82,7 +82,7 @@ function toIsoDate(value) {
 }
 
 // The Operator contract carries only line1/town/postcode/country; the stored
-// address.line2/county are intentionally dropped (not shown on the grid).
+// address.line2/county are intentionally dropped (not shown in the results).
 function mapAddress(address = {}) {
   return {
     line1: address.addressLine1 ?? '',
@@ -108,7 +108,7 @@ function mapContact(contact = {}) {
  * professionalSectors / memberSchemes — see the EQ-385 data-model decision.
  *
  * @param {object} doc stored registration, as returned by the backend /search
- * @returns {import('./operators-data.js').Operator}
+ * @returns {import('./search-data.js').Operator}
  */
 export function toOperatorView(doc = {}) {
   return {

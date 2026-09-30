@@ -9,6 +9,13 @@ const devSessionCookiePassword = crypto.randomBytes(32).toString('hex')
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// The backend accepts references of at most 32 characters, so the prefix of a
+// <prefix>-XXX-XXX reference can be at most 24 (matches its own validation).
+const MAX_REFERENCE_PREFIX_LENGTH = 24
+const REFERENCE_PREFIX_PATTERN = new RegExp(
+  `^[A-Z0-9]{1,${MAX_REFERENCE_PREFIX_LENGTH}}$`
+)
+
 const fourHoursMs = 14400000
 const oneWeekMs = 604800000
 
@@ -313,11 +320,23 @@ export const config = convict({
   },
   ocrBackend: {
     url: {
-      doc: 'Base URL of the pesticides-ocr-backend service. Set to the CDP internal service-to-service address on deployed tiers; empty in local/mock. This is the single shared key for all backend calls (case-officer dashboard reads, registration submission, journey metrics) — do not add a second backend-URL config.',
+      doc: 'Base URL of the pesticides-ocr-backend service. Set to the CDP internal service-to-service address on deployed tiers. Empty by default; locally, point it at a running backend (e.g. http://localhost:3001, the default backend port) to use the case-officer search — in mock sign-in mode too, which forwards a mock-identity token that a backend in mock auth mode accepts. This is the single shared key for all backend calls (case-officer search and export, registration submission, journey metrics) — do not add a second backend-URL config.',
       format: String,
       default: '',
       env: 'OCR_BACKEND_URL'
     }
+  },
+  referencePrefix: {
+    doc: 'Prefix of registration references (e.g. PPP gives PPP-XXX-XXX). Must match the backend REFERENCE_PREFIX: the search page uses it to tell a reference lookup from a free-text search, and in its hint. Upper-case letters and digits only, the alphabet the backend validates references against.',
+    format: (value) => {
+      if (!REFERENCE_PREFIX_PATTERN.test(value)) {
+        throw new Error(
+          `must be 1 to ${MAX_REFERENCE_PREFIX_LENGTH} upper-case letters or digits`
+        )
+      }
+    },
+    default: 'PPP',
+    env: 'REFERENCE_PREFIX'
   },
   journeyToken: {
     secret: {

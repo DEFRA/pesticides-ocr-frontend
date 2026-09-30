@@ -18,24 +18,27 @@
           classes: "govuk-label--l",
           isPageHeading: true
         },
-        hint: { text: "Search for a reference, such as PPP-1A2-B3C" },
-        id: "reference",
-        name: "reference",
-        value: reference,
-        classes: "govuk-input--width-20",
+        hint: { text: "Search for a reference, such as " + exampleReference + ", or a business name, contact, town or postcode" },
+        id: "search",
+        name: "search",
+        value: search,
+        classes: "govuk-input--width-30",
         spellcheck: false,
         autocomplete: "off",
-        errorMessage: errors["reference"] if errors and errors["reference"]
+        errorMessage: errors["search"] if errors and errors["search"]
       }) }}
 
       {{ govukButton({ text: "Search" }) }}
     </form>
 
-    {% if notFound %}
+    {% if operators and operators.length == 0 %}
     <p class="govuk-body">No results found</p>
     {% endif %}
 
-    {% if operator %}
+    {% if operators.length %}
+    <h2 class="govuk-heading-m">{{ operators.length }} result{{ "s" if operators.length != 1 }}</h2>
+
+    {% for operator in operators %}
     {% set addressHtml %}
     {%- for line in [operator.address.line1, operator.address.town, operator.address.postcode, operator.address.country] | select -%}
     {{ line }}{% if not loop.last %}<br>{% endif %}
@@ -53,7 +56,7 @@
           actions: {
             items: [
               {
-                href: "#",
+                href: "/search/export?reference=" + (operator.reference | urlencode),
                 text: "Export",
                 visuallyHiddenText: operator.reference
               }
@@ -72,6 +75,7 @@
           { key: { text: "Quantity" }, value: { text: operator.quantity } }
         ]
       }) }}
+    {% endfor %}
     {% endif %}
 
   </div>

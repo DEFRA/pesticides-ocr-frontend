@@ -28,7 +28,8 @@ describe('#buildMockAccessToken', () => {
     expect(decodePart(payload)).toEqual({
       sub: 'urn:entra:staff-demo',
       name: 'Case Officer',
-      roles: ['case_officer']
+      roles: ['case_officer'],
+      scp: 'access_as_user'
     })
     expect(signature).toBe('')
   })
