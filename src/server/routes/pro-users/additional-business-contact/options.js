@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
+import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 
 export const app = {
   pageTitle: 'Business Contact'
@@ -19,5 +19,5 @@ export const validate = {
       'string.email': 'Enter a valid email address'
     })
   }),
-  failAction: viewFailAction('pro-users/additional-business-contact/additional-business-contact')
+  failAction: viewFailAction('pro-users/additional-business-contact/index')
 }

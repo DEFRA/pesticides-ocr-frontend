@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
+import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 import { professionalSectorsItems, professionalSectorsValues } from './items.js'
 
 export const app = {
@@ -36,5 +36,5 @@ export const validate = {
         'string.max': 'Please use 100 characters or fewer'
       })
   }),
-  failAction: viewFailAction('pro-users/professional-sectors/professional-sectors')
+  failAction: viewFailAction('pro-users/professional-sectors/index')
 }

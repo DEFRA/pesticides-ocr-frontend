@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
+import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 
 const ENTER_BUSINESS_NAME_MESSAGE = 'Enter a business name'
 
@@ -14,5 +14,5 @@ export const validate = {
       'string.empty': ENTER_BUSINESS_NAME_MESSAGE
     })
   }),
-  failAction: viewFailAction('qualifying-questions/business-name/business-name')
+  failAction: viewFailAction('qualifying-questions/business-name/index')
 }

@@ -6,7 +6,7 @@ export const get = {
 
     const currentAddressLineOne = getSession(request, 'formSession')['address']?.['addressLine1']
 
-    return h.view('qualifying-questions/address-activity/address-activity', { currentAddressLineOne })
+    return h.view('qualifying-questions/address-activity/index', { currentAddressLineOne })
   }
 }
 

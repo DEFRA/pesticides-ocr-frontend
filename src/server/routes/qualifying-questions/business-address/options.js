@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
+import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 
 export const app = {
   pageTitle: 'Business Address'
@@ -19,5 +19,5 @@ export const validate = {
       'string.empty': 'Enter your postcode'
     })
   }),
-  failAction: viewFailAction('qualifying-questions/business-address/business-address')
+  failAction: viewFailAction('qualifying-questions/business-address/index')
 }

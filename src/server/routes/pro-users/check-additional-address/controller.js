@@ -6,7 +6,7 @@ export const get = {
     const formSession = getSession(request, 'formSession')
     const additionalAddresses = formSession['additionalAddresses'] ?? []
 
-    return h.view('pro-users/check-additional-address/check-additional-address', {
+    return h.view('pro-users/check-additional-address/index', {
       address: buildLatestAddress(additionalAddresses)
     })
   }

@@ -3,7 +3,7 @@ import { vi } from 'vitest'
 import { viewFailAction } from './view-fail-action.js'
 
 describe('#viewFailAction', () => {
-  const view = 'pro-users/check-additional-address/check-additional-address'
+  const view = 'pro-users/check-additional-address/index'
 
   const mockTakeover = vi.fn()
   const mockView = vi.fn(() => ({ takeover: mockTakeover }))

@@ -1,6 +1,6 @@
 export const get = {
   handler(_request, h) {
-    return h.view('pro-users/additional-addresses/additional-addresses')
+    return h.view('pro-users/additional-addresses/index')
   }
 }
 
