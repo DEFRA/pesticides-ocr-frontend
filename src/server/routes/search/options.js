@@ -35,19 +35,36 @@ function guardedFailAction(request, h, error) {
   return guard === h.continue ? renderErrors(request, h, error) : guard
 }
 
-// One box: a term in the reference format is an exact lookup, anything else a
-// free-text search, and blank lists everything. No term at all is the initial
-// visit (just the form).
+const wildcard = '*'
+const maxWildcards = 5
+
+const maxPage = 10000
+
+function validateWildcards(term, helpers) {
+  if (term.replaceAll(wildcard, '') === '') {
+    return helpers.error('search.wildcardOnly')
+  }
+  if (term.split(wildcard).length - 1 > maxWildcards) {
+    return helpers.error('search.tooManyWildcards')
+  }
+  return term
+}
+
 export const validate = {
   query: Joi.object({
     [SEARCH_FIELD]: Joi.string()
       .trim()
       .max(MAX_SEARCH_LENGTH)
-      .allow('')
+      .custom(validateWildcards)
       .messages({
         'string.base': 'Enter one search term',
-        'string.max': `Search must be ${MAX_SEARCH_LENGTH} characters or fewer`
-      })
+        'string.empty':
+          'Enter a reference, business name, contact name, email, town or postcode',
+        'string.max': `Search must be ${MAX_SEARCH_LENGTH} characters or fewer`,
+        'search.wildcardOnly': `Search must include more than just ${wildcard}`,
+        'search.tooManyWildcards': `Search must use ${wildcard} no more than ${maxWildcards} times`
+      }),
+    page: Joi.number().integer().min(1).max(maxPage).default(1).failover(1)
   }),
   options: { stripUnknown: true },
   failAction: guardedFailAction

@@ -3,7 +3,9 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/pagination/macro.njk" import govukPagination %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
 
 {% block content %}
 <div class="govuk-grid-row">
@@ -18,7 +20,7 @@
           classes: "govuk-label--l",
           isPageHeading: true
         },
-        hint: { text: "Search for a reference, such as " + exampleReference + ", or a business name, contact, town or postcode" },
+        hint: { text: "Search for a reference, such as " + exampleReference + ", or a business name, contact name, email, town or postcode. Use * to match any characters." },
         id: "search",
         name: "search",
         value: search,
@@ -36,9 +38,10 @@
     {% endif %}
 
     {% if operators.length %}
-    <h2 class="govuk-heading-m">{{ operators.length }} result{{ "s" if operators.length != 1 }}</h2>
+    <h2 class="govuk-heading-m">{{ totalRecords }} result{{ "s" if totalRecords != 1 }}</h2>
 
-    {% for operator in operators %}
+    {% if totalRecords == 1 %}
+    {% set operator = operators[0] %}
     {% set addressHtml %}
     {%- for line in [operator.address.line1, operator.address.town, operator.address.postcode, operator.address.country] | select -%}
     {{ line }}{% if not loop.last %}<br>{% endif %}
@@ -75,8 +78,35 @@
           { key: { text: "Quantity" }, value: { text: operator.quantity } }
         ]
       }) }}
+    {% else %}
+    {% set rows = [] %}
+    {% for operator in operators %}
+    {% set rows = (rows.push([
+      { text: operator.reference },
+      { text: operator.businessName },
+      { text: operator.contact.name },
+      { text: operator.address.postcode },
+      { text: operator.registeredDate | formatDate("d MMMM yyyy") if operator.registeredDate }
+    ]), rows) %}
     {% endfor %}
+
+    {{ govukTable({
+      caption: "Search results",
+      captionClasses: "govuk-visually-hidden",
+      classes: "govuk-table--small-text-until-tablet",
+      head: [
+        { text: "Reference" },
+        { text: "Business name" },
+        { text: "Contact" },
+        { text: "Postcode" },
+        { text: "Registered" }
+      ],
+      rows: rows
+    }) }}
     {% endif %}
+    {% endif %}
+
+    {% if pagination %}{{ govukPagination(pagination) }}{% endif %}
 
   </div>
 </div>

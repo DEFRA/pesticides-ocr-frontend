@@ -9,27 +9,15 @@ import {
 } from 'vitest'
 import { load } from 'cheerio'
 
-// End-to-end proof, through the whole Hapi pipeline (route -> controller ->
-// view), of how backend API outcomes reach the case officer's browser: matches
-// are summary cards, no match is "No results found", and any other API error is
-// an error summary on the search page — an upstream failure keeping its 5xx
-// status rather than being masked as a 200, and never an empty result presented
-// as live truth. The backend client is mocked so we can force each outcome
-// without a real backend; mock sign-in forwards its mock-identity token.
 vi.mock('./search-client.js', () => ({
   fetchSearchResults: vi.fn(),
-  fetchByReference: vi.fn(),
   fetchExport: vi.fn()
 }))
 
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { signInCaseOfficer } from '#/test-helpers/session-helpers.js'
-import {
-  fetchSearchResults,
-  fetchByReference,
-  fetchExport
-} from './search-client.js'
+import { fetchSearchResults, fetchExport } from './search-client.js'
 
 const backendError = (statusCode) =>
   Object.assign(new Error(`OCR backend returned ${statusCode}`), { statusCode })
@@ -46,7 +34,6 @@ describe('#search backend-response pipeline (EQ-442)', () => {
 
   afterEach(() => {
     vi.mocked(fetchSearchResults).mockReset()
-    vi.mocked(fetchByReference).mockReset()
     vi.mocked(fetchExport).mockReset()
   })
 
@@ -55,22 +42,44 @@ describe('#search backend-response pipeline (EQ-442)', () => {
   })
 
   const get = (url) => server.inject({ method: 'GET', url, headers: { cookie } })
-  const searchReference = () => get('/search?search=PPP-1A2-B3C')
   const searchText = () => get('/search?search=Green')
 
-  test('a reference match shows as a summary card with an export link to it', async () => {
-    vi.mocked(fetchByReference).mockResolvedValueOnce({
-      reference: 'PPP-1A2-B3C',
-      businessName: 'Live Co'
-    })
+  const searchResponse = (
+    data,
+    { page = 1, totalRecords = data.length } = {}
+  ) => ({
+    data,
+    pagination: {
+      page,
+      pageSize: 10,
+      totalRecords,
+      totalPages: Math.ceil(totalRecords / 10)
+    }
+  })
 
-    const { statusCode, result } = await searchReference()
+  const greenOne = {
+    reference: 'PPP-1A2-B3C',
+    businessName: 'Green One',
+    primaryContact: { contactName: 'Jo Bloggs' },
+    address: { addressPostcode: 'NR1 1AA' },
+    submittedAt: '2026-03-11T09:30:00.000Z'
+  }
+  const greenTwo = { reference: 'PPP-4D5-E6F', businessName: 'Green Two' }
+
+  test('a single match shows as a summary card with an export link to it', async () => {
+    vi.mocked(fetchSearchResults).mockResolvedValueOnce(searchResponse([greenOne]))
+
+    const { statusCode, result } = await get('/search?search=PPP-1A2-B3C')
     const $ = load(result)
     const card = $('.govuk-summary-card')
 
     expect(statusCode).toBe(statusCodes.ok)
+    expect($('h2').text()).toContain('1 result')
+    expect($('.govuk-table')).toHaveLength(0)
     expect(card).toHaveLength(1)
-    expect(card.find('.govuk-summary-card__title').text()).toContain('Live Co')
+    expect(card.find('.govuk-summary-card__title').text()).toContain(
+      'Green One'
+    )
     expect(card.find('.govuk-summary-list').text()).toContain('PPP-1A2-B3C')
     const exportLink = card.find('.govuk-summary-card__actions a')
     expect(exportLink.attr('href')).toBe(
@@ -80,32 +89,107 @@ describe('#search backend-response pipeline (EQ-442)', () => {
     expect($('#search').val()).toBe('PPP-1A2-B3C')
   })
 
-  test('free-text matches show as one card each, with a count', async () => {
-    vi.mocked(fetchSearchResults).mockResolvedValueOnce([
-      { reference: 'PPP-1A2-B3C', businessName: 'Green One' },
-      { reference: 'PPP-4D5-E6F', businessName: 'Green Two' }
-    ])
+  test('several matches show as a table with a count, one row each', async () => {
+    vi.mocked(fetchSearchResults).mockResolvedValueOnce(
+      searchResponse([greenOne, greenTwo])
+    )
 
     const { statusCode, result } = await searchText()
     const $ = load(result)
+    const rows = $('.govuk-table__body .govuk-table__row')
 
     expect(statusCode).toBe(statusCodes.ok)
     expect($('h2').text()).toContain('2 results')
-    expect($('.govuk-summary-card')).toHaveLength(2)
+    expect($('.govuk-summary-card')).toHaveLength(0)
     expect(
-      $('.govuk-summary-card__actions a')
-        .map((_i, a) => $(a).attr('href'))
+      $('.govuk-table__head th')
+        .map((_index, header) => $(header).text().trim())
+        .get()
+    ).toEqual(['Reference', 'Business name', 'Contact', 'Postcode', 'Registered'])
+    expect(rows).toHaveLength(2)
+    expect(
+      rows
+        .first()
+        .find('td, th')
+        .map((_index, cell) => $(cell).text().trim())
         .get()
     ).toEqual([
-      '/search/export?reference=PPP-1A2-B3C',
-      '/search/export?reference=PPP-4D5-E6F'
+      'PPP-1A2-B3C',
+      'Green One',
+      'Jo Bloggs',
+      'NR1 1AA',
+      '11 March 2026'
     ])
   })
 
-  test('a backend 404 on a reference shows "No results found"', async () => {
-    vi.mocked(fetchByReference).mockResolvedValueOnce(null)
+  test('references in the table are plain text, not links', async () => {
+    vi.mocked(fetchSearchResults).mockResolvedValueOnce(
+      searchResponse([greenOne, greenTwo])
+    )
 
-    const { statusCode, result } = await searchReference()
+    const $ = load((await searchText()).result)
+
+    expect($('.govuk-table a')).toHaveLength(0)
+  })
+
+  test('the table escapes stored values', async () => {
+    vi.mocked(fetchSearchResults).mockResolvedValueOnce(
+      searchResponse([
+        { reference: '<b>PPP</b>', businessName: '<script>x</script>' },
+        greenTwo
+      ])
+    )
+
+    const { result } = await searchText()
+
+    expect(result).not.toContain('<script>x</script>')
+    expect(result).not.toContain('<b>PPP</b>')
+  })
+
+  test('results over several pages show the total and page links', async () => {
+    vi.mocked(fetchSearchResults).mockResolvedValueOnce(
+      searchResponse([greenOne, greenTwo], { page: 2, totalRecords: 12 })
+    )
+
+    const { result } = await get('/search?search=Green&page=2')
+    const $ = load(result)
+
+    expect(fetchSearchResults).toHaveBeenCalledWith(
+      expect.objectContaining({ query: 'Green', page: 2 })
+    )
+    expect($('h2').text()).toContain('12 results')
+    expect($('.govuk-table')).toHaveLength(1)
+    expect($('.govuk-pagination__prev a').attr('href')).toBe(
+      '/search?search=Green&page=1'
+    )
+    expect($('.govuk-pagination__item--current').text()).toContain('2')
+  })
+
+  test('a single match on a later page still shows as the table', async () => {
+    vi.mocked(fetchSearchResults).mockResolvedValueOnce(
+      searchResponse([greenOne], { page: 2, totalRecords: 11 })
+    )
+
+    const $ = load((await get('/search?search=Green&page=2')).result)
+
+    expect($('.govuk-table')).toHaveLength(1)
+    expect($('.govuk-summary-card')).toHaveLength(0)
+  })
+
+  test('results on one page show no page links', async () => {
+    vi.mocked(fetchSearchResults).mockResolvedValueOnce(
+      searchResponse([greenOne, greenTwo])
+    )
+
+    const $ = load((await searchText()).result)
+
+    expect($('.govuk-pagination')).toHaveLength(0)
+  })
+
+  test('a search with no matches shows "No results found"', async () => {
+    vi.mocked(fetchSearchResults).mockResolvedValueOnce(searchResponse([]))
+
+    const { statusCode, result } = await searchText()
     const $ = load(result)
 
     expect(statusCode).toBe(statusCodes.ok)
@@ -113,31 +197,7 @@ describe('#search backend-response pipeline (EQ-442)', () => {
     expect($('.govuk-error-summary')).toHaveLength(0)
   })
 
-  test('a free-text search with no matches shows "No results found"', async () => {
-    vi.mocked(fetchSearchResults).mockResolvedValueOnce([])
-
-    const { result } = await searchText()
-
-    expect(result).toContain('No results found')
-  })
-
-  test('a backend 400 on a reference shows a format error on the field', async () => {
-    vi.mocked(fetchByReference).mockRejectedValueOnce(
-      backendError(statusCodes.badRequest)
-    )
-
-    const { statusCode, result } = await searchReference()
-    const $ = load(result)
-
-    expect(statusCode).toBe(statusCodes.ok)
-    expect($('.govuk-error-summary a[href="#search"]').text()).toContain(
-      'Enter a reference in the correct format, like PPP-1A2-B3C'
-    )
-    expect($('#search-error').text()).toContain('correct format')
-    expect(result).not.toContain('No results found')
-  })
-
-  test('a backend 400 on a free-text search shows a service problem', async () => {
+  test('a backend 400 on a search shows a service problem', async () => {
     vi.mocked(fetchSearchResults).mockRejectedValueOnce(
       backendError(statusCodes.badRequest)
     )
@@ -151,11 +211,11 @@ describe('#search backend-response pipeline (EQ-442)', () => {
   })
 
   test('a backend 403 shows a permission error summary', async () => {
-    vi.mocked(fetchByReference).mockRejectedValueOnce(
+    vi.mocked(fetchSearchResults).mockRejectedValueOnce(
       backendError(statusCodes.forbidden)
     )
 
-    const { statusCode, result } = await searchReference()
+    const { statusCode, result } = await searchText()
     const $ = load(result)
 
     expect(statusCode).toBe(statusCodes.ok)
@@ -179,6 +239,7 @@ describe('#search backend-response pipeline (EQ-442)', () => {
     // Never falls through to an empty result presented as live data.
     expect(result).not.toContain('No results found')
     expect($('.govuk-summary-card')).toHaveLength(0)
+    expect($('.govuk-table')).toHaveLength(0)
   })
 
   test('an export failure shows an error summary on the search page', async () => {
