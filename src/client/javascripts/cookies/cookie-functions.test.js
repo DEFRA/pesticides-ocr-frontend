@@ -5,7 +5,8 @@ import {
   isValidConsentCookie,
   setConsentCookie,
   applyConsent,
-  CONSENT_COOKIE_VERSION
+  CONSENT_COOKIE_VERSION,
+  CONSENT_GRANTED_EVENT
 } from './cookie-functions.js'
 
 // Minimal cookie jar so the browser cookie code runs under the node env.
@@ -111,6 +112,54 @@ describe('cookie-functions (EQ-363)', () => {
     expect(Object.prototype.toString.call(lastConsentUpdate())).toBe(
       '[object Arguments]'
     )
+  })
+
+  describe('the consent-granted event for GTM', () => {
+    const grantedEvents = () =>
+      window.dataLayer.filter((e) => e.event === CONSENT_GRANTED_EVENT)
+
+    test('is pushed after the consent update when the user accepts', () => {
+      setConsentCookie({ analytics: true })
+
+      expect(grantedEvents()).toHaveLength(1)
+      const updateIndex = window.dataLayer.indexOf(lastConsentUpdate())
+      const eventIndex = window.dataLayer.indexOf(grantedEvents()[0])
+      expect(eventIndex).toBeGreaterThan(updateIndex)
+    })
+
+    test('is pushed when accepting after an earlier rejection', () => {
+      setConsentCookie({ analytics: false })
+      setConsentCookie({ analytics: true })
+
+      expect(grantedEvents()).toHaveLength(1)
+    })
+
+    test('is not pushed when the user rejects', () => {
+      setConsentCookie({ analytics: false })
+
+      expect(grantedEvents()).toHaveLength(0)
+    })
+
+    test('is not pushed when analytics was already accepted', () => {
+      setConsentCookie({ analytics: true })
+      window.dataLayer.length = 0
+
+      setConsentCookie({ analytics: true })
+
+      expect(grantedEvents()).toHaveLength(0)
+    })
+
+    test('is not pushed when an older-version cookie had already accepted', () => {
+      // The page loads GTM granted from it, even though the banner asks again.
+      document.cookie = `ocr_cookies_analytics=${JSON.stringify({
+        analytics: true,
+        version: CONSENT_COOKIE_VERSION - 1
+      })}`
+
+      setConsentCookie({ analytics: true })
+
+      expect(grantedEvents()).toHaveLength(0)
+    })
   })
 
   test('applyConsent with no cookie defaults to denied', () => {
