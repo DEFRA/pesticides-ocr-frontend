@@ -1,18 +1,6 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
-
-// Complete a mock case-officer sign-in and return the authenticated session cookie.
-async function signInCaseOfficer(server) {
-  const start = await server.inject({ method: 'GET', url: '/auth/entra/start' })
-  const startCookie = start.headers['set-cookie'][0].split(';')[0]
-  const callback = await server.inject({
-    method: 'GET',
-    url: start.headers.location,
-    headers: { cookie: startCookie }
-  })
-  const setCookie = callback.headers['set-cookie']
-  return (setCookie ? setCookie[0] : startCookie).split(';')[0]
-}
+import { signInCaseOfficer } from '#/test-helpers/session-helpers.js'
 
 describe('#dashboardController (protected)', () => {
   let server

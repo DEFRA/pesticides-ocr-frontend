@@ -1,7 +1,8 @@
-// Live-mode data access for the admin/enforcement UI (EQ-442): calls the
-// pesticides-ocr-backend search API (EQ-366) with the signed-in case officer's
-// Entra ACCESS token forwarded as a bearer (per Microsoft guidance: access
-// tokens, not ID tokens, for API authorization).
+// Data access for the case-officer search (EQ-442): calls the
+// pesticides-ocr-backend search and export APIs (EQ-366, EQ-369) with the
+// signed-in case officer's token forwarded as a bearer — the Entra ACCESS token
+// in live mode (per Microsoft guidance: access tokens, not ID tokens, for API
+// authorization), or the mock-identity token in mock mode.
 //
 // The API is exposed on the same app registration shared with this frontend, so
 // we request its custom scope (api://<client-id>/access_as_user, via the plugin's
@@ -13,12 +14,11 @@
 import { config } from '#/config/config.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 
-// Throw a plain Error carrying an intended `.statusCode`; the shared catchAll
-// handler recovers it and renders the matching error page (mirrors how
-// @defra/hapi-oidc-auth surfaces its client errors). An upstream failure
-// (unreachable backend, non-JSON body, or a backend 5xx) is surfaced as 502 so
-// it renders the generic error page and is logged as a server error — we never
-// fall through to an empty list, which would present "no operators" as live truth.
+// Throw a plain Error carrying an intended `.statusCode`, which the search page
+// maps to an error summary (and a 401 to re-authentication). An upstream
+// failure (unreachable backend, non-JSON body, or a backend 5xx) is surfaced as
+// 502 — we never fall through to an empty list, which would present "no
+// results" as live truth.
 function backendError(statusCode, message) {
   const error = new Error(message)
   error.statusCode = statusCode
@@ -38,9 +38,8 @@ async function parseJson(res, context) {
   }
 }
 
-// The configured backend base URL. A missing value on a live tier is a
-// deployment misconfiguration, so fail loud rather than silently returning no
-// data.
+// The configured backend base URL. A missing value is a deployment (or local
+// setup) misconfiguration, so fail loud rather than silently returning no data.
 function backendBaseUrl() {
   const url = config.get('ocrBackend.url')
   if (!url) {
@@ -54,7 +53,7 @@ function backendBaseUrl() {
 
 // GET a backend path with the forwarded token. Returns the raw Response so
 // callers can distinguish 404 (missing resource) from real errors.
-async function backendGet(pathAndQuery, token) {
+async function backendGet(pathAndQuery, token, accept = 'application/json') {
   if (!token) {
     // A signed-in case officer with no forwardable token means a session/token
     // problem, not a routine miss — surface it as unauthorized rather than
@@ -85,7 +84,7 @@ async function backendGet(pathAndQuery, token) {
     return await fetch(url, {
       headers: {
         authorization: `Bearer ${token}`,
-        accept: 'application/json'
+        accept
       }
     })
   } catch (cause) {
@@ -96,10 +95,10 @@ async function backendGet(pathAndQuery, token) {
   }
 }
 
-// List/search registrations (backend GET /search?q=). A blank term matches
-// everything, which is what the unfiltered grid asks for. The backend returns
-// stored registrations, so callers map them for display.
-export async function fetchOperators({ query = '', token = '' } = {}) {
+// Free-text search of registrations (backend GET /search?q=). A blank term
+// matches everything. The backend returns stored registrations, so callers map
+// them for display.
+export async function fetchSearchResults({ query = '', token = '' } = {}) {
   const res = await backendGet(`/search?q=${encodeURIComponent(query)}`, token)
   if (!res.ok) {
     throw backendError(
@@ -120,19 +119,16 @@ export async function fetchOperators({ query = '', token = '' } = {}) {
 }
 
 // Fetch a single registration by reference (backend GET /search?reference=).
-// A 404 is a genuine "not found" and maps to null (not an error). So does a
-// 400: the backend rejects a malformed reference before looking it up, and a
-// malformed reference can't match a record either. `reference` is the only
-// parameter sent, so a 400 here can only mean the reference was rejected.
-export async function fetchOperatorByReference(reference, token = '') {
+// A 404 is a genuine "not found" and maps to null (not an error). Anything else
+// non-2xx throws with the upstream status — including a 400, which is how the
+// backend rejects a malformed reference, so the search page can tell the
+// officer the format is wrong rather than that nothing matched.
+export async function fetchByReference(reference, token = '') {
   const res = await backendGet(
     `/search?reference=${encodeURIComponent(reference)}`,
     token
   )
-  if (
-    res.status === statusCodes.notFound ||
-    res.status === statusCodes.badRequest
-  ) {
+  if (res.status === statusCodes.notFound) {
     return null
   }
   if (!res.ok) {
@@ -142,4 +138,23 @@ export async function fetchOperatorByReference(reference, token = '') {
     )
   }
   return parseJson(res, 'GET /search?reference=')
+}
+
+// Export one registration as CSV (backend GET /export?reference=). Returns the
+// raw bytes rather than text: decoding would strip the UTF-8 BOM the backend
+// adds so Excel reads accented names correctly. A reference that matches
+// nothing is still a 200 with just the header row.
+export async function fetchExport(reference, token = '') {
+  const res = await backendGet(
+    `/export?reference=${encodeURIComponent(reference)}`,
+    token,
+    'text/csv'
+  )
+  if (!res.ok) {
+    throw backendError(
+      res.status,
+      `OCR backend GET /export?reference= returned ${res.status}`
+    )
+  }
+  return Buffer.from(await res.arrayBuffer())
 }
