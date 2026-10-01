@@ -1,14 +1,10 @@
 import { describe, test, expect, vi, afterEach } from 'vitest'
 
-import { searchRegister, getByReference } from './search-data.js'
-import {
-  fetchSearchResults,
-  fetchByReference
-} from './search-client.js'
+import { searchRegister } from './search-data.js'
+import { fetchSearchResults } from './search-client.js'
 
 vi.mock('./search-client.js', () => ({
-  fetchSearchResults: vi.fn(),
-  fetchByReference: vi.fn()
+  fetchSearchResults: vi.fn()
 }))
 
 // The backend returns stored registrations, so this layer maps them onto the
@@ -26,24 +22,45 @@ const storedRegistration = {
   submittedAt: '2026-03-11T09:30:00.000Z'
 }
 
+const pagination = { page: 1, pageSize: 10, totalRecords: 1, totalPages: 1 }
+
 afterEach(() => {
   vi.clearAllMocks()
 })
 
-describe('delegates to the backend client', () => {
-  test('searchRegister forwards the query + token to fetchSearchResults', async () => {
-    vi.mocked(fetchSearchResults).mockResolvedValue([storedRegistration])
+describe('searchRegister', () => {
+  test('forwards the query, page and token to fetchSearchResults', async () => {
+    vi.mocked(fetchSearchResults).mockResolvedValue({ data: [], pagination })
+
+    await searchRegister({ query: 'live', page: 3, token: 'tok' })
+
+    expect(fetchSearchResults).toHaveBeenCalledWith({
+      query: 'live',
+      page: 3,
+      token: 'tok'
+    })
+  })
+
+  test('asks for the first page by default', async () => {
+    vi.mocked(fetchSearchResults).mockResolvedValue({ data: [], pagination })
 
     await searchRegister({ query: 'live', token: 'tok' })
 
-    expect(fetchSearchResults).toHaveBeenCalledWith({ query: 'live', token: 'tok' })
+    expect(fetchSearchResults).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 1 })
+    )
   })
 
-  test('searchRegister maps stored registrations onto the Operator shape', async () => {
-    vi.mocked(fetchSearchResults).mockResolvedValue([storedRegistration])
+  test('maps stored registrations onto the Operator shape, keeping the totals', async () => {
+    vi.mocked(fetchSearchResults).mockResolvedValue({
+      data: [storedRegistration],
+      pagination
+    })
 
-    const [operator] = await searchRegister({ query: 'live', token: 'tok' })
+    const result = await searchRegister({ query: 'live', token: 'tok' })
+    const [operator] = result.operators
 
+    expect(result.pagination).toEqual(pagination)
     expect(operator.businessName).toBe('Live Co')
     // Coded slugs become display labels, and the nested stored names flatten.
     expect(operator.activities).toEqual(['Manufacture, process or import'])
@@ -52,21 +69,5 @@ describe('delegates to the backend client', () => {
     expect(operator.registeredDate).toBe('2026-03-11')
     // Fields the register journey does not persist get their POC defaults.
     expect(operator.status).toBe('Registered')
-  })
-
-  test('getByReference forwards the reference + token to fetchByReference', async () => {
-    vi.mocked(fetchByReference).mockResolvedValue(storedRegistration)
-
-    const result = await getByReference('OCR-9', 'tok')
-
-    expect(result.reference).toBe('OCR-9')
-    expect(result.activities).toEqual(['Manufacture, process or import'])
-    expect(fetchByReference).toHaveBeenCalledWith('OCR-9', 'tok')
-  })
-
-  test('getByReference keeps a not-found null rather than mapping it', async () => {
-    vi.mocked(fetchByReference).mockResolvedValue(null)
-
-    expect(await getByReference('OCR-nope', 'tok')).toBeNull()
   })
 })

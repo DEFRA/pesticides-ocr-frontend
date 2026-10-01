@@ -6,7 +6,7 @@
 // the stored registrations it returns onto the Operator shape via
 // ./registration-mapper.js, so the page only sees that shape.
 
-import { fetchSearchResults, fetchByReference } from './search-client.js'
+import { fetchSearchResults } from './search-client.js'
 import { toOperatorView } from './registration-mapper.js'
 
 /**
@@ -24,26 +24,7 @@ import { toOperatorView } from './registration-mapper.js'
  * @property {string} status             'Registered' | 'Pending' | 'Suspended'
  */
 
-/**
- * Free-text search of the register (business name, contact, town, postcode,
- * reference). A blank query returns every registration. `token` is forwarded
- * to the backend.
- * @param {{ query?: string, token?: string }} [options]
- * @returns {Promise<Operator[]>}
- */
-export async function searchRegister({ query = '', token = '' } = {}) {
-  const registrations = await fetchSearchResults({ query, token })
-  return registrations.map(toOperatorView)
-}
-
-/**
- * Look up a single registration by reference. `token` is forwarded to the
- * backend.
- * @param {string} reference
- * @param {string} [token]
- * @returns {Promise<Operator | null>}
- */
-export async function getByReference(reference, token = '') {
-  const registration = await fetchByReference(reference, token)
-  return registration ? toOperatorView(registration) : null
+export async function searchRegister({ query, page = 1, token = '' }) {
+  const { data, pagination } = await fetchSearchResults({ query, page, token })
+  return { operators: data.map(toOperatorView), pagination }
 }

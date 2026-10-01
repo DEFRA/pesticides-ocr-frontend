@@ -10,15 +10,14 @@ vi.mock('@defra/hapi-oidc-auth', () => ({
   PAGE_PATHS: { ENTRA_SIGN_IN: '/auth/entra/sign-in' }
 }))
 vi.mock('./search-data.js', () => ({
-  searchRegister: vi.fn(),
-  getByReference: vi.fn()
+  searchRegister: vi.fn()
 }))
 vi.mock('./search-client.js', () => ({
   fetchExport: vi.fn()
 }))
 
 import { getAuthSession } from '@defra/hapi-oidc-auth'
-import { searchRegister, getByReference } from './search-data.js'
+import { searchRegister } from './search-data.js'
 import { fetchExport } from './search-client.js'
 import { searchController, exportController } from './controller.js'
 
@@ -36,7 +35,18 @@ const toolkit = () => {
     response: vi.fn().mockReturnValue(response)
   }
 }
-const searchFor = (search) => ({ query: { search }, logger })
+const searchFor = (search, page = 1) => ({ query: { search, page }, logger })
+
+const results = (operators, totals = {}) => ({
+  operators,
+  pagination: {
+    page: 1,
+    pageSize: 10,
+    totalRecords: operators.length,
+    totalPages: 1,
+    ...totals
+  }
+})
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -47,9 +57,8 @@ describe('searchController', () => {
   test('renders just the form, without calling the API, when no term is given', async () => {
     const h = toolkit()
 
-    await searchController.handler({ query: {}, logger }, h)
+    await searchController.handler({ query: { page: 1 }, logger }, h)
 
-    expect(getByReference).not.toHaveBeenCalled()
     expect(searchRegister).not.toHaveBeenCalled()
     expect(h.view).toHaveBeenCalledWith(
       'search/index',
@@ -57,50 +66,62 @@ describe('searchController', () => {
     )
   })
 
-  test('looks up a reference (upper-cased) with the session token', async () => {
-    const operator = { reference: 'PPP-1A2-B3C', businessName: 'Acme' }
-    vi.mocked(getByReference).mockResolvedValue(operator)
+  test('searches for the term and page with the session token', async () => {
+    const operators = [{ reference: 'PPP-1A2-B3C' }]
+    vi.mocked(searchRegister).mockResolvedValue(results(operators))
     const h = toolkit()
-    const request = searchFor(' ppp-1a2-b3c ')
+    const request = searchFor('Norfolk', 2)
 
     await searchController.handler(request, h)
 
     expect(getAuthSession).toHaveBeenCalledWith(request)
-    expect(getByReference).toHaveBeenCalledWith('PPP-1A2-B3C', TOKEN)
-    expect(searchRegister).not.toHaveBeenCalled()
+    expect(searchRegister).toHaveBeenCalledWith({
+      query: 'Norfolk',
+      page: 2,
+      token: TOKEN
+    })
     expect(h.view).toHaveBeenCalledWith(
       'search/index',
-      expect.objectContaining({ search: ' ppp-1a2-b3c ', operators: [operator] })
+      expect.objectContaining({ search: 'Norfolk', operators, totalRecords: 1 })
     )
   })
 
-  test('a reference that matches nothing gives no results', async () => {
-    vi.mocked(getByReference).mockResolvedValue(null)
+  test('a term in the reference format is searched like any other', async () => {
+    vi.mocked(searchRegister).mockResolvedValue(results([]))
     const h = toolkit()
 
-    await searchController.handler(searchFor('PPP-000-000'), h)
+    await searchController.handler(searchFor('ppp-1a2-b3c'), h)
 
-    expect(h.view).toHaveBeenCalledWith(
-      'search/index',
-      expect.objectContaining({ operators: [] })
+    expect(searchRegister).toHaveBeenCalledWith(
+      expect.objectContaining({ query: 'ppp-1a2-b3c' })
     )
   })
 
-  test('runs a free-text search with the session token for anything else', async () => {
-    const operators = [{ reference: 'PPP-1A2-B3C' }, { reference: 'PPP-4D5-E6F' }]
-    vi.mocked(searchRegister).mockResolvedValue(operators)
+  test('passes page links when the results span pages', async () => {
+    vi.mocked(searchRegister).mockResolvedValue(
+      results([{ reference: 'PPP-1A2-B3C' }], {
+        totalRecords: 11,
+        totalPages: 2
+      })
+    )
     const h = toolkit()
 
     await searchController.handler(searchFor('Norfolk'), h)
 
-    expect(searchRegister).toHaveBeenCalledWith({
-      query: 'Norfolk',
-      token: TOKEN
-    })
-    expect(getByReference).not.toHaveBeenCalled()
+    const [, context] = h.view.mock.calls[0]
+    expect(context.totalRecords).toBe(11)
+    expect(context.pagination.next.href).toBe('/search?search=Norfolk&page=2')
+  })
+
+  test('passes no page links when the results fit on one page', async () => {
+    vi.mocked(searchRegister).mockResolvedValue(results([]))
+    const h = toolkit()
+
+    await searchController.handler(searchFor('Norfolk'), h)
+
     expect(h.view).toHaveBeenCalledWith(
       'search/index',
-      expect.objectContaining({ operators })
+      expect.objectContaining({ operators: [], pagination: null })
     )
   })
 
@@ -113,7 +134,7 @@ describe('searchController', () => {
 
     const result = await searchController.handler(searchFor('PPP-1A2-B3C'), h)
 
-    expect(getByReference).not.toHaveBeenCalled()
+    expect(searchRegister).not.toHaveBeenCalled()
     expect(h.redirect).toHaveBeenCalledWith(
       expect.stringContaining('/auth/entra/sign-in')
     )
@@ -164,7 +185,7 @@ describe('backend error handling', () => {
     Object.assign(new Error(`backend ${statusCode}`), { statusCode })
 
   test('redirects to re-authenticate on a backend 401 (missing/expired token)', async () => {
-    vi.mocked(getByReference).mockRejectedValue(backendError(401))
+    vi.mocked(searchRegister).mockRejectedValue(backendError(401))
     const h = toolkit()
 
     const result = await searchController.handler(searchFor('PPP-1A2-B3C'), h)
@@ -188,7 +209,7 @@ describe('backend error handling', () => {
   })
 
   test('logs a backend 4xx as a warning', async () => {
-    vi.mocked(getByReference).mockRejectedValue(backendError(400))
+    vi.mocked(searchRegister).mockRejectedValue(backendError(400))
     const h = toolkit()
 
     await searchController.handler(searchFor('PPP-1A2-B3C'), h)
@@ -198,7 +219,7 @@ describe('backend error handling', () => {
   })
 
   test('rethrows an error without a status (not from the API) for the shared error page', async () => {
-    vi.mocked(getByReference).mockRejectedValue(new TypeError('mapper bug'))
+    vi.mocked(searchRegister).mockRejectedValue(new TypeError('mapper bug'))
     const h = toolkit()
 
     await expect(
