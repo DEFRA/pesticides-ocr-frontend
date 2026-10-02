@@ -19,12 +19,16 @@ import { additionalBusinessAddress } from './pro-users/additional-business-addre
 import { additionalBusinessContact } from './pro-users/additional-business-contact/additional-business-contact.js'
 import { additionalBusinessActivity } from './pro-users/additional-business-activity/additional-business-activity.js'
 import { checkAdditionalAddress } from './pro-users/check-additional-address/check-additional-address.js'
+import { emailAddress } from './email-verification/email-address/email-address.js'
+import { verifyCode } from './email-verification/verify-code/verify-code.js'
 
 export const routes = [
   home,
   cookies,
   dashboard,
   adminOperators,
+  emailAddress,
+  verifyCode,
   businessActivities,
   mainCustomer,
   businessName,

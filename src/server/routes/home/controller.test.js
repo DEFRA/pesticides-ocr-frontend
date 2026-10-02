@@ -22,4 +22,13 @@ describe('#homeController', () => {
     expect(result).toEqual(expect.stringContaining('Home |'))
     expect(statusCode).toBe(statusCodes.ok)
   })
+
+  test('Should start the journey with email verification', async () => {
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/'
+    })
+
+    expect(result).toEqual(expect.stringContaining('href="/email-address"'))
+  })
 })

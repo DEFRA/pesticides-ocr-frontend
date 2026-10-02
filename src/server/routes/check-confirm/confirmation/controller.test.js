@@ -3,6 +3,7 @@ import { vi } from 'vitest'
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie } from '#/test-helpers/session-helpers.js'
+import { verifyEmailInSession } from '#/test-helpers/email-verification-helpers.js'
 
 describe('#confirmationController', () => {
   let server
@@ -35,6 +36,7 @@ describe('#confirmationController', () => {
   // way, with the backend stubbed.
   const sessionWithReference = async (reference) => {
     const cookie = await getSessionCookie(server, '/business-activities')
+    await verifyEmailInSession(server, cookie)
 
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       status: statusCodes.created,

@@ -9,7 +9,7 @@ export const get = {
     request.yar.set('formSession', request.yar.get('formSession') ?? {})
 
     // Record the journey start once per session (consent-free, EQ-472) — this is
-    // the first page after the "Start now" button.
+    // the first question page, reached after email verification (FE-445).
     recordOncePerSession(request, {
       sessionKey: 'journeyStarted',
       record: recordJourneyStart,

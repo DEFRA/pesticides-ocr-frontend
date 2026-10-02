@@ -1,0 +1,91 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% set backLink = "/email-address" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    {% if codeResent %}
+      {{ govukNotificationBanner({
+        type: "success",
+        text: "We have sent a new code to " ~ email
+      }) }}
+    {% endif %}
+
+    <h1 class="govuk-heading-l">Check your email</h1>
+
+    <p class="govuk-body">We have sent a code to <strong>{{ email }}</strong>.</p>
+
+    {% if minutesUntilExpiry > 0 %}
+      <p class="govuk-body">The code expires in {{ minutesUntilExpiry }} minute{{ "s" if minutesUntilExpiry != 1 }}.</p>
+    {% else %}
+      <p class="govuk-body">The code has expired. Request a new code.</p>
+    {% endif %}
+
+    <form method="post" action="/email-address/code" novalidate>
+
+      {{ govukInput({
+        label: {
+          text: "Enter the code",
+          classes: "govuk-label--m"
+        },
+        hint: {
+          text: "The code is " ~ codeLength ~ " digits"
+        },
+        id: "code",
+        name: "code",
+        inputmode: "numeric",
+        autocomplete: "one-time-code",
+        spellcheck: false,
+        classes: "govuk-input--width-10",
+        value: values.code,
+        errorMessage: errors["code"] if errors["code"]
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        type: "submit"
+      }) }}
+
+    </form>
+
+    <p class="govuk-body">
+      <a class="govuk-link" href="/email-address">Change email address</a>
+    </p>
+
+    {% set resendHtml %}
+      <p class="govuk-body">The email may take a few minutes to arrive. Check your spam or junk folder.</p>
+      <p class="govuk-body">If it still has not arrived, we can send you a new code.</p>
+      {% if errors["resend"] %}
+        <p class="govuk-error-message">
+          <span class="govuk-visually-hidden">Error:</span> {{ errors["resend"].text }}
+        </p>
+      {% endif %}
+      <form method="post" action="/email-address/resend" novalidate>
+        {{ govukButton({
+          text: "Send a new code",
+          type: "submit",
+          classes: "govuk-button--secondary",
+          attributes: { id: "resend" }
+        }) }}
+      </form>
+    {% endset %}
+
+    {{ govukDetails({
+      summaryText: "I have not received the email",
+      html: resendHtml,
+      open: true if errors["resend"] else false
+    }) }}
+
+  </div>
+</div>
+{% endblock %}

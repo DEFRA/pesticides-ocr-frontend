@@ -3,6 +3,7 @@ import { vi } from 'vitest'
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie } from '#/test-helpers/session-helpers.js'
+import { verifyEmailInSession } from '#/test-helpers/email-verification-helpers.js'
 import { config } from '#/config/config.js'
 
 describe('#checkAnswersController', () => {
@@ -335,22 +336,41 @@ describe('#checkAnswersController', () => {
         payload: {}
       })
 
+    // Submitting needs a verified email address (FE-445). Verify before
+    // stubbing the backend, as the helper restores fetch when it finishes.
+    const verifiedSession = async () => {
+      const cookie = await getSessionCookie(server, '/business-activities')
+      await verifyEmailInSession(server, cookie)
+      return cookie
+    }
+
     afterEach(() => {
       vi.restoreAllMocks()
     })
 
     test('Should redirect to confirmation page', async () => {
+      const cookie = await verifiedSession()
       stubBackend(created())
 
-      const { statusCode, headers } = await submit()
+      const { statusCode, headers } = await submit(cookie)
 
       expect(statusCode).toBe(statusCodes.redirect)
       expect(headers.location).toBe('/confirmation')
     })
 
-    test('Should send the answers held in session to the backend', async () => {
+    test('Should send the user to verify their email before submitting', async () => {
       const fetchSpy = stubBackend(created())
-      const cookie = await getSessionCookie(server, '/business-activities')
+
+      const { statusCode, headers } = await submit()
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/email-address')
+      expect(fetchSpy).not.toHaveBeenCalled()
+    })
+
+    test('Should send the answers held in session to the backend', async () => {
+      const cookie = await verifiedSession()
+      const fetchSpy = stubBackend(created())
 
       await server.inject({
         method: 'POST',
@@ -374,8 +394,8 @@ describe('#checkAnswersController', () => {
     })
 
     test('Should keep the reference the backend issued for the confirmation page', async () => {
+      const cookie = await verifiedSession()
       stubBackend(created('PPP-987-65Z'))
-      const cookie = await getSessionCookie(server, '/business-activities')
 
       await submit(cookie)
 
@@ -389,19 +409,20 @@ describe('#checkAnswersController', () => {
     })
 
     test('Should return a bad request when the backend rejects the answers', async () => {
+      const cookie = await verifiedSession()
       stubBackend({
         status: statusCodes.badRequest,
         statusText: 'Bad Request'
       })
 
-      const { statusCode } = await submit()
+      const { statusCode } = await submit(cookie)
 
       expect(statusCode).toBe(statusCodes.badRequest)
     })
 
     test('Should not record a reference when the backend did not create the registration', async () => {
+      const cookie = await verifiedSession()
       stubBackend({ status: statusCodes.internalServerError })
-      const cookie = await getSessionCookie(server, '/business-activities')
 
       const { statusCode } = await submit(cookie)
 
