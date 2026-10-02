@@ -1,5 +1,6 @@
 import { requireAuthorised } from '@defra/hapi-oidc-auth'
 
+import { caseOfficerSecurity } from '#/server/common/helpers/case-officer-pages.js'
 import { searchController, exportController } from './controller.js'
 import { app, cache, validate, validateExport } from './options.js'
 
@@ -18,6 +19,7 @@ export const search = {
           options: {
             app,
             cache,
+            security: caseOfficerSecurity,
             validate,
             pre: [{ method: requireAuthorised }]
           }
@@ -29,6 +31,7 @@ export const search = {
           options: {
             app,
             cache,
+            security: caseOfficerSecurity,
             validate: validateExport,
             pre: [{ method: requireAuthorised }]
           }

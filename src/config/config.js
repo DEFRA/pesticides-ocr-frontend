@@ -276,7 +276,7 @@ export const config = convict({
       env: 'ENTRA_PUBLIC_BASE_URL'
     },
     redirectPath: {
-      doc: 'OIDC callback path registered with Entra',
+      doc: 'OIDC callback path registered with Entra. Keep it under /auth: its URL carries the sign-in code, and pages under /auth never load analytics.',
       format: String,
       default: '/auth/entra/callback',
       env: 'ENTRA_REDIRECT_PATH'

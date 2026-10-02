@@ -22,12 +22,12 @@
 {% endblock %}
 
 {% block bodyStart %}
-  {# Google Analytics config for the client loader (EQ-388). Rendered in
-     production only (analyticsEnabled), so non-prod tiers never load GTM. The
-     loader (client/javascripts/analytics/load-analytics.js, run from
-     application.js) reads the container id from here and applies Google Consent
-     Mode v2 — analytics default 'denied' until the cookie banner (EQ-363) grants
-     it. Container id stays here (hardcoded), not in code. #}
+  {# Google Analytics config for the client loader (EQ-388), rendered only where
+     analyticsEnabled (see nunjucks/context/analytics-enabled.js: never on
+     case-officer pages). The loader (client/javascripts/analytics/load-analytics.js,
+     run from application.js) reads the container id from here and applies Google
+     Consent Mode v2 — analytics default 'denied' until the cookie banner (EQ-363)
+     grants it. #}
   {% if analyticsEnabled %}
   <div id="js-analytics-config" data-gtm-id="{{ analyticsGtmId }}" hidden></div>
   {# Cookie consent banner (EQ-363) — only where analytics can run. #}
