@@ -37,6 +37,13 @@ describe('#analyticsEnabledFor', () => {
       expect(analyticsEnabledFor(path)).toBe(false)
     })
 
+    test.each(['/SEARCH', '/Search/Export', '//search', '/DASHBOARD'])(
+      'is off for the case-officer variant %s',
+      (path) => {
+        expect(analyticsEnabledFor(path)).toBe(false)
+      }
+    )
+
     test('only matches whole path segments', () => {
       expect(analyticsEnabledFor('/searching')).toBe(true)
     })

@@ -72,6 +72,25 @@ describe('#pageLayout analytics', () => {
     }
   )
 
+  // These render the 404 page with the search term still in the URL: routes are
+  // case-sensitive, and a mistyped or unknown path matches no page.
+  test.each([
+    '/SEARCH?search=Smith',
+    '//search?search=Smith',
+    '/nope?search=Smith',
+    '/public/x?search=Smith'
+  ])(
+    'the 404 page for %s loads neither and sends only the origin as the referrer',
+    async (url) => {
+      const { statusCode, result, headers } = await get(url, { cookie })
+
+      expect(statusCode).toBe(statusCodes.notFound)
+      expect(result).not.toContain('js-analytics-config')
+      expect(result).not.toContain('govuk-cookie-banner')
+      expect(headers['referrer-policy']).toBe('strict-origin')
+    }
+  )
+
   test('leaves the referrer policy of public pages unchanged', async () => {
     const { headers } = await get('/')
 

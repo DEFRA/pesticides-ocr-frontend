@@ -50,9 +50,11 @@ describe('#catchAll', () => {
   })
   const mockToolkitView = vi.fn()
   const mockToolkitCode = vi.fn()
+  const mockToolkitHeader = vi.fn()
   const mockToolkit = {
     view: mockToolkitView.mockReturnThis(),
-    code: mockToolkitCode.mockReturnThis()
+    code: mockToolkitCode.mockReturnThis(),
+    header: mockToolkitHeader.mockReturnThis()
   }
 
   // A request whose Boom response carries a plugin-thrown 4xx `.statusCode`
@@ -76,6 +78,7 @@ describe('#catchAll', () => {
 
     expect(mockErrorLogger).not.toHaveBeenCalledWith(mockStack)
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      analyticsEnabled: false,
       pageTitle: 'Page not found',
       heading: statusCodes.notFound,
       message: 'Page not found'
@@ -83,11 +86,21 @@ describe('#catchAll', () => {
     expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.notFound)
   })
 
+  test('sends only the origin as the referrer from an error page', () => {
+    catchAll(mockRequest(statusCodes.notFound), mockToolkit)
+
+    expect(mockToolkitHeader).toHaveBeenCalledWith(
+      'Referrer-Policy',
+      'strict-origin'
+    )
+  })
+
   test('Should provide expected "Forbidden" page', () => {
     catchAll(mockRequest(statusCodes.forbidden), mockToolkit)
 
     expect(mockErrorLogger).not.toHaveBeenCalledWith(mockStack)
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      analyticsEnabled: false,
       pageTitle: 'Forbidden',
       heading: statusCodes.forbidden,
       message: 'Forbidden'
@@ -100,6 +113,7 @@ describe('#catchAll', () => {
 
     expect(mockErrorLogger).not.toHaveBeenCalledWith(mockStack)
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      analyticsEnabled: false,
       pageTitle: 'Unauthorized',
       heading: statusCodes.unauthorized,
       message: 'Unauthorized'
@@ -112,6 +126,7 @@ describe('#catchAll', () => {
 
     expect(mockErrorLogger).not.toHaveBeenCalledWith(mockStack)
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      analyticsEnabled: false,
       pageTitle: 'Bad Request',
       heading: statusCodes.badRequest,
       message: 'Bad Request'
@@ -124,6 +139,7 @@ describe('#catchAll', () => {
 
     expect(mockErrorLogger).not.toHaveBeenCalledWith(mockStack)
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      analyticsEnabled: false,
       pageTitle: 'Something went wrong',
       heading: statusCodes.imATeapot,
       message: 'Something went wrong'
@@ -137,6 +153,7 @@ describe('#catchAll', () => {
     expect(mockErrorLogger).toHaveBeenCalledWith(mockStack)
     expect(mockWarnLogger).not.toHaveBeenCalled()
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      analyticsEnabled: false,
       pageTitle: 'Something went wrong',
       heading: statusCodes.internalServerError,
       message: 'Something went wrong'
@@ -180,6 +197,7 @@ describe('#catchAll', () => {
     catchAll(recoveredClientErrorRequest(), mockToolkit)
 
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      analyticsEnabled: false,
       pageTitle: 'Unauthorized',
       heading: statusCodes.unauthorized,
       message: 'Unauthorized'
@@ -202,6 +220,7 @@ describe('#catchAll', () => {
     expect(mockErrorLogger).not.toHaveBeenCalled()
     // ...and never rendered into the client-facing page.
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      analyticsEnabled: false,
       pageTitle: 'Unauthorized',
       heading: statusCodes.unauthorized,
       message: 'Unauthorized'
@@ -227,6 +246,7 @@ describe('#catchAll', () => {
     catchAll(request, mockToolkit)
 
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      analyticsEnabled: false,
       pageTitle: 'Something went wrong',
       heading: statusCodes.badGateway,
       message: 'Something went wrong'

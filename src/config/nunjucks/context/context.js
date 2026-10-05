@@ -32,8 +32,9 @@ export function context(request) {
     serviceUrl: '/',
     // Google Tag Manager + cookie banner (EQ-388/EQ-363) render only when
     // analytics is enabled — production by default, or ANALYTICS_ENABLED=true to
-    // exercise it locally — and never on case-officer pages. The container id is
-    // config-driven (per environment).
+    // exercise it locally — and never on case-officer pages or error pages (the
+    // error view turns it off). The container id is config-driven (per
+    // environment).
     analyticsEnabled: analyticsEnabledFor(request?.path),
     analyticsGtmId: config.get('analytics.gtmId'),
     breadcrumbs: [],
