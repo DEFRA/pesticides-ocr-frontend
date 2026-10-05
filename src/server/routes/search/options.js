@@ -35,19 +35,21 @@ function guardedFailAction(request, h, error) {
   return guard === h.continue ? renderErrors(request, h, error) : guard
 }
 
-const wildcard = '*'
-const maxWildcards = 5
+// Matches the backend's wildcard rule: a run of * counts as one.
+const WILDCARD = '*'
+const MAX_WILDCARDS = 5
 
-const maxPage = 10000
+const MAX_PAGE = 10000
 
 function validateWildcards(term, helpers) {
-  if (term.replaceAll(wildcard, '') === '') {
+  const collapsedTerm = term.replaceAll(/\*+/g, WILDCARD)
+  if (collapsedTerm === WILDCARD) {
     return helpers.error('search.wildcardOnly')
   }
-  if (term.split(wildcard).length - 1 > maxWildcards) {
+  if (collapsedTerm.split(WILDCARD).length - 1 > MAX_WILDCARDS) {
     return helpers.error('search.tooManyWildcards')
   }
-  return term
+  return collapsedTerm
 }
 
 export const validate = {
@@ -61,10 +63,10 @@ export const validate = {
         'string.empty':
           'Enter a reference, business name, contact name, email, town or postcode',
         'string.max': `Search must be ${MAX_SEARCH_LENGTH} characters or fewer`,
-        'search.wildcardOnly': `Search must include more than just ${wildcard}`,
-        'search.tooManyWildcards': `Search must use ${wildcard} no more than ${maxWildcards} times`
+        'search.wildcardOnly': `Search must include more than just ${WILDCARD}`,
+        'search.tooManyWildcards': `Search must use ${WILDCARD} no more than ${MAX_WILDCARDS} times`
       }),
-    page: Joi.number().integer().min(1).max(maxPage).default(1).failover(1)
+    page: Joi.number().integer().min(1).max(MAX_PAGE).default(1).failover(1)
   }),
   options: { stripUnknown: true },
   failAction: guardedFailAction

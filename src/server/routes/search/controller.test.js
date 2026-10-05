@@ -162,6 +162,23 @@ describe('#search (EQ-227, EQ-402)', () => {
     }
   )
 
+  test.each([
+    ['exactly 5 wildcards', 'a*b*c*d*e*f', 'a*b*c*d*e*f'],
+    ['a run of wildcards, as one', 'a***b', 'a*b'],
+    ['runs counting once towards the limit', 'a**b**c**d**e**f', 'a*b*c*d*e*f']
+  ])('accepts %s', async (_case, search, sent) => {
+    fetch.mockResolvedValue(jsonResponse(searchBody()))
+
+    const { statusCode } = await get(
+      `/search?search=${encodeURIComponent(search)}`
+    )
+
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(requestedUrl()).toBe(
+      `${BACKEND_URL}/search?q=${encodeURIComponent(sent)}&page=1`
+    )
+  })
+
   test('the example reference in the hint comes from config', async () => {
     config.set('referencePrefix', 'OCR')
     try {

@@ -24,6 +24,11 @@ import { toOperatorView } from './registration-mapper.js'
  * @property {string} status             'Registered' | 'Pending' | 'Suspended'
  */
 
+/**
+ * Search the register a page at a time. `token` is forwarded to the backend.
+ * @param {{ query: string, page?: number, token?: string }} options
+ * @returns {Promise<{ operators: Operator[], pagination: object }>}
+ */
 export async function searchRegister({ query, page = 1, token = '' }) {
   const { data, pagination } = await fetchSearchResults({ query, page, token })
   return { operators: data.map(toOperatorView), pagination }

@@ -79,21 +79,11 @@
         ]
       }) }}
     {% else %}
-    {% set rows = [] %}
-    {% for operator in operators %}
-    {% set rows = (rows.push([
-      { text: operator.reference },
-      { text: operator.businessName },
-      { text: operator.contact.name },
-      { text: operator.address.postcode },
-      { text: operator.registeredDate | formatDate("d MMMM yyyy") if operator.registeredDate }
-    ]), rows) %}
-    {% endfor %}
-
     {{ govukTable({
       caption: "Search results",
       captionClasses: "govuk-visually-hidden",
       classes: "govuk-table--small-text-until-tablet",
+      firstCellIsHeader: true,
       head: [
         { text: "Reference" },
         { text: "Business name" },
@@ -101,7 +91,7 @@
         { text: "Postcode" },
         { text: "Registered" }
       ],
-      rows: rows
+      rows: resultRows
     }) }}
     {% endif %}
     {% endif %}

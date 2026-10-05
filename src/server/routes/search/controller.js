@@ -5,7 +5,8 @@ import { buildMockAccessToken } from '#/server/common/helpers/mock-access-token.
 import { app, SEARCH_FIELD } from './options.js'
 import { exampleReference, toReference } from './reference.js'
 import { searchRegister } from './search-data.js'
-import { buildPagination } from './pagination.js'
+import { buildPagination, pageHref } from './pagination.js'
+import { buildResultRows } from './results-table.js'
 import { fetchExport } from './search-client.js'
 
 const VIEW = 'search/index'
@@ -117,10 +118,20 @@ export const searchController = {
         token
       })
 
+      const { totalPages, totalRecords } = pagination
+
+      if (totalPages > 0 && page > totalPages) {
+        return h.redirect(pageHref(search, totalPages))
+      }
+
       return h.view(VIEW, {
         ...pageContext(search),
+        ...(totalPages > 1 && {
+          pageTitle: `${app.pageTitle} (page ${page} of ${totalPages})`
+        }),
         operators,
-        totalRecords: pagination.totalRecords,
+        resultRows: buildResultRows(operators),
+        totalRecords,
         pagination: buildPagination(search, pagination)
       })
     } catch (err) {

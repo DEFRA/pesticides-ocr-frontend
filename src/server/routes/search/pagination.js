@@ -1,6 +1,6 @@
 import { SEARCH_FIELD } from './options.js'
 
-const pageHref = (search, page) =>
+export const pageHref = (search, page) =>
   `/search?${new URLSearchParams({ [SEARCH_FIELD]: search, page })}`
 
 export function buildPagination(search, { page, totalPages }) {
@@ -15,14 +15,21 @@ export function buildPagination(search, { page, totalPages }) {
     .filter((number) => number >= 1 && number <= totalPages)
     .sort((first, second) => first - second)
 
+  const pageItem = (number) => ({
+    number,
+    href: pageHref(search, number),
+    current: number === page
+  })
+
   const items = pageNumbers.flatMap((number, index) => {
-    const item = {
-      number,
-      href: pageHref(search, number),
-      current: number === page
+    const gap = index > 0 ? number - pageNumbers[index - 1] : 1
+    if (gap === 2) {
+      return [pageItem(number - 1), pageItem(number)]
     }
-    const skipsPages = index > 0 && number - pageNumbers[index - 1] > 1
-    return skipsPages ? [{ ellipsis: true }, item] : [item]
+    if (gap > 2) {
+      return [{ ellipsis: true }, pageItem(number)]
+    }
+    return [pageItem(number)]
   })
 
   return {

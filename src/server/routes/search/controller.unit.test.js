@@ -35,6 +35,12 @@ const toolkit = () => {
     response: vi.fn().mockReturnValue(response)
   }
 }
+const operator = {
+  reference: 'PPP-1A2-B3C',
+  contact: { name: 'Jo Bloggs' },
+  address: { postcode: 'NR1 1AA' }
+}
+
 const searchFor = (search, page = 1) => ({ query: { search, page }, logger })
 
 const results = (operators, totals = {}) => ({
@@ -67,8 +73,10 @@ describe('searchController', () => {
   })
 
   test('searches for the term and page with the session token', async () => {
-    const operators = [{ reference: 'PPP-1A2-B3C' }]
-    vi.mocked(searchRegister).mockResolvedValue(results(operators))
+    const operators = [operator]
+    vi.mocked(searchRegister).mockResolvedValue(
+      results(operators, { page: 2, totalPages: 2 })
+    )
     const h = toolkit()
     const request = searchFor('Norfolk', 2)
 
@@ -99,7 +107,7 @@ describe('searchController', () => {
 
   test('passes page links when the results span pages', async () => {
     vi.mocked(searchRegister).mockResolvedValue(
-      results([{ reference: 'PPP-1A2-B3C' }], {
+      results([operator], {
         totalRecords: 11,
         totalPages: 2
       })
@@ -111,6 +119,39 @@ describe('searchController', () => {
     const [, context] = h.view.mock.calls[0]
     expect(context.totalRecords).toBe(11)
     expect(context.pagination.next.href).toBe('/search?search=Norfolk&page=2')
+  })
+
+  test('redirects a page past the last to the last page', async () => {
+    vi.mocked(searchRegister).mockResolvedValue(
+      results([], { page: 9, totalRecords: 21, totalPages: 3 })
+    )
+    const h = toolkit()
+
+    const result = await searchController.handler(searchFor('Norfolk', 9), h)
+
+    expect(h.redirect).toHaveBeenCalledWith('/search?search=Norfolk&page=3')
+    expect(h.view).not.toHaveBeenCalled()
+    expect(result).toBe('redirected')
+  })
+
+  test('puts the page number in the title when the results span pages', async () => {
+    vi.mocked(searchRegister).mockResolvedValue(
+      results([operator], {
+        page: 2,
+        totalRecords: 21,
+        totalPages: 3
+      })
+    )
+    const h = toolkit()
+
+    await searchController.handler(searchFor('Norfolk', 2), h)
+
+    expect(h.view).toHaveBeenCalledWith(
+      'search/index',
+      expect.objectContaining({
+        pageTitle: 'Search the register (page 2 of 3)'
+      })
+    )
   })
 
   test('passes no page links when the results fit on one page', async () => {

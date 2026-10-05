@@ -93,7 +93,7 @@ async function backendGet(pathAndQuery, token, accept = 'application/json') {
   }
 }
 
-export async function fetchSearchResults({ query, page = 1, token = '' } = {}) {
+export async function fetchSearchResults({ query, page = 1, token = '' }) {
   const res = await backendGet(
     `/search?q=${encodeURIComponent(query)}&page=${page}`,
     token

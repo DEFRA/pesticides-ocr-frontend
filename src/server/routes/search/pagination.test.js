@@ -54,6 +54,15 @@ describe('buildPagination', () => {
     ])
   })
 
+  test('shows the page instead of a gap that hides just one page', () => {
+    expect(numbers(buildPagination('a', { page: 4, totalPages: 12 }))).toEqual(
+      [1, 2, 3, 4, 5, '…', 12]
+    )
+    expect(numbers(buildPagination('a', { page: 9, totalPages: 12 }))).toEqual(
+      [1, '…', 8, 9, 10, 11, 12]
+    )
+  })
+
   test('marks only the current page', () => {
     const { items } = buildPagination('a', { page: 2, totalPages: 3 })
 

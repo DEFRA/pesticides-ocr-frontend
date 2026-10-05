@@ -122,6 +122,30 @@ describe('#search backend-response pipeline (EQ-442)', () => {
     ])
   })
 
+  test('the reference heads each table row', async () => {
+    vi.mocked(fetchSearchResults).mockResolvedValueOnce(
+      searchResponse([greenOne, greenTwo])
+    )
+
+    const $ = load((await searchText()).result)
+
+    expect(
+      $('.govuk-table__body th')
+        .map((_index, cell) => $(cell).text().trim())
+        .get()
+    ).toEqual(['PPP-1A2-B3C', 'PPP-4D5-E6F'])
+  })
+
+  test('the page number is in the title when results span pages', async () => {
+    vi.mocked(fetchSearchResults).mockResolvedValueOnce(
+      searchResponse([greenOne, greenTwo], { page: 2, totalRecords: 12 })
+    )
+
+    const $ = load((await get('/search?search=Green&page=2')).result)
+
+    expect($('title').text()).toContain('Search the register (page 2 of 2)')
+  })
+
   test('references in the table are plain text, not links', async () => {
     vi.mocked(fetchSearchResults).mockResolvedValueOnce(
       searchResponse([greenOne, greenTwo])
