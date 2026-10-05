@@ -16,9 +16,6 @@ vi.mock(import('#/config/config.js'), async (importOriginal) => {
   }
 })
 
-// With analytics on, GTM and the cookie banner load on public pages but never
-// on case-officer pages, whose URLs carry search terms, and those pages never
-// pass their full address on as a referrer.
 describe('#pageLayout analytics', () => {
   let server
   let cookie
@@ -44,8 +41,6 @@ describe('#pageLayout analytics', () => {
     expect(result).toContain('govuk-cookie-banner')
   })
 
-  // A searched page renders even with no backend running (as a service error),
-  // which is enough to check its layout.
   test.each([
     ['/dashboard', 'OCR Register dashboard'],
     ['/search', 'Search the register'],
@@ -72,8 +67,6 @@ describe('#pageLayout analytics', () => {
     }
   )
 
-  // These render the 404 page with the search term still in the URL: routes are
-  // case-sensitive, and a mistyped or unknown path matches no page.
   test.each([
     '/SEARCH?search=Smith',
     '//search?search=Smith',
@@ -91,9 +84,9 @@ describe('#pageLayout analytics', () => {
     }
   )
 
-  test('leaves the referrer policy of public pages unchanged', async () => {
+  test('sends only the origin as the referrer from public pages too', async () => {
     const { headers } = await get('/')
 
-    expect(headers['referrer-policy']).toBeUndefined()
+    expect(headers['referrer-policy']).toBe('strict-origin')
   })
 })

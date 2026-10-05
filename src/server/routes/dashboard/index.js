@@ -1,6 +1,5 @@
 import { requireAuthorised } from '@defra/hapi-oidc-auth'
 
-import { caseOfficerSecurity } from '#/server/common/helpers/case-officer-pages.js'
 import { dashboardController } from './controller.js'
 import { app } from './options.js'
 
@@ -18,7 +17,6 @@ export const dashboard = {
           ...dashboardController,
           options: {
             app,
-            security: caseOfficerSecurity,
             pre: [{ method: requireAuthorised }]
           }
         }

@@ -86,17 +86,13 @@ export function catchAll(request, h) {
     // the reason is already meaningful, so nothing extra is logged.
   }
 
-  // An error page can be shown for any URL, including a mistyped case-officer
-  // one carrying a search term (e.g. /SEARCH?search=Smith, as routes are
-  // case-sensitive), so it never loads analytics and never passes its address
-  // on as the referrer.
+  // A 404's URL is whatever was requested, so it's never sent to analytics.
   return h
     .view('error/index', {
-      analyticsEnabled: false,
+      ...(statusCode === statusCodes.notFound && { analyticsEnabled: false }),
       pageTitle: errorMessage,
       heading: statusCode,
       message: errorMessage
     })
     .code(statusCode)
-    .header('Referrer-Policy', 'strict-origin')
 }

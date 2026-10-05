@@ -85,7 +85,9 @@ export async function createServer() {
         },
         xss: 'enabled',
         noSniff: true,
-        xframe: true
+        xframe: true,
+        // Search URLs carry personal data, so only the origin is sent onwards.
+        referrer: 'strict-origin'
       }
     },
     router: {
