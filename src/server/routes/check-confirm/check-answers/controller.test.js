@@ -417,4 +417,10 @@ describe('#checkAnswersController', () => {
       expect(confirmation.statusCode).toBe(statusCodes.badData)
     })
   })
+
+  test('Should tell the browser not to store the page', async () => {
+    const { headers } = await server.inject({ method: 'GET', url: '/check-answers' })
+
+    expect(headers['cache-control']).toBe('no-store')
+  })
 })

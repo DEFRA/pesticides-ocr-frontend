@@ -30,6 +30,7 @@
         },
         id: "contactName",
         name: "contactName",
+        value: values["contactName"] if values,
         autocomplete: "name",
         classes: "govuk-!-width-two-thirds",
         errorMessage: errors["contactName"] if errors["contactName"]
@@ -41,6 +42,7 @@
         },
         id: "contactTelephone",
         name: "contactTelephone",
+        value: values["contactTelephone"] if values,
         autocomplete: "tel",
         classes: "govuk-!-width-two-thirds",
         errorMessage: errors["contactTelephone"] if errors["contactTelephone"]
@@ -53,6 +55,7 @@
         classes: "govuk-!-width-two-thirds",
         id: "contactEmail",
         name: "contactEmail",
+        value: values["contactEmail"] if values,
         autocomplete: "email",
         classes: "govuk-!-width-two-thirds",
         errorMessage: errors["contactEmail"] if errors["contactEmail"]

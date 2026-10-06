@@ -16,7 +16,9 @@ export const get = {
       logMessage: 'Journey start recorded for this session (EQ-472)'
     })
 
-    return h.view('qualifying-questions/business-activities/index')
+    return h.view('qualifying-questions/business-activities/index', {
+      values: { businessActivities: getSession(request, 'formSession')['businessActivities'] }
+    })
   }
 }
 

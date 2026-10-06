@@ -1,4 +1,5 @@
 import { createServer } from '#/server/server.js'
+import { answerStep, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { createSessionRequest, injectWithSession, sessionResponseToolkit } from '#/test-helpers/session-helpers.js'
 import { post as postHandler } from './controller.js'
@@ -163,6 +164,40 @@ describe('#additionalBusinessContactController', () => {
       expect(contactRequest.readSession()).toEqual({
         additionalAddresses: [{ address, contact }]
       })
+    })
+  })
+
+  describe('Pre-populating from the session', () => {
+    const url = '/additional-addresses/contact'
+
+    const contact = {
+      contactName: 'Jo Bloggs',
+      contactTelephone: '01234 567890',
+      contactEmail: 'jo@example.com'
+    }
+
+    test('Should populate the contact details of the latest entry', async () => {
+      const cookie = await answerStep(server, { url, payload: contact })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      Object.entries(contact).forEach(([field, value]) => {
+        expect(page(`#${field}`).val()).toBe(value)
+      })
+    })
+
+    test('Should render the contact details empty when none are held in the session', async () => {
+      const page = await revisitStep(server, { url })
+
+      Object.keys(contact).forEach((field) => {
+        expect(page(`#${field}`).val()).toBeFalsy()
+      })
+    })
+
+    test('Should tell the browser not to store the page', async () => {
+      const { headers } = await server.inject({ method: 'GET', url })
+
+      expect(headers['cache-control']).toBe('no-store')
     })
   })
 })

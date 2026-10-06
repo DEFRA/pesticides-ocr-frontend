@@ -1,4 +1,5 @@
 import { createServer } from '#/server/server.js'
+import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie, injectWithSession } from '#/test-helpers/session-helpers.js'
 
@@ -198,6 +199,53 @@ describe('#quantityController', () => {
 
       expect(result).toEqual(expect.stringContaining('value="area" checked'))
       expect(result).toEqual(expect.stringContaining('value="not a number"'))
+    })
+  })
+
+  describe('Pre-populating from the session', () => {
+    const url = '/quantity'
+
+    const answerQuantity = async (payload) => {
+      const cookie = await answerStep(server, {
+        url: '/business-activities',
+        payload: { businessActivities: ['seller-amateur'] }
+      })
+
+      return answerStep(server, { url, payload, cookie })
+    }
+
+    test('Should populate an amount held in the session', async () => {
+      const cookie = await answerQuantity({ quantityType: 'amount', quantityAmount: '80000' })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(checkedValues(page, 'quantityType')).toEqual(['amount'])
+      expect(page('#quantityAmount').val()).toBe('80000')
+      expect(page('#quantityArea').val()).toBeFalsy()
+    })
+
+    test('Should populate an area held in the session', async () => {
+      const cookie = await answerQuantity({ quantityType: 'area', quantityArea: '250' })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(checkedValues(page, 'quantityType')).toEqual(['area'])
+      expect(page('#quantityArea').val()).toBe('250')
+      expect(page('#quantityAmount').val()).toBeFalsy()
+    })
+
+    test('Should render the quantity empty when none is held in the session', async () => {
+      const page = await revisitStep(server, { url })
+
+      expect(checkedValues(page, 'quantityType')).toEqual([])
+      expect(page('#quantityAmount').val()).toBeFalsy()
+      expect(page('#quantityArea').val()).toBeFalsy()
+    })
+
+    test('Should tell the browser not to store the page', async () => {
+      const { headers } = await server.inject({ method: 'GET', url })
+
+      expect(headers['cache-control']).toBe('no-store')
     })
   })
 })

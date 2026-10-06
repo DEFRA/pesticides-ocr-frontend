@@ -3,9 +3,12 @@ import { getSession } from '#/server/common/helpers/get-session.js'
 export const get = {
   handler(request, h) {
     request.yar.set('formSession', getSession(request, 'formSession'))
-    return h.view(
-      'pro-users/additional-business-contact/index'
-    )
+
+    const current = getSession(request, 'formSession')['additionalAddresses']?.at(-1)
+
+    return h.view('pro-users/additional-business-contact/index', {
+      values: current?.contact
+    })
   }
 }
 

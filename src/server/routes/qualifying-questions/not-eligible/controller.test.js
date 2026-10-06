@@ -24,4 +24,10 @@ describe('#notEligibleController', () => {
       expect(statusCode).toBe(statusCodes.ok)
     })
   })
+
+  test('Should tell the browser not to store the page', async () => {
+    const { headers } = await server.inject({ method: 'GET', url: '/not-eligible' })
+
+    expect(headers['cache-control']).toBe('no-store')
+  })
 })

@@ -16,6 +16,7 @@
 
       {{ govukRadios({
         name: "mainCustomer",
+        value: values["mainCustomer"] if values,
         fieldset: {
           legend: {
             text: "Is your main customer a professional user or amateur user?",

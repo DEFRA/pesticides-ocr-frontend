@@ -15,6 +15,7 @@
 
       {{ govukCheckboxes({
         name: "addressActivities",
+        values: values["addressActivities"] if values,
         fieldset: {
           legend: {
             text: "What does your business do at this address?",

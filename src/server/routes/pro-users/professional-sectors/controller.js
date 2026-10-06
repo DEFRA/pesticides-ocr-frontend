@@ -1,7 +1,19 @@
+import { getSession } from '#/server/common/helpers/get-session.js'
+import { splitOtherAnswer } from '#/server/common/helpers/split-other-answer.js'
+import { professionalSectorsValues } from './items.js'
+
 export const get = {
   handler(request, h) {
     request.yar.set('formSession', request.yar.get('formSession') ?? {})
-    return h.view('pro-users/professional-sectors/index')
+
+    const { selected, other } = splitOtherAnswer(
+      getSession(request, 'formSession')['professionalSectors'],
+      professionalSectorsValues
+    )
+
+    return h.view('pro-users/professional-sectors/index', {
+      values: { professionalSectors: selected, professionalSectorsOther: other }
+    })
   }
 }
 

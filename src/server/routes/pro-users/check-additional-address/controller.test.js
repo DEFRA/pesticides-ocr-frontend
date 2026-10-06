@@ -334,4 +334,10 @@ describe('#checkAdditionalAddressController', () => {
       expect(headers.location).toBe('/additional-addresses')
     })
   })
+
+  test('Should tell the browser not to store the page', async () => {
+    const { headers } = await server.inject({ method: 'GET', url: '/check-additional-address' })
+
+    expect(headers['cache-control']).toBe('no-store')
+  })
 })

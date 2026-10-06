@@ -1,4 +1,5 @@
 import { createServer } from '#/server/server.js'
+import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { injectWithSession } from '#/test-helpers/session-helpers.js'
 
@@ -50,6 +51,33 @@ describe('#businessActivitiesController', () => {
 
       expect(result).toEqual(expect.stringContaining('Select at least one business activity'))
       expect(statusCode).toBe(statusCodes.ok)
+    })
+  })
+
+  describe('Pre-populating from the session', () => {
+    const url = '/business-activities'
+
+    test('Should check the activities held in the session', async () => {
+      const cookie = await answerStep(server, {
+        url,
+        payload: { businessActivities: ['manufacture', 'seller-amateur'] }
+      })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(checkedValues(page, 'businessActivities')).toEqual(['manufacture', 'seller-amateur'])
+    })
+
+    test('Should check nothing when no activities are held in the session', async () => {
+      const page = await revisitStep(server, { url })
+
+      expect(checkedValues(page, 'businessActivities')).toEqual([])
+    })
+
+    test('Should tell the browser not to store the page', async () => {
+      const { headers } = await server.inject({ method: 'GET', url })
+
+      expect(headers['cache-control']).toBe('no-store')
     })
   })
 })

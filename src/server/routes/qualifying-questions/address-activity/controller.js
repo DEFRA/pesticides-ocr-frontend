@@ -4,9 +4,13 @@ export const get = {
   handler(request, h) {
     request.yar.set('formSession', request.yar.get('formSession') ?? {})
 
-    const currentAddressLineOne = getSession(request, 'formSession')['address']?.['addressLine1']
+    const formSession = getSession(request, 'formSession')
+    const currentAddressLineOne = formSession['address']?.['addressLine1']
 
-    return h.view('qualifying-questions/address-activity/index', { currentAddressLineOne })
+    return h.view('qualifying-questions/address-activity/index', {
+      currentAddressLineOne,
+      values: { addressActivities: formSession['addressActivities'] }
+    })
   }
 }
 

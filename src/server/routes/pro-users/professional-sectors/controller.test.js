@@ -1,4 +1,5 @@
 import { createServer } from '#/server/server.js'
+import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { injectWithSession } from '#/test-helpers/session-helpers.js'
 
@@ -91,6 +92,41 @@ describe('#professionalSectorsController', () => {
           'Please use 100 characters or fewer'
         )
       )
+    })
+  })
+
+  describe('Pre-populating from the session', () => {
+    const url = '/professional-sectors'
+
+    test('Should check the options held in the session', async () => {
+      const cookie = await answerStep(server, { url, payload: { professionalSectors: ['amenity', 'forestry'] } })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(checkedValues(page, 'professionalSectors')).toEqual(['amenity', 'forestry'])
+      expect(page('#professionalSectorsOther').val()).toBe('')
+    })
+
+    test('Should populate the other text held in the session', async () => {
+      const cookie = await answerStep(server, { url, payload: { professionalSectorsOther: 'Something else' } })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(checkedValues(page, 'professionalSectors')).toEqual([])
+      expect(page('#professionalSectorsOther').val()).toBe('Something else')
+    })
+
+    test('Should render the fields empty when nothing is held in the session', async () => {
+      const page = await revisitStep(server, { url })
+
+      expect(checkedValues(page, 'professionalSectors')).toEqual([])
+      expect(page('#professionalSectorsOther').val()).toBe('')
+    })
+
+    test('Should tell the browser not to store the page', async () => {
+      const { headers } = await server.inject({ method: 'GET', url })
+
+      expect(headers['cache-control']).toBe('no-store')
     })
   })
 })

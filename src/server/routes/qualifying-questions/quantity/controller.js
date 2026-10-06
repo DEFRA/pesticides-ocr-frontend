@@ -1,7 +1,18 @@
+import { getSession } from '#/server/common/helpers/get-session.js'
+
 export const get = {
   handler(request, h) {
     request.yar.set('formSession', request.yar.get('formSession') ?? {})
-    return h.view('qualifying-questions/quantity/index')
+
+    const { quantityType, quantity } = getSession(request, 'formSession')['quantity'] ?? {}
+
+    return h.view('qualifying-questions/quantity/index', {
+      values: {
+        quantityType,
+        quantityAmount: quantityType === 'amount' ? quantity : undefined,
+        quantityArea: quantityType === 'area' ? quantity : undefined
+      }
+    })
   }
 }
 

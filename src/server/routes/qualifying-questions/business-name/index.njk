@@ -21,6 +21,7 @@
       {{ govukInput({
         id: "businessName",
         name: "businessName",
+        value: values["businessName"] if values,
         label: {
           text: "Enter your business or company name"
         },

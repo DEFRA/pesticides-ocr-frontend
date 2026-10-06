@@ -17,6 +17,7 @@
 
       {{ govukCheckboxes({
         name: "memberSchemes",
+        values: values["memberSchemes"] if values,
         fieldset: {
           legend: {
             text: "Are you a member of any official assurance schemes at this address? (optional)",
@@ -36,6 +37,7 @@
 
       {{ govukTextarea({
         name: "memberSchemesOther",
+        value: values["memberSchemesOther"] if values,
         id: "memberSchemesOther",
         label: {
           text: "Other",

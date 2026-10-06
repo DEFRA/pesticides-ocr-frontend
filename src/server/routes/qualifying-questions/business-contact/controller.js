@@ -1,7 +1,12 @@
+import { getSession } from '#/server/common/helpers/get-session.js'
+
 export const get = {
   handler(request, h) {
     request.yar.set('formSession', request.yar.get('formSession') ?? {})
-    return h.view('qualifying-questions/business-contact/index')
+
+    return h.view('qualifying-questions/business-contact/index', {
+      values: getSession(request, 'formSession')['primaryContact']
+    })
   }
 }
 

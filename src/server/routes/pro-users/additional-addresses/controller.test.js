@@ -97,4 +97,10 @@ describe('#additionalAddressesController', () => {
       expect(result).toEqual(expect.stringContaining(selectYesOrNo))
     })
   })
+
+  test('Should tell the browser not to store the page', async () => {
+    const { headers } = await server.inject({ method: 'GET', url: '/additional-addresses' })
+
+    expect(headers['cache-control']).toBe('no-store')
+  })
 })
