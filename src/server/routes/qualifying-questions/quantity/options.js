@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
+import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 import { quantityTypeValues } from './items.js'
 
 export const app = {
@@ -36,5 +36,5 @@ export const validate = {
       otherwise: Joi.any().strip()
     })
   }),
-  failAction: viewFailAction('qualifying-questions/quantity/quantity')
+  failAction: viewFailAction('qualifying-questions/quantity/index')
 }

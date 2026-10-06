@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
+import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 import { mainCustomerItems, mainCustomerValues } from './items.js'
 
 const selectCustomerType = 'Select a customer type'
@@ -17,5 +17,5 @@ export const validate = {
       'string.base': selectCustomerType
     })
   }),
-  failAction: viewFailAction('qualifying-questions/main-customer/main-customer')
+  failAction: viewFailAction('qualifying-questions/main-customer/index')
 }
