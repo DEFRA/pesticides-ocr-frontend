@@ -1,4 +1,6 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
+import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
+import { getNextPage } from '#/server/common/helpers/journey.js'
 
 export const get = {
   handler(request, h) {
@@ -17,6 +19,7 @@ export const post = {
 
     formSession['mainCustomer'] = payload
     request.yar.set('formSession', formSession)
-    return h.redirect('/business-name')
+
+    return redirectToNextPage(request, h, getNextPage('/main-customer', formSession))
   }
 }

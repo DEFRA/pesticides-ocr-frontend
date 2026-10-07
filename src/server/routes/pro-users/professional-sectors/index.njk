@@ -11,7 +11,7 @@
 
     {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
 
-    <form method="post" action="/professional-sectors" novalidate>
+    <form method="post" action="{{ formAction }}" novalidate>
 
       {{ govukCheckboxes({
         name: "professionalSectors",

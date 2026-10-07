@@ -1,6 +1,8 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
 import { splitOtherAnswer } from '#/server/common/helpers/split-other-answer.js'
 import { professionalSectorsValues } from './items.js'
+import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
+import { getNextPage } from '#/server/common/helpers/journey.js'
 
 export const get = {
   handler(request, h) {
@@ -26,6 +28,6 @@ export const post = {
     formSession['professionalSectors'] = sectors ?? [other]
     request.yar.set('formSession', formSession)
 
-    return h.redirect('/member-schemes')
+    return redirectToNextPage(request, h, getNextPage('/professional-sectors', formSession))
   }
 }

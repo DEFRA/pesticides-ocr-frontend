@@ -6,8 +6,6 @@
 
 {% set title = "Contact Details" %}
 
-{% set backLink = "/additional-addresses/address" %}
-
 {% block content %}
 
 <div class="govuk-grid-row">
@@ -19,7 +17,7 @@
 
     <p class="govuk-body">This should be the contact details of someone with a good knowledge of your professional PPP activity.</p>
 
-    <form method="post" action="/additional-addresses/contact" novalidate>
+    <form method="post" action="{{ formAction }}" novalidate>
 
       {% call govukFieldset({
       }) %}

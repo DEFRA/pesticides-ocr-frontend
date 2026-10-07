@@ -1,4 +1,5 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
+import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
 
 export const get = {
   handler(request, h) {
@@ -28,6 +29,6 @@ export const post = {
     formSession['additionalAddresses'] = additionalAddresses
     request.yar.set('formSession', formSession)
 
-    return h.redirect('/additional-addresses/contact')
+    return redirectToNextPage(request, h, '/additional-addresses/contact')
   }
 }

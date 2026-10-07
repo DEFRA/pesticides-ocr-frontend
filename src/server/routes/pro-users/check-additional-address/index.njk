@@ -6,8 +6,6 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "answer-list/macro.njk" import appAnswerList %}
 
-{% set backLink = "/additional-addresses/activity" %}
-
 {% block content %}
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-full">
@@ -64,7 +62,7 @@
     </div>
     {% endif %}
 
-    <form method="post" action="/check-additional-address" novalidate>
+    <form method="post" action="{{ formAction }}" novalidate>
 
       {{ govukRadios({
         name: "checkAdditionalAddress",

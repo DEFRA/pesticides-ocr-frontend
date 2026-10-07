@@ -3,6 +3,8 @@ import {
   recordJourneyStart,
   recordOncePerSession
 } from '#/server/common/helpers/journey-beacon.js'
+import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
+import { getNextPage } from '#/server/common/helpers/journey.js'
 
 export const get = {
   handler(request, h) {
@@ -30,10 +32,6 @@ export const post = {
     formSession['businessActivities'] = payload
     request.yar.set('formSession', formSession)
 
-    if (payload.includes('seller-amateur')) {
-      return h.redirect('/business-name')
-    }
-
-    return h.redirect('/main-customer')
+    return redirectToNextPage(request, h, getNextPage('/business-activities', formSession))
   }
 }

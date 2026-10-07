@@ -4,8 +4,6 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
-{% set backLink = "/business-name" %}
-
 {% block content %}
 
 <div class="govuk-grid-row">
@@ -17,7 +15,7 @@
 
     <p class="govuk-body">Enter the address that is most relevant to your professional PPP activity. This might be a head office, or where you keep your records. You can add other addresses later if you have them</p>
 
-    <form method="post" action="/additional-addresses/address" novalidate>
+    <form method="post" action="{{ formAction }}" novalidate>
 
       {% call govukFieldset({
       }) %}

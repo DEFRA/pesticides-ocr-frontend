@@ -1,6 +1,7 @@
 {% extends "govuk/template.njk" %}
 
 {# Import GOVUK components globally #}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
 {% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
@@ -83,6 +84,9 @@
 {% endblock %}
 
 {% block beforeContent %}
+  {% if backLink %}
+    {{ govukBackLink({ href: backLink }) }}
+  {% endif %}
   {% if breadcrumbs.length > 1 %}
     {{ govukBreadcrumbs({
       items: breadcrumbs

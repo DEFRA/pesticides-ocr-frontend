@@ -3,8 +3,6 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
-{% set backLink = "/main-customer" %}
-
 {% block content %}
 
 <div class="govuk-grid-row">
@@ -16,7 +14,7 @@
 
     <p class="govuk-body">We will use this to find your business details and registered address on Companies House.</p>
 
-    <form method="post" action="/business-name" novalidate>
+    <form method="post" action="{{ formAction }}" novalidate>
 
       {{ govukInput({
         id: "businessName",
