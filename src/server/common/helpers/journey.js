@@ -9,7 +9,7 @@ export const JOURNEY = {
   '/business-activities': {
     sessionKey: 'businessActivities',
     next: (formSession) =>
-      formSession['businessActivities'].includes('seller-amateur') ? '/business-name' : '/main-customer'
+      onlySellsAmateurProducts(formSession) ? '/business-name' : '/main-customer'
   },
   '/main-customer': {
     sessionKey: 'mainCustomer',
@@ -75,6 +75,10 @@ function followRoute(formSession) {
 
 export function findFirstMissingPage(formSession) {
   return followRoute(formSession).stoppedAt
+}
+
+export function isOnRoute(page, formSession) {
+  return followRoute(formSession).answeredPages.includes(page)
 }
 
 export function removeSkippedAnswers(formSession) {

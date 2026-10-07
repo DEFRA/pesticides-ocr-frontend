@@ -12,46 +12,44 @@
 
     <h1 class="govuk-heading-l">Check your details</h1>
 
-    <form method="post" action="/check-answers" novalidate>
-
-      <h2 class="govuk-heading-m">Business details</h2>
+    <h2 class="govuk-heading-m">Business details</h2>
       {{ govukSummaryList({
         rows: [
           {
             key: { text: "Business PPP activities" },
             value: { html: appAnswerList({ values: answers.businessActivities }) },
             actions: { items: [{ href: "/business-activities?change=true", text: "Change", visuallyHiddenText: "business PPP activities" }] }
-          },
+          } if answers.businessActivities,
           {
             key: { text: "Main customer" },
             value: { html: appAnswerList({ values: answers.mainCustomer }) },
             actions: { items: [{ href: "/main-customer?change=true", text: "Change", visuallyHiddenText: "main customer" }] }
-          } if answers.mainCustomer.length,
+          } if answers.mainCustomer,
           {
             key: { text: "Business name" },
             value: { html: appAnswerList({ values: answers.businessName }) },
             actions: { items: [{ href: "/business-name?change=true", text: "Change", visuallyHiddenText: "business name" }] }
-          },
+          } if answers.businessName,
           {
             key: { text: "Main address" },
             value: { html: appAnswerList({ values: answers.address }) },
             actions: { items: [{ href: "/business-address?change=true", text: "Change", visuallyHiddenText: "main address" }] }
-          },
+          } if answers.address,
           {
             key: { text: "Name" },
             value: { html: appAnswerList({ values: answers.contactName }) },
             actions: { items: [{ href: "/business-contact?change=true", text: "Change", visuallyHiddenText: "name" }] }
-          },
+          } if answers.contactName,
           {
             key: { text: "Email" },
             value: { html: appAnswerList({ values: answers.contactEmail }) },
             actions: { items: [{ href: "/business-contact?change=true", text: "Change", visuallyHiddenText: "email" }] }
-          },
+          } if answers.contactEmail,
           {
             key: { text: "Telephone" },
             value: { html: appAnswerList({ values: answers.contactTelephone }) },
             actions: { items: [{ href: "/business-contact?change=true", text: "Change", visuallyHiddenText: "telephone" }] }
-          }
+          } if answers.contactTelephone
         ]
       }) }}
 
@@ -63,67 +61,74 @@
             key: { text: "PPP activities at the address" },
             value: { html: appAnswerList({ values: answers.addressActivities }) },
             actions: { items: [{ href: "/address-activity?change=true", text: "Change", visuallyHiddenText: "PPP activities at the address" }] }
-          },
+          } if answers.addressActivities,
           {
             key: { text: "Area covered by PPPs in the last year" if isArea else "Quantity of PPPs used in the last year" },
             value: { html: appAnswerList({ values: answers.quantity }) },
             actions: { items: [{ href: "/quantity?change=true", text: "Change", visuallyHiddenText: "area covered by PPPs in the last year" if isArea else "quantity of PPPs used in the last year" }] }
-          },
+          } if answers.quantity,
           {
             key: { text: "Main sectors of work" },
             value: { html: appAnswerList({ values: answers.professionalSectors }) },
             actions: { items: [{ href: "/professional-sectors?change=true", text: "Change", visuallyHiddenText: "main sectors of work" }] }
-          },
+          } if answers.professionalSectors,
           {
             key: { text: "Assurance schemes" },
             value: { html: appAnswerList({ values: answers.memberSchemes }) },
             actions: { items: [{ href: "/member-schemes?change=true", text: "Change", visuallyHiddenText: "assurance schemes" }] }
-          },
+          } if answers.memberSchemes,
           {
             key: { text: "Additional addresses" },
             value: { text: answers.additionalAddresses.length }
-          } 
+          } if answers.additionalAddresses
         ]
       }) }}
 
-      {% if answers.additionalAddresses.length %}
+      {% if answers.additionalAddresses or canAddAdditionalAddresses %}
         <h2 class="govuk-heading-m">Additional addresses</h2>
 
         {% for entry in answers.additionalAddresses %}
           {{ govukSummaryList({
-            card: { title: { text: "Additional address " ~ loop.index } },
+            card: {
+              title: { text: "Additional address " ~ loop.index },
+              actions: { items: [{ href: "/check-answers/additional-addresses/" ~ loop.index ~ "/delete", text: "Delete" }] }
+            },
             rows: [
               { 
                 key: { text: "Address" },
                 value: { html: appAnswerList({ values: entry.address }) }
-              },
+              } if entry.address,
               { 
                 key: { text: "Name" },
                 value: { html: appAnswerList({ values: entry.contactName }) }
-              },
+              } if entry.contactName,
               { 
                 key: { text: "Email" },
                 value: { html: appAnswerList({ values: entry.contactEmail }) }
-              },
+              } if entry.contactEmail,
               { 
                 key: { text: "Telephone" },
                 value: { html: appAnswerList({ values: entry.contactTelephone }) }
-              },
+              } if entry.contactTelephone,
               { 
                 key: { text: "PPP activity" },
                 value: { html: appAnswerList({ values: entry.activity }) }
-              }
+              } if entry.activity
             ]
           }) }}
         {% endfor %}
+
+        <p class="govuk-body">
+          <a class="govuk-link" href="/additional-addresses/address">Add another address</a>
+        </p>
       {% endif %}
 
-      {{ govukButton({
-        text: "Save and continue",
-        type: "submit"
-      }) }}
-
-    </form>
+      <form method="post" action="/check-answers" novalidate>
+        {{ govukButton({
+          text: "Save and continue",
+          type: "submit"
+        }) }}
+      </form>
   </div>
 </div>
 {% endblock %}

@@ -73,22 +73,18 @@ describe('#buildAnswers', () => {
     expect(answers.contactEmail).toEqual(['john.smith@pesticides.co.uk'])
   })
 
-  test('Should give every unanswered question an empty list', () => {
-    expect(buildAnswers()).toEqual({
-      businessActivities: [],
-      mainCustomer: [],
-      businessName: [],
-      address: [],
-      contactName: [],
-      contactTelephone: [],
-      contactEmail: [],
-      addressActivities: [],
-      quantity: [],
-      quantityType: undefined,
-      professionalSectors: [],
-      memberSchemes: [],
-      additionalAddresses: []
+  test('Should leave out every unanswered question', () => {
+    expect(buildAnswers()).toEqual({})
+  })
+
+  test('Should only return the questions that have an answer', () => {
+    const answers = buildAnswers({
+      businessName: 'Pesticides Ltd',
+      address: { addressLine2: '' },
+      memberSchemes: [undefined]
     })
+
+    expect(answers).toEqual({ businessName: ['Pesticides Ltd'] })
   })
 
   test('Should map the professional answers to the labels used on the question pages', () => {
@@ -155,23 +151,16 @@ describe('#buildAnswers', () => {
     expect(answers.additionalAddresses[1].address).toEqual(['Lowfield Farm'])
   })
 
-  test('Should give every unanswered part of an additional address an empty list', () => {
-    const answers = buildAnswers({ additionalAddresses: [{}] })
+  test('Should leave out every unanswered part of an additional address', () => {
+    const answers = buildAnswers({
+      additionalAddresses: [{}, { contact: { contactName: 'Jane Doe' } }]
+    })
 
-    expect(answers.additionalAddresses).toEqual([
-      {
-        address: [],
-        contactName: [],
-        contactTelephone: [],
-        contactEmail: [],
-        activity: []
-      }
-    ])
+    expect(answers.additionalAddresses).toEqual([{}, { contactName: ['Jane Doe'] }])
   })
 
-  test('Should give an empty list when the additional address loop was never entered', () => {
-    expect(buildAnswers({}).additionalAddresses).toEqual([])
-    expect(buildAnswers().additionalAddresses).toEqual([])
-    expect(buildAnswers({ additionalAddresses: [] }).additionalAddresses).toEqual([])
+  test('Should leave out the additional addresses when none were added', () => {
+    expect(buildAnswers({}).additionalAddresses).toBeUndefined()
+    expect(buildAnswers({ additionalAddresses: [] }).additionalAddresses).toBeUndefined()
   })
 })

@@ -17,22 +17,32 @@ export function redirectToNextPage(request, h, nextPage) {
     return h.redirect(missingPage === CHECK_ANSWERS_PAGE ? missingPage : `${missingPage}?change=true`)
   }
 
-  request.yar.set(RETURN_URLS_KEY, {
-    ...request.yar.get(RETURN_URLS_KEY),
-    [nextPage]: request.path
-  })
+  setReturnUrl(request, nextPage, request.path)
 
   return h.redirect(nextPage)
 }
 
+export function setReturnUrl(request, page, returnUrl) {
+  request.yar.set(RETURN_URLS_KEY, {
+    ...request.yar.get(RETURN_URLS_KEY),
+    [page]: returnUrl
+  })
+}
+
 export function getBackLink(request) {
+  const app = request?.route?.settings?.app
+
+  if (app?.hideBackLink) {
+    return undefined
+  }
+
   if (isChangeMode(request)) {
     return CHECK_ANSWERS_PAGE
   }
 
   const returnUrls = hasSession(request) ? request.yar.get(RETURN_URLS_KEY) : undefined
 
-  return returnUrls?.[request.path] ?? request?.route?.settings?.app?.backLink
+  return returnUrls?.[request.path] ?? app?.backLink
 }
 
 export function getFormAction(request) {

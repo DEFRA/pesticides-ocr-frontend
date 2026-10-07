@@ -42,6 +42,26 @@ describe('#businessActivitiesController', () => {
       expect(headers.location).toBe('/main-customer')
     })
 
+    test('Should skip the main customer page when only amateur PPPs are sold', async () => {
+      const { headers } = await injectWithSession(server, {
+        method: 'POST',
+        url: '/business-activities',
+        payload: { businessActivities: ['seller-amateur'] }
+      })
+
+      expect(headers.location).toBe('/business-name')
+    })
+
+    test('Should ask for the main customer when amateur PPPs are sold alongside other activities', async () => {
+      const { headers } = await injectWithSession(server, {
+        method: 'POST',
+        url: '/business-activities',
+        payload: { businessActivities: ['seller-amateur', 'seller-professional'] }
+      })
+
+      expect(headers.location).toBe('/main-customer')
+    })
+
     test('Should return view with error message', async () => {
       const { result, statusCode } = await server.inject({
         method: 'POST',

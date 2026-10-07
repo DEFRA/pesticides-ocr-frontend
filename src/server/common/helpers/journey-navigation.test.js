@@ -99,6 +99,16 @@ describe('#journeyNavigation', () => {
       expect(getBackLink(request)).toBe('/')
     })
 
+    test('Should return nothing when the route hides the back link', () => {
+      const request = createRequest({
+        path: '/check-answers',
+        app: { hideBackLink: true },
+        store: { returnUrls: { '/check-answers': '/address-activity' } }
+      })
+
+      expect(getBackLink(request)).toBeUndefined()
+    })
+
     test('Should return nothing when the page was not reached from another page', () => {
       expect(getBackLink(createRequest())).toBeUndefined()
     })

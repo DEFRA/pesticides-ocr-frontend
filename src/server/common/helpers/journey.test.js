@@ -1,4 +1,4 @@
-import { findFirstMissingPage, getNextPage, removeSkippedAnswers } from './journey.js'
+import { findFirstMissingPage, getNextPage, isOnRoute, removeSkippedAnswers } from './journey.js'
 
 describe('#journey', () => {
   const amateurSeller = {
@@ -23,6 +23,7 @@ describe('#journey', () => {
     test.each([
       ['/business-activities', { businessActivities: ['seller-amateur'] }, '/business-name'],
       ['/business-activities', { businessActivities: ['manufacture'] }, '/main-customer'],
+      ['/business-activities', { businessActivities: ['seller-amateur', 'seller-professional'] }, '/main-customer'],
       ['/address-activity', { addressActivities: ['use'] }, '/quantity'],
       ['/address-activity', { addressActivities: ['store'] }, '/check-answers'],
       ['/quantity', { businessActivities: ['seller-amateur'] }, '/check-answers'],
@@ -86,6 +87,16 @@ describe('#journey', () => {
     })
   })
 
+  describe('#isOnRoute', () => {
+    test('Should include the additional addresses when the professional questions apply', () => {
+      expect(isOnRoute('/additional-addresses', professionalUser)).toBe(true)
+    })
+
+    test('Should exclude the additional addresses when only amateur products are sold', () => {
+      expect(isOnRoute('/additional-addresses', amateurSeller)).toBe(false)
+    })
+  })
+
   describe('#removeSkippedAnswers', () => {
     const additionalAddresses = [{ address: { addressLine1: 'Highfield Farm' } }]
 
@@ -98,10 +109,19 @@ describe('#journey', () => {
     test('Should remove the main customer once only amateur selling skips it', () => {
       const formSession = removeSkippedAnswers({
         ...professionalUser,
-        businessActivities: ['seller-amateur', 'use-professional']
+        businessActivities: ['seller-amateur']
       })
 
       expect(formSession).not.toHaveProperty('mainCustomer')
+    })
+
+    test('Should keep the main customer when amateur selling is one of several activities', () => {
+      const formSession = removeSkippedAnswers({
+        ...professionalUser,
+        businessActivities: ['seller-amateur', 'use-professional']
+      })
+
+      expect(formSession).toHaveProperty('mainCustomer')
       expect(formSession).toHaveProperty('professionalSectors')
     })
 
