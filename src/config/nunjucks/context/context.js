@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import { buildAccount } from '@defra/hapi-oidc-auth'
 
 import { config } from '#/config/config.js'
+import { isCaseOfficerPage } from '#/server/common/helpers/case-officer-pages.js'
 import { buildNavigation } from './build-navigation.js'
 import { createLogger } from '#/server/common/helpers/logging/logger.js'
 
@@ -32,7 +33,8 @@ export function context(request) {
     // Google Tag Manager + cookie banner (EQ-388/EQ-363) render only when
     // analytics is enabled — production by default, or ANALYTICS_ENABLED=true to
     // exercise it locally. The container id is config-driven (per environment).
-    analyticsEnabled: config.get('analytics.enabled'),
+    analyticsEnabled:
+      config.get('analytics.enabled') && !isCaseOfficerPage(request?.path),
     analyticsGtmId: config.get('analytics.gtmId'),
     breadcrumbs: [],
     account: buildAccount(request),

@@ -86,8 +86,10 @@ export function catchAll(request, h) {
     // the reason is already meaningful, so nothing extra is logged.
   }
 
+  // A 404's URL is whatever was requested, so it's never sent to analytics.
   return h
     .view('error/index', {
+      ...(statusCode === statusCodes.notFound && { analyticsEnabled: false }),
       pageTitle: errorMessage,
       heading: statusCode,
       message: errorMessage
