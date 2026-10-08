@@ -1,4 +1,5 @@
 import { vi } from 'vitest'
+import { load } from 'cheerio'
 
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
@@ -139,6 +140,24 @@ describe('#checkAnswersController', () => {
       )
     })
 
+    test('Should omit the rows of questions that have no answer', async () => {
+      const cookie = await getSessionCookie(server, '/business-name')
+
+      await server.inject({
+        method: 'POST',
+        url: '/business-name',
+        headers: { cookie },
+        payload: { businessName: 'Pesticides Ltd' }
+      })
+
+      const { result } = await loadAnswers(cookie)
+
+      expect(result).toEqual(expect.stringContaining('Business name'))
+      expect(result).not.toEqual(expect.stringContaining('Main sectors of work'))
+      expect(result).not.toEqual(expect.stringContaining('Assurance schemes'))
+      expect(result).not.toEqual(expect.stringContaining('Quantity of PPPs used'))
+    })
+
     test('Should omit the main customer row when that question was skipped', async () => {
       const cookie = await getSessionCookie(server, '/business-activities')
 
@@ -194,12 +213,12 @@ describe('#checkAnswersController', () => {
         expect(additionalAddressCount(result)).toBe('2')
       })
 
-      test('Should count none when the loop was never entered', async () => {
+      test('Should not show the count when the loop was never entered', async () => {
         const cookie = await getSessionCookie(server, '/business-name')
 
         const { result } = await loadAnswers(cookie)
 
-        expect(additionalAddressCount(result)).toBe('0')
+        expect(additionalAddressCount(result)).toBeUndefined()
       })
 
       test('Should show a numbered card for each additional address', async () => {
@@ -259,24 +278,92 @@ describe('#checkAnswersController', () => {
         )
       })
 
-      test('Should show card Change actions that are not yet wired up', async () => {
+      test('Should not offer a Change action for additional addresses', async () => {
         const cookie = await newSessionCookie()
         await addAnAddress(cookie)
 
         const { result } = await loadAnswers(cookie)
 
-        expect(result).toEqual(expect.stringContaining('href="#">Change'))
+        expect(result).not.toEqual(expect.stringContaining('href="#">Change'))
         expect(result).not.toEqual(
-          expect.stringContaining('href="/additional-addresses/address">Change')
+          expect.stringContaining('additional addresses</span>')
         )
-        expect(result).not.toEqual(
-          expect.stringContaining('href="/additional-addresses/contact">Change')
+        expect(load(result)('.govuk-summary-card .govuk-summary-list__actions')).toHaveLength(0)
+      })
+
+      test('Should show a delete action on each card', async () => {
+        const cookie = await newSessionCookie()
+        await addAnAddress(cookie)
+        await addAnAddress(cookie, { address: { addressLine1: 'Highfield Farm' } })
+
+        const { result } = await loadAnswers(cookie)
+        const deleteLinks = load(result)('.govuk-summary-card__actions a')
+
+        expect(deleteLinks.map((_index, link) => link.attribs.href).get()).toEqual([
+          '/check-answers/additional-addresses/1/delete',
+          '/check-answers/additional-addresses/2/delete'
+        ])
+        expect(deleteLinks.first().text()).toEqual(
+          expect.stringContaining('Delete (Additional address 1)')
         )
-        expect(result).not.toEqual(
-          expect.stringContaining(
-            'href="/additional-addresses/activity">Change'
-          )
-        )
+      })
+
+      test('Should delete the chosen additional address and return to check answers', async () => {
+        const cookie = await newSessionCookie()
+        await addAnAddress(cookie)
+        await addAnAddress(cookie, { address: { addressLine1: 'Highfield Farm' } })
+
+        const { statusCode, headers } = await server.inject({
+          method: 'GET',
+          url: '/check-answers/additional-addresses/1/delete',
+          headers: { cookie }
+        })
+        const { result } = await loadAnswers(cookie)
+
+        expect(statusCode).toBe(statusCodes.redirect)
+        expect(headers.location).toBe('/check-answers')
+        expect(additionalAddressCount(result)).toBe('1')
+        expect(result).toEqual(expect.stringContaining('Highfield Farm'))
+        expect(result).not.toEqual(expect.stringContaining('Lowfield Farm'))
+      })
+
+      test('Should not delete an additional address that does not exist', async () => {
+        const cookie = await newSessionCookie()
+        await addAnAddress(cookie)
+
+        const { statusCode } = await server.inject({
+          method: 'GET',
+          url: '/check-answers/additional-addresses/2/delete',
+          headers: { cookie }
+        })
+        const { result } = await loadAnswers(cookie)
+
+        expect(statusCode).toBe(statusCodes.notFound)
+        expect(additionalAddressCount(result)).toBe('1')
+      })
+
+      test('Should reject an address number that is not a positive whole number', async () => {
+        const { statusCode } = await server.inject({
+          method: 'GET',
+          url: '/check-answers/additional-addresses/0/delete'
+        })
+
+        expect(statusCode).toBe(statusCodes.badRequest)
+      })
+
+      test('Should link to add another address with a back link to check answers', async () => {
+        const cookie = await newSessionCookie()
+        await addAnAddress(cookie)
+
+        const { result } = await loadAnswers(cookie)
+        const addPage = await server.inject({
+          method: 'GET',
+          url: '/additional-addresses/address',
+          headers: { cookie }
+        })
+
+        expect(load(result)('a[href="/additional-addresses/address"]').text()).toBe('Add another address')
+        expect(load(addPage.result)('.govuk-back-link').attr('href')).toBe('/check-answers')
       })
 
       test('Should not show the section when no additional address was added', async () => {
@@ -415,6 +502,177 @@ describe('#checkAnswersController', () => {
       })
 
       expect(confirmation.statusCode).toBe(statusCodes.badData)
+    })
+  })
+
+  test('Should tell the browser not to store the page', async () => {
+    const { headers } = await server.inject({ method: 'GET', url: '/check-answers' })
+
+    expect(headers['cache-control']).toBe('no-store')
+  })
+
+  describe('Changing an answer', () => {
+    const backLinkOf = (html) => load(html)('.govuk-back-link').attr('href')
+    const formActionOf = (html) => load(html)('main form').attr('action')
+
+    const completeJourney = async () => {
+      const cookie = await getSessionCookie(server, '/business-activities')
+      const answer = (url, payload) =>
+        server.inject({ method: 'POST', url, headers: { cookie }, payload })
+
+      await answer('/business-activities', { businessActivities: ['seller-amateur'] })
+      await answer('/business-name', { businessName: 'Pesticides Ltd' })
+      await answer('/business-address', {
+        addressLine1: 'Lower Meadow Barn',
+        addressTown: 'Farm town',
+        addressPostcode: 'LS1 1AA'
+      })
+      await answer('/business-contact', {
+        contactName: 'Jo Bloggs',
+        contactTelephone: '01234 567890',
+        contactEmail: 'jo@example.com'
+      })
+      await answer('/address-activity', { addressActivities: ['store'] })
+
+      return cookie
+    }
+
+    const visit = (url, cookie) =>
+      server.inject({ method: 'GET', url, headers: { cookie } })
+
+    const submit = (url, cookie, payload) =>
+      server.inject({ method: 'POST', url, headers: { cookie }, payload })
+
+    test('Should link each answer to its page in change mode', async () => {
+      const cookie = await completeJourney()
+
+      const { result } = await loadAnswers(cookie)
+
+      expect(result).toEqual(expect.stringContaining('href="/business-name?change=true"'))
+      expect(result).toEqual(expect.stringContaining('href="/business-contact?change=true"'))
+      expect(result).toEqual(expect.stringContaining('href="/address-activity?change=true"'))
+      expect(result).not.toEqual(expect.stringContaining('href="/quantity?change=true"'))
+    })
+
+    test('Should return to check answers with the amended value', async () => {
+      const cookie = await completeJourney()
+
+      const page = await visit('/business-name?change=true', cookie)
+      const { statusCode, headers } = await submit('/business-name?change=true', cookie, {
+        businessName: 'Crop Care Ltd'
+      })
+      const { result } = await loadAnswers(cookie)
+
+      expect(formActionOf(page.result)).toBe('/business-name?change=true')
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/check-answers')
+      expect(result).toEqual(expect.stringContaining('Crop Care Ltd'))
+      expect(result).not.toEqual(expect.stringContaining('Pesticides Ltd'))
+    })
+
+    test('Should link back to check answers without changing the answer', async () => {
+      const cookie = await completeJourney()
+
+      const page = await visit('/business-name?change=true', cookie)
+      const { result } = await loadAnswers(cookie)
+
+      expect(backLinkOf(page.result)).toBe('/check-answers')
+      expect(result).toEqual(expect.stringContaining('Pesticides Ltd'))
+    })
+
+    test('Should keep returning to check answers after an invalid value', async () => {
+      const cookie = await completeJourney()
+
+      const invalid = await submit('/business-name?change=true', cookie, { businessName: '' })
+      const valid = await submit('/business-name?change=true', cookie, {
+        businessName: 'Crop Care Ltd'
+      })
+
+      expect(invalid.statusCode).toBe(statusCodes.ok)
+      expect(invalid.result).toEqual(expect.stringContaining('Enter a business name'))
+      expect(backLinkOf(invalid.result)).toBe('/check-answers')
+      expect(formActionOf(invalid.result)).toBe('/business-name?change=true')
+      expect(valid.headers.location).toBe('/check-answers')
+    })
+
+    test('Should ask the questions an amended answer makes relevant before returning', async () => {
+      const cookie = await completeJourney()
+
+      const activity = await submit('/address-activity?change=true', cookie, {
+        addressActivities: ['use']
+      })
+      const quantity = await submit('/quantity?change=true', cookie, {
+        quantityType: 'amount',
+        quantityAmount: '80000'
+      })
+
+      expect(activity.headers.location).toBe('/quantity?change=true')
+      expect(quantity.headers.location).toBe('/check-answers')
+    })
+
+    test('Should ask for the main customer once amateur selling is replaced', async () => {
+      const cookie = await completeJourney()
+
+      const { headers } = await submit('/business-activities?change=true', cookie, {
+        businessActivities: ['manufacture']
+      })
+
+      expect(headers.location).toBe('/main-customer?change=true')
+    })
+
+    test('Should remove answers an amended answer makes irrelevant', async () => {
+      const cookie = await completeJourney()
+
+      await submit('/address-activity?change=true', cookie, { addressActivities: ['use'] })
+      await submit('/quantity?change=true', cookie, {
+        quantityType: 'amount',
+        quantityAmount: '80000'
+      })
+      const withQuantity = await loadAnswers(cookie)
+
+      await submit('/address-activity?change=true', cookie, { addressActivities: ['store'] })
+      const withoutQuantity = await loadAnswers(cookie)
+
+      expect(withQuantity.result).toEqual(expect.stringContaining('80000 litres or kilograms'))
+      expect(withoutQuantity.result).not.toEqual(expect.stringContaining('80000'))
+    })
+
+    test('Should link back to the previous page when moving through the journey', async () => {
+      const cookie = await completeJourney()
+
+      const contact = await visit('/business-contact', cookie)
+      const address = await visit('/business-address', cookie)
+      const name = await visit('/business-name', cookie)
+      const activities = await visit('/business-activities', cookie)
+
+      expect(backLinkOf(contact.result)).toBe('/business-address')
+      expect(backLinkOf(address.result)).toBe('/business-name')
+      expect(backLinkOf(name.result)).toBe('/business-activities')
+      expect(backLinkOf(activities.result)).toBe('/')
+    })
+
+    test('Should not show a back link on check answers', async () => {
+      const cookie = await completeJourney()
+
+      const { result } = await loadAnswers(cookie)
+
+      expect(backLinkOf(result)).toBeUndefined()
+    })
+
+    test('Should not offer to add an address when the professional questions do not apply', async () => {
+      const cookie = await completeJourney()
+
+      const { result } = await loadAnswers(cookie)
+
+      expect(result).not.toEqual(expect.stringContaining('Add another address'))
+    })
+
+    test('Should continue to the next page when moving through the journey', async () => {
+      const cookie = await completeJourney()
+
+      const { headers } = await submit('/business-name', cookie, { businessName: 'Crop Care Ltd' })
+
+      expect(headers.location).toBe('/business-address')
     })
   })
 })

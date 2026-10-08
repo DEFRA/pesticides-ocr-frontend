@@ -11,10 +11,11 @@
 
     {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
 
-    <form method="post" action="/professional-sectors" novalidate>
+    <form method="post" action="{{ formAction }}" novalidate>
 
       {{ govukCheckboxes({
         name: "professionalSectors",
+        values: values["professionalSectors"] if values,
         fieldset: {
           legend: {
             text: "What is the main sector of your work involving PPPs or adjuvants?",
@@ -34,6 +35,7 @@
 
       {{ govukTextarea({
         name: "professionalSectorsOther",
+        value: values["professionalSectorsOther"] if values,
         id: "professionalSectorsOther",
         label: {
           text: "Other",

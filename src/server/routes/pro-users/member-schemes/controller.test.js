@@ -1,4 +1,5 @@
 import { createServer } from '#/server/server.js'
+import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { injectWithSession } from '#/test-helpers/session-helpers.js'
 
@@ -104,6 +105,41 @@ describe('#memberSchemesController', () => {
       expect(result).toEqual(
         expect.stringContaining('Please use 100 characters or fewer')
       )
+    })
+  })
+
+  describe('Pre-populating from the session', () => {
+    const url = '/member-schemes'
+
+    test('Should check the options held in the session', async () => {
+      const cookie = await answerStep(server, { url, payload: { memberSchemes: ['leaf'] } })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(checkedValues(page, 'memberSchemes')).toEqual(['leaf'])
+      expect(page('#memberSchemesOther').val()).toBe('')
+    })
+
+    test('Should populate the other text held in the session', async () => {
+      const cookie = await answerStep(server, { url, payload: { memberSchemesOther: 'Something else' } })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(checkedValues(page, 'memberSchemes')).toEqual([])
+      expect(page('#memberSchemesOther').val()).toBe('Something else')
+    })
+
+    test('Should render the fields empty when nothing is held in the session', async () => {
+      const page = await revisitStep(server, { url })
+
+      expect(checkedValues(page, 'memberSchemes')).toEqual([])
+      expect(page('#memberSchemesOther').val()).toBe('')
+    })
+
+    test('Should tell the browser not to store the page', async () => {
+      const { headers } = await server.inject({ method: 'GET', url })
+
+      expect(headers['cache-control']).toBe('no-store')
     })
   })
 })

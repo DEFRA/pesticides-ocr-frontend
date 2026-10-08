@@ -1,4 +1,5 @@
 import { createServer } from '#/server/server.js'
+import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { injectWithSession } from '#/test-helpers/session-helpers.js'
 
@@ -41,6 +42,26 @@ describe('#businessActivitiesController', () => {
       expect(headers.location).toBe('/main-customer')
     })
 
+    test('Should skip the main customer page when only amateur PPPs are sold', async () => {
+      const { headers } = await injectWithSession(server, {
+        method: 'POST',
+        url: '/business-activities',
+        payload: { businessActivities: ['seller-amateur'] }
+      })
+
+      expect(headers.location).toBe('/business-name')
+    })
+
+    test('Should ask for the main customer when amateur PPPs are sold alongside other activities', async () => {
+      const { headers } = await injectWithSession(server, {
+        method: 'POST',
+        url: '/business-activities',
+        payload: { businessActivities: ['seller-amateur', 'seller-professional'] }
+      })
+
+      expect(headers.location).toBe('/main-customer')
+    })
+
     test('Should return view with error message', async () => {
       const { result, statusCode } = await server.inject({
         method: 'POST',
@@ -50,6 +71,33 @@ describe('#businessActivitiesController', () => {
 
       expect(result).toEqual(expect.stringContaining('Select at least one business activity'))
       expect(statusCode).toBe(statusCodes.ok)
+    })
+  })
+
+  describe('Pre-populating from the session', () => {
+    const url = '/business-activities'
+
+    test('Should check the activities held in the session', async () => {
+      const cookie = await answerStep(server, {
+        url,
+        payload: { businessActivities: ['manufacture', 'seller-amateur'] }
+      })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(checkedValues(page, 'businessActivities')).toEqual(['manufacture', 'seller-amateur'])
+    })
+
+    test('Should check nothing when no activities are held in the session', async () => {
+      const page = await revisitStep(server, { url })
+
+      expect(checkedValues(page, 'businessActivities')).toEqual([])
+    })
+
+    test('Should tell the browser not to store the page', async () => {
+      const { headers } = await server.inject({ method: 'GET', url })
+
+      expect(headers['cache-control']).toBe('no-store')
     })
   })
 })

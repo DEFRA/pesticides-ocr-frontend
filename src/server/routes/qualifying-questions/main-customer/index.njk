@@ -3,8 +3,6 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
-{% set backLink = "/business-activities" %}
-
 {% block content %}
 
 <div class="govuk-grid-row">
@@ -12,10 +10,11 @@
 
     {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
 
-    <form method="post" action="/main-customer" novalidate>
+    <form method="post" action="{{ formAction }}" novalidate>
 
       {{ govukRadios({
         name: "mainCustomer",
+        value: values["mainCustomer"] if values,
         fieldset: {
           legend: {
             text: "Is your main customer a professional user or amateur user?",

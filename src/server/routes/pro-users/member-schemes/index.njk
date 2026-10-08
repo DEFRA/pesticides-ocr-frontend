@@ -5,18 +5,17 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
-{% set backLink = "/professional-sectors" %}
-
 {% block content %}
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-full">
 
     {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
 
-    <form method="post" action="/member-schemes" novalidate>
+    <form method="post" action="{{ formAction }}" novalidate>
 
       {{ govukCheckboxes({
         name: "memberSchemes",
+        values: values["memberSchemes"] if values,
         fieldset: {
           legend: {
             text: "Are you a member of any official assurance schemes at this address? (optional)",
@@ -36,6 +35,7 @@
 
       {{ govukTextarea({
         name: "memberSchemesOther",
+        value: values["memberSchemesOther"] if values,
         id: "memberSchemesOther",
         label: {
           text: "Other",

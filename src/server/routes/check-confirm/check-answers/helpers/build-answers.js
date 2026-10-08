@@ -11,8 +11,7 @@ function toLines(...values) {
 }
 
 function labelsFor(items, values) {
-  return [values ?? []]
-    .flat()
+  return toLines(...[values ?? []].flat())
     .map((value) => items.find((item) => item.value === value)?.text ?? value)
 }
 
@@ -26,14 +25,24 @@ function addressLines(address = {}) {
   )
 }
 
+function hasValue(value) {
+  return Array.isArray(value) ? value.length > 0 : value !== undefined
+}
+
+function withValues(answers) {
+  return Object.fromEntries(
+    Object.entries(answers).filter(([, value]) => hasValue(value))
+  )
+}
+
 function additionalAddress(entry = {}) {
-  return {
+  return withValues({
     address: addressLines(entry.address),
     contactName: toLines(entry.contact?.['contactName']),
     contactEmail: toLines(entry.contact?.['contactEmail']),
     contactTelephone: toLines(entry.contact?.['contactTelephone']),
     activity: labelsFor(additionalBusinessActivityItems, entry.activity)
-  }
+  })
 }
 
 function quantityLines(quantity = {}) {
@@ -51,7 +60,7 @@ function quantityLines(quantity = {}) {
 export function buildAnswers(formData = {}) {
   const contact = formData['primaryContact'] ?? {}
 
-  return {
+  return withValues({
     businessActivities: labelsFor(businessActivityItems, formData['businessActivities']),
     mainCustomer: labelsFor(mainCustomerItems, formData['mainCustomer']),
     businessName: toLines(formData['businessName']),
@@ -65,5 +74,5 @@ export function buildAnswers(formData = {}) {
     professionalSectors: labelsFor(professionalSectorsItems, formData['professionalSectors']),
     memberSchemes: labelsFor(memberSchemesItems, formData['memberSchemes']),
     additionalAddresses: (formData['additionalAddresses'] ?? []).map(additionalAddress)
-  }
+  })
 }

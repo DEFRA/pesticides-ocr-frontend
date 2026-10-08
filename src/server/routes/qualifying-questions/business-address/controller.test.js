@@ -1,4 +1,5 @@
 import { createServer } from '#/server/server.js'
+import { answerStep, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { injectWithSession } from '#/test-helpers/session-helpers.js'
 
@@ -59,6 +60,42 @@ describe('#businessAddressController', () => {
 
       expect(result).toEqual(expect.stringContaining('Enter town or city'))
       expect(statusCode).toBe(statusCodes.ok)
+    })
+  })
+
+  describe('Pre-populating from the session', () => {
+    const url = '/business-address'
+
+    const address = {
+      addressLine1: 'Lower Meadow Barn',
+      addressLine2: 'Mill Lane',
+      addressTown: 'Farm town',
+      addressCounty: 'Farmshire',
+      addressPostcode: 'LS1 1AA'
+    }
+
+    test('Should populate the address held in the session', async () => {
+      const cookie = await answerStep(server, { url, payload: address })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      Object.entries(address).forEach(([field, value]) => {
+        expect(page(`#${field}`).val()).toBe(value)
+      })
+    })
+
+    test('Should render the address empty when none is held in the session', async () => {
+      const page = await revisitStep(server, { url })
+
+      Object.keys(address).forEach((field) => {
+        expect(page(`#${field}`).val()).toBeFalsy()
+      })
+    })
+
+    test('Should tell the browser not to store the page', async () => {
+      const { headers } = await server.inject({ method: 'GET', url })
+
+      expect(headers['cache-control']).toBe('no-store')
     })
   })
 })

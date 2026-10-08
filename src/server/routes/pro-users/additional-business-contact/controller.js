@@ -1,11 +1,15 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
+import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
 
 export const get = {
   handler(request, h) {
     request.yar.set('formSession', getSession(request, 'formSession'))
-    return h.view(
-      'pro-users/additional-business-contact/index'
-    )
+
+    const current = getSession(request, 'formSession')['additionalAddresses']?.at(-1)
+
+    return h.view('pro-users/additional-business-contact/index', {
+      values: current?.contact
+    })
   }
 }
 
@@ -24,6 +28,6 @@ export const post = {
     formSession['additionalAddresses'] = additionalAddresses
     request.yar.set('formSession', formSession)
 
-    return h.redirect('/additional-addresses/activity')
+    return redirectToNextPage(request, h, '/additional-addresses/activity')
   }
 }

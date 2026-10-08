@@ -1,4 +1,5 @@
 import { createServer } from '#/server/server.js'
+import { answerStep, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { createSessionRequest, injectWithSession, sessionResponseToolkit } from '#/test-helpers/session-helpers.js'
 import { post as postHandler } from './controller.js'
@@ -138,7 +139,11 @@ describe('#additionalBusinessAddressController', () => {
     })
 
     test('Should append a new entry when the previous one is complete', () => {
-      const existing = { address: { addressTown: 'Leeds' }, contact: {} }
+      const existing = {
+        address: { addressTown: 'Leeds' },
+        contact: {},
+        activity: ['store']
+      }
 
       const formSession = savePayload(address, {
         additionalAddresses: [existing]
@@ -148,6 +153,16 @@ describe('#additionalBusinessAddressController', () => {
         existing,
         { address }
       ])
+    })
+
+    test('Should update the in-progress entry when its contact has already been given', () => {
+      const contact = { contactName: 'Jo Bloggs' }
+
+      const formSession = savePayload(address, {
+        additionalAddresses: [{ address: { addressTown: 'Leeds' }, contact }]
+      })
+
+      expect(formSession['additionalAddresses']).toEqual([{ address, contact }])
     })
 
     test('Should update the in-progress entry rather than appending', () => {
@@ -162,6 +177,60 @@ describe('#additionalBusinessAddressController', () => {
       const formSession = savePayload(address, { businessName: 'Company 1' })
 
       expect(formSession['businessName']).toBe('Company 1')
+    })
+  })
+
+  describe('Pre-populating from the session', () => {
+    const url = '/additional-addresses/address'
+
+    const address = {
+      addressLine1: 'Lower Meadow Barn',
+      addressLine2: 'Mill Lane',
+      addressTown: 'Farm town',
+      addressCounty: 'Farmshire',
+      addressPostcode: 'LS1 1AA'
+    }
+
+    test('Should populate the address of the entry in progress', async () => {
+      const cookie = await answerStep(server, { url, payload: address })
+      await answerStep(server, {
+        url: '/additional-addresses/contact',
+        payload: { contactName: 'Jo Bloggs', contactTelephone: '01234 567890', contactEmail: 'jo@example.com' },
+        cookie
+      })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      Object.entries(address).forEach(([field, value]) => {
+        expect(page(`#${field}`).val()).toBe(value)
+      })
+    })
+
+    test('Should render the address empty when the latest entry is complete', async () => {
+      const cookie = await answerStep(server, { url, payload: address })
+      await answerStep(server, {
+        url: '/additional-addresses/activity',
+        payload: { addressActivities: ['store'] },
+        cookie
+      })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(page('#addressLine1').val()).toBeFalsy()
+    })
+
+    test('Should render the address empty when no entry is held in the session', async () => {
+      const page = await revisitStep(server, { url })
+
+      Object.keys(address).forEach((field) => {
+        expect(page(`#${field}`).val()).toBeFalsy()
+      })
+    })
+
+    test('Should tell the browser not to store the page', async () => {
+      const { headers } = await server.inject({ method: 'GET', url })
+
+      expect(headers['cache-control']).toBe('no-store')
     })
   })
 })

@@ -7,6 +7,7 @@ import { config } from '#/config/config.js'
 import { isCaseOfficerPage } from '#/server/common/helpers/case-officer-pages.js'
 import { buildNavigation } from './build-navigation.js'
 import { createLogger } from '#/server/common/helpers/logging/logger.js'
+import { getBackLink, getFormAction } from '#/server/common/helpers/journey-navigation.js'
 
 const logger = createLogger()
 const assetPath = config.get('assetPath')
@@ -41,6 +42,8 @@ export function context(request) {
     navigation: buildNavigation(request),
     pageTitle: request?.route?.settings?.app?.pageTitle,
     items: request?.route?.settings?.app?.items,
+    backLink: getBackLink(request),
+    formAction: getFormAction(request),
     getAssetPath(asset) {
       if (!config.get('isProduction')) {
         return `${assetPath}/${asset}`

@@ -1,7 +1,14 @@
+import { getSession } from '#/server/common/helpers/get-session.js'
+import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
+import { getNextPage } from '#/server/common/helpers/journey.js'
+
 export const get = {
   handler(request, h) {
     request.yar.set('formSession', request.yar.get('formSession') ?? {})
-    return h.view('qualifying-questions/business-contact/index')
+
+    return h.view('qualifying-questions/business-contact/index', {
+      values: getSession(request, 'formSession')['primaryContact']
+    })
   }
 }
 
@@ -13,6 +20,6 @@ export const post = {
     formSession['primaryContact'] = payload
     request.yar.set('formSession', formSession)
 
-    return h.redirect('/address-activity')
+    return redirectToNextPage(request, h, getNextPage('/business-contact', formSession))
   }
 }

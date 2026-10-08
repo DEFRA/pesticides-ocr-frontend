@@ -3,6 +3,8 @@ import {
   recordJourneyStart,
   recordOncePerSession
 } from '#/server/common/helpers/journey-beacon.js'
+import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
+import { getNextPage } from '#/server/common/helpers/journey.js'
 
 export const get = {
   handler(request, h) {
@@ -16,7 +18,9 @@ export const get = {
       logMessage: 'Journey start recorded for this session (EQ-472)'
     })
 
-    return h.view('qualifying-questions/business-activities/index')
+    return h.view('qualifying-questions/business-activities/index', {
+      values: { businessActivities: getSession(request, 'formSession')['businessActivities'] }
+    })
   }
 }
 
@@ -28,10 +32,6 @@ export const post = {
     formSession['businessActivities'] = payload
     request.yar.set('formSession', formSession)
 
-    if (payload.includes('seller-amateur')) {
-      return h.redirect('/business-name')
-    }
-
-    return h.redirect('/main-customer')
+    return redirectToNextPage(request, h, getNextPage('/business-activities', formSession))
   }
 }

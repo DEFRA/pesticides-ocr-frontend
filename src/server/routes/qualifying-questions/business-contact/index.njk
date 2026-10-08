@@ -6,8 +6,6 @@
 
 {% set title = "Contact Details" %}
 
-{% set backLink = "/business-address" %}
-
 {% block content %}
 
 <div class="govuk-grid-row">
@@ -19,7 +17,7 @@
 
     <p class="govuk-body">This should be the contact details of someone with a good knowledge of your professional PPP activity.</p>
 
-    <form method="post" action="/business-contact" novalidate>
+    <form method="post" action="{{ formAction }}" novalidate>
 
       {% call govukFieldset({
       }) %}
@@ -30,6 +28,7 @@
         },
         id: "contactName",
         name: "contactName",
+        value: values["contactName"] if values,
         autocomplete: "name",
         classes: "govuk-!-width-two-thirds",
         errorMessage: errors["contactName"] if errors["contactName"]
@@ -41,6 +40,7 @@
         },
         id: "contactTelephone",
         name: "contactTelephone",
+        value: values["contactTelephone"] if values,
         autocomplete: "tel",
         classes: "govuk-!-width-two-thirds",
         errorMessage: errors["contactTelephone"] if errors["contactTelephone"]
@@ -53,6 +53,7 @@
         classes: "govuk-!-width-two-thirds",
         id: "contactEmail",
         name: "contactEmail",
+        value: values["contactEmail"] if values,
         autocomplete: "email",
         classes: "govuk-!-width-two-thirds",
         errorMessage: errors["contactEmail"] if errors["contactEmail"]
