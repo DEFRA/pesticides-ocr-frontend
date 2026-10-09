@@ -1,5 +1,4 @@
-// Data access for the case-officer search (EQ-442): the pesticides-ocr-backend
-// search and export APIs (EQ-366, EQ-369), called through ocr-backend-client.
+// The case-officer search and export APIs (EQ-442, EQ-366, EQ-369).
 
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import {

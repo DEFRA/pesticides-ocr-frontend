@@ -3,9 +3,7 @@ import { getAuthSession } from '@defra/hapi-oidc-auth'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { buildMockAccessToken } from '#/server/common/helpers/mock-access-token.js'
 
-// The token to forward to the backend: the signed-in case officer's Entra
-// ACCESS token, or in mock sign-in (which has none) an unsigned one built from
-// the mock identity (see mock-access-token).
+// The Entra access token, or in mock sign-in an unsigned mock-identity token.
 export function getForwardedToken(request) {
   const session = getAuthSession(request)
   const { token, idTokenHint } = session

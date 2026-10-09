@@ -1,31 +1,18 @@
-// Case-officer calls to pesticides-ocr-backend, with the signed-in case
-// officer's token forwarded as a bearer — the Entra ACCESS token
-// in live mode (per Microsoft guidance: access tokens, not ID tokens, for API
-// authorization), or the mock-identity token in mock mode.
-//
-// The API is exposed on the same app registration shared with this frontend, so
-// we request its custom scope (api://<client-id>/access_as_user, via the plugin's
-// additionalScopes / ENTRA_API_SCOPE) — that makes the access token's `aud` the
-// app's own client id, which the backend validates, and it carries
-// scp=access_as_user. This requires @defra/hapi-oidc-auth >= 0.4.0 to honour
-// additionalScopes, so do not downgrade the dependency below it.
+// Case-officer calls to pesticides-ocr-backend, forwarding the officer's Entra
+// access token. Requesting the API scope (ENTRA_API_SCOPE) needs
+// @defra/hapi-oidc-auth >= 0.4.0, so don't downgrade it.
 
 import { config } from '#/config/config.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 
-// Throw a plain Error carrying an intended `.statusCode`, which the case-officer
-// pages map to an error summary (and a 401 to re-authentication). An upstream
-// failure (unreachable backend, non-JSON body, or a backend 5xx) is surfaced as
-// 502 — we never fall through to an empty list, which would present "no
-// results" as live truth.
+// An Error carrying the status the page should act on. An unreachable backend
+// or unreadable body is a 502, never an empty result shown as live truth.
 export function backendError(statusCode, message) {
   const error = new Error(message)
   error.statusCode = statusCode
   return error
 }
 
-// Parse a JSON response body, converting a malformed/non-JSON body into the same
-// contextual 502 the rest of this module raises, rather than a bare SyntaxError.
 export async function parseJson(res, context) {
   try {
     return await res.json()
@@ -37,8 +24,6 @@ export async function parseJson(res, context) {
   }
 }
 
-// The configured backend base URL. A missing value is a deployment (or local
-// setup) misconfiguration, so fail loud rather than silently returning no data.
 function backendBaseUrl() {
   const url = config.get('ocrBackend.url')
   if (!url) {
@@ -50,29 +35,23 @@ function backendBaseUrl() {
   return url
 }
 
-// GET a backend path with the forwarded token. Returns the raw Response so
-// callers can distinguish 404 (missing resource) from real errors.
+// Returns the raw Response, so callers can tell a 404 from other errors.
 export async function backendGet(pathAndQuery, token, accept = 'application/json') {
   if (!token) {
-    // A signed-in case officer with no forwardable token means a session/token
-    // problem, not a routine miss — surface it as unauthorized rather than
-    // sending an unauthenticated request the backend would 401 anyway.
+    // No token is a session problem, so the officer signs in again.
     throw backendError(
       statusCodes.unauthorized,
       'No case-officer token to forward to the OCR backend'
     )
   }
 
-  // backendBaseUrl() throws its own contextual 502 when unconfigured; keep it
-  // out of the try so that specific message survives.
+  // Outside the try, so its own message isn't replaced.
   const base = backendBaseUrl()
 
   let url
   try {
     url = new URL(pathAndQuery, base)
   } catch (cause) {
-    // A malformed OCR_BACKEND_URL (e.g. missing scheme) — surface it as a
-    // diagnosable 502 like every other config failure, not a bare TypeError/500.
     throw backendError(
       statusCodes.badGateway,
       `OCR backend URL is invalid: ${cause.message}`

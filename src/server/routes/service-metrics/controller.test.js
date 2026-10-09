@@ -30,7 +30,8 @@ const METRICS = {
   byMonth: [
     { month: '2026-09', ...figures(5, 2, 0, 3, 0.4) },
     { month: '2026-10', ...figures(7, 0, 1, 6, 0.1429) },
-    { month: '2026-11', ...figures(0, 0, 0, 0, null) }
+    { month: '2026-11', ...figures(0, 0, 0, 0, null) },
+    { month: '2026-12', ...figures(100, 29, 0, 71, 0.29) }
   ]
 }
 
@@ -116,7 +117,8 @@ describe('#serviceMetrics (EQ-472)', () => {
       ['All time', '12', '2', '1', '3', '9', '25%'],
       ['September 2026', '5', '2', '0', '2', '3', '40%'],
       ['October 2026', '7', '0', '1', '1', '6', '14%'],
-      ['November 2026', '0', '0', '0', '0', '0', 'No starts']
+      ['November 2026', '0', '0', '0', '0', '0', 'No starts'],
+      ['December 2026', '100', '29', '0', '29', '71', '29%']
     ])
   })
 
@@ -139,6 +141,28 @@ describe('#serviceMetrics (EQ-472)', () => {
       'You do not have permission to view the service metrics'
     )
     expect(load(result)('table')).toHaveLength(0)
+  })
+
+  test('shows a service problem when the backend has no metrics endpoint', async () => {
+    respondWith(statusCodes.notFound)
+
+    const { statusCode, result } = await get()
+
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(load(result)('.govuk-error-summary').text()).toContain(
+      'Sorry, there is a problem with the service'
+    )
+  })
+
+  test('treats an unexpected body as a bad gateway', async () => {
+    respondWith(statusCodes.ok, null)
+
+    const { statusCode, result } = await get()
+
+    expect(statusCode).toBe(statusCodes.badGateway)
+    expect(load(result)('.govuk-error-summary').text()).toContain(
+      'Sorry, there is a problem with the service'
+    )
   })
 
   test('keeps a backend failure as a server error', async () => {

@@ -1,6 +1,8 @@
-import { PAGE_PATHS } from '@defra/hapi-oidc-auth'
-
 import { statusCodes } from '#/server/common/constants/status-codes.js'
+import {
+  backendErrorResponse,
+  UNAVAILABLE_MESSAGE
+} from '#/server/common/helpers/backend-error-response.js'
 import { getForwardedToken } from '#/server/common/helpers/forwarded-token.js'
 import { app, SEARCH_FIELD } from './options.js'
 import { exampleReference, toReference } from './reference.js'
@@ -10,8 +12,6 @@ import { fetchExport } from './search-client.js'
 const VIEW = 'search/index'
 
 const FORBIDDEN_MESSAGE = 'You do not have permission to search the register'
-const UNAVAILABLE_MESSAGE =
-  'Sorry, there is a problem with the service. Try again later.'
 
 // Uses the configured prefix, so it is built per request.
 const invalidReferenceMessage = () =>
@@ -48,38 +48,15 @@ function apiErrorContext(statusCode, isReference) {
   return errorContext(UNAVAILABLE_MESSAGE)
 }
 
-// A backend 401 means the forwarded case-officer token is missing/expired/
-// rejected (the session cookie can outlive the ~1h Entra token). Send the
-// officer back to re-authenticate rather than showing an error they can't fix.
-// Any other API error (400 bad reference, 403 wrong role, 502 upstream) is shown
-// in an error summary on the search page. The page shows none of the backend's
-// message, so the reason is logged server-side for diagnosis.
-//
-// Errors without a statusCode aren't from the API (they're bugs, e.g. in the
-// mapper), so they fall through to the shared error page.
-//
-// POC follow-up: a refresh-token exchange (the plugin already captures one)
-// would renew the token before it expires and avoid the bounce entirely.
-function handleApiError(err, request, h, { search, isReference }) {
-  if (err.statusCode === statusCodes.unauthorized) {
-    return h.redirect(`${PAGE_PATHS.ENTRA_SIGN_IN}?error=session-expired`)
-  }
-  if (!Number.isInteger(err.statusCode)) {
-    throw err
-  }
-  const view = h.view(VIEW, {
-    ...pageContext(search),
-    ...apiErrorContext(err.statusCode, isReference)
+const handleApiError = (err, request, h, { search, isReference }) =>
+  backendErrorResponse(err, request, h, {
+    label: 'Search',
+    render: (statusCode) =>
+      h.view(VIEW, {
+        ...pageContext(search),
+        ...apiErrorContext(statusCode, isReference)
+      })
   })
-  if (err.statusCode >= statusCodes.internalServerError) {
-    // Keep the upstream 5xx on the response so it still counts as a server
-    // error, rather than a 200 that hides the backend being down.
-    request.logger.error(err, `Search API error: ${err.message}`)
-    return view.code(err.statusCode)
-  }
-  request.logger.warn(`Search API error: ${err.message}`)
-  return view
-}
 
 // Find the registrations for a term: a reference is an exact lookup (none if
 // not found); anything else is a free-text search, where blank lists everything.
