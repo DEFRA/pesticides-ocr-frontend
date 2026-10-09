@@ -14,7 +14,25 @@ export async function fetchJourneyMetrics(token) {
     )
   }
   const metrics = await parseJson(res, 'GET /metrics/journeys')
-  if (!Array.isArray(metrics?.byMonth)) {
+  const isCount = (value) => Number.isInteger(value) && value >= 0
+  const hasFigures = (value) =>
+    value &&
+    typeof value === 'object' &&
+    ['starts', 'registrations', 'notEligible', 'finished', 'dropOuts'].every(
+      (key) => isCount(value[key])
+    ) &&
+    (value.completionRate === null ||
+      (Number.isFinite(value.completionRate) &&
+        value.completionRate >= 0 &&
+        value.completionRate <= 1))
+  const hasValidMonth = (value) =>
+    hasFigures(value) && /^\d{4}-(?:0[1-9]|1[0-2])$/.test(value.month)
+
+  if (
+    !hasFigures(metrics) ||
+    !Array.isArray(metrics.byMonth) ||
+    !metrics.byMonth.every(hasValidMonth)
+  ) {
     throw backendError(
       statusCodes.badGateway,
       'OCR backend GET /metrics/journeys returned an unexpected body'
