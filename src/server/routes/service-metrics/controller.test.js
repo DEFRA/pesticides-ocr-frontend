@@ -154,8 +154,14 @@ describe('#serviceMetrics (EQ-472)', () => {
     )
   })
 
-  test('treats an unexpected body as a bad gateway', async () => {
-    respondWith(statusCodes.ok, null)
+  test.each([
+    ['no body', null],
+    ['an empty month', { ...METRICS, byMonth: [null] }],
+    ['a month without figures', { ...METRICS, byMonth: [{ month: '2026-09' }] }],
+    ['a malformed month', { ...METRICS, byMonth: [{ ...METRICS.byMonth[0], month: 'Sept' }] }],
+    ['missing all-time figures', { byMonth: [] }]
+  ])('treats %s as a bad gateway', async (_case, body) => {
+    respondWith(statusCodes.ok, body)
 
     const { statusCode, result } = await get()
 
