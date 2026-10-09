@@ -35,5 +35,6 @@ describe('#dashboardController (protected)', () => {
 
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(expect.stringContaining('OCR Register dashboard'))
+    expect(result).toEqual(expect.stringContaining('href="/dashboard/metrics"'))
   })
 })

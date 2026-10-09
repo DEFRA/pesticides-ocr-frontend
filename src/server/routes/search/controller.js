@@ -1,7 +1,7 @@
-import { getAuthSession, PAGE_PATHS } from '@defra/hapi-oidc-auth'
+import { PAGE_PATHS } from '@defra/hapi-oidc-auth'
 
 import { statusCodes } from '#/server/common/constants/status-codes.js'
-import { buildMockAccessToken } from '#/server/common/helpers/mock-access-token.js'
+import { getForwardedToken } from '#/server/common/helpers/forwarded-token.js'
 import { app, SEARCH_FIELD } from './options.js'
 import { exampleReference, toReference } from './reference.js'
 import { searchRegister, getByReference } from './search-data.js'
@@ -16,23 +16,6 @@ const UNAVAILABLE_MESSAGE =
 // Uses the configured prefix, so it is built per request.
 const invalidReferenceMessage = () =>
   `Enter a reference in the correct format, like ${exampleReference()}`
-
-// The token to forward to the backend: the signed-in case officer's Entra
-// ACCESS token, or in mock sign-in (which has none) an unsigned one built from
-// the mock identity (see mock-access-token).
-function getForwardedToken(request) {
-  const session = getAuthSession(request)
-  const { token, idTokenHint } = session
-  // The plugin can return the ID token as `token`; never forward that as an API
-  // bearer, re-authenticate instead.
-  if (token && token === idTokenHint) {
-    throw Object.assign(
-      new Error('Forwarded token is an ID token, not an access token'),
-      { statusCode: statusCodes.unauthorized }
-    )
-  }
-  return token || buildMockAccessToken(session)
-}
 
 // Context every render of the page needs.
 const pageContext = (search) => ({

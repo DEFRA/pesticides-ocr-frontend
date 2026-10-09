@@ -2,6 +2,7 @@ import { home } from './home/index.js'
 import { cookies } from './cookies/index.js'
 import { dashboard } from './dashboard/index.js'
 import { search } from './search/index.js'
+import { serviceMetrics } from './service-metrics/index.js'
 import { businessActivities } from './qualifying-questions/business-activities/index.js'
 import { mainCustomer } from './qualifying-questions/main-customer/index.js'
 import { businessName } from './qualifying-questions/business-name/index.js'
@@ -25,6 +26,7 @@ export const routes = [
   cookies,
   dashboard,
   search,
+  serviceMetrics,
   businessActivities,
   mainCustomer,
   businessName,

@@ -1,0 +1,53 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <h1 class="govuk-heading-xl">Service metrics</h1>
+
+    <p class="govuk-body">Journeys through the online registration, counted for every applicant whether or not they accept analytics cookies.</p>
+
+    {% if rows %}
+    {{ govukTable({
+      caption: "Registration journeys",
+      captionClasses: "govuk-visually-hidden",
+      firstCellIsHeader: true,
+      head: [
+        { text: "Period" },
+        { text: "Starts", format: "numeric" },
+        { text: "Registrations", format: "numeric" },
+        { text: "Not eligible", format: "numeric" },
+        { text: "Finished", format: "numeric" },
+        { text: "Drop-outs", format: "numeric" },
+        { text: "Completion rate", format: "numeric" }
+      ],
+      rows: rows
+    }) }}
+
+    <h2 class="govuk-heading-m">What the figures mean</h2>
+    <dl class="govuk-body">
+      <dt class="govuk-!-font-weight-bold">Starts</dt>
+      <dd class="govuk-!-margin-left-0 govuk-!-margin-bottom-2">Applicants who reached the first question, after Start now.</dd>
+      <dt class="govuk-!-font-weight-bold">Not eligible</dt>
+      <dd class="govuk-!-margin-left-0 govuk-!-margin-bottom-2">Applicants who reached the ‘You do not need to use this service’ page.</dd>
+      <dt class="govuk-!-font-weight-bold">Finished</dt>
+      <dd class="govuk-!-margin-left-0 govuk-!-margin-bottom-2">Registrations plus not eligible.</dd>
+      <dt class="govuk-!-font-weight-bold">Drop-outs</dt>
+      <dd class="govuk-!-margin-left-0 govuk-!-margin-bottom-2">Starts that have not finished.</dd>
+      <dt class="govuk-!-font-weight-bold">Completion rate</dt>
+      <dd class="govuk-!-margin-left-0 govuk-!-margin-bottom-2">Finished as a percentage of starts.</dd>
+    </dl>
+    <p class="govuk-body">A journey can start in one month and finish in the next, so monthly figures are approximate.</p>
+    {% endif %}
+
+    <p class="govuk-body"><a class="govuk-link" href="/dashboard">Back to the dashboard</a></p>
+
+  </div>
+</div>
+{% endblock %}
