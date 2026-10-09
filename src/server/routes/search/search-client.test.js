@@ -1,11 +1,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import { config } from '#/config/config.js'
-import {
-  fetchSearchResults,
-  fetchByReference,
-  fetchExport
-} from './search-client.js'
+import { fetchSearchResults, fetchExport } from './search-client.js'
 
 const fetch = vi.fn()
 vi.stubGlobal('fetch', fetch)
@@ -39,89 +35,66 @@ afterEach(() => {
 })
 
 describe('#fetchSearchResults', () => {
-  test('GETs /search with the forwarded bearer token and returns the body', async () => {
-    const registrations = [{ reference: 'OCR-1', businessName: 'Acme' }]
-    vi.mocked(fetch).mockResolvedValue(response(200, registrations))
+  const body = {
+    data: [{ reference: 'OCR-1', businessName: 'Acme' }],
+    pagination: { page: 2, pageSize: 10, totalRecords: 11, totalPages: 2 }
+  }
 
-    const result = await fetchSearchResults({ token: TOKEN })
+  test('GETs /search for the term and page with the forwarded bearer token, returning the body', async () => {
+    vi.mocked(fetch).mockResolvedValue(response(200, body))
 
-    expect(result).toEqual(registrations)
+    const result = await fetchSearchResults({
+      query: 'acme',
+      page: 2,
+      token: TOKEN
+    })
+
+    expect(result).toEqual(body)
     const [url, options] = vi.mocked(fetch).mock.calls[0]
-    // A blank term is sent explicitly: /search treats it as "match everything".
-    expect(url.toString()).toBe(`${BACKEND_URL}/search?q=`)
+    expect(url.toString()).toBe(`${BACKEND_URL}/search?q=acme&page=2`)
     expect(options.headers.authorization).toBe(`Bearer ${TOKEN}`)
     expect(options.headers.accept).toBe('application/json')
   })
 
-  test('encodes the search term into the query string', async () => {
-    vi.mocked(fetch).mockResolvedValue(response(200, []))
+  test('asks for the first page by default', async () => {
+    vi.mocked(fetch).mockResolvedValue(response(200, body))
 
-    await fetchSearchResults({ query: 'green acres', token: TOKEN })
+    await fetchSearchResults({ query: 'acme', token: TOKEN })
 
     const [url] = vi.mocked(fetch).mock.calls[0]
-    expect(url.toString()).toBe(`${BACKEND_URL}/search?q=green%20acres`)
+    expect(url.toString()).toBe(`${BACKEND_URL}/search?q=acme&page=1`)
+  })
+
+  test('encodes the search term into the query string', async () => {
+    vi.mocked(fetch).mockResolvedValue(response(200, body))
+
+    await fetchSearchResults({ query: 'green & *acres', token: TOKEN })
+
+    const [url] = vi.mocked(fetch).mock.calls[0]
+    expect(url.toString()).toBe(
+      `${BACKEND_URL}/search?q=green%20%26%20*acres&page=1`
+    )
   })
 
   test('throws with the upstream status on a non-2xx response', async () => {
     vi.mocked(fetch).mockResolvedValue(response(403, { message: 'Forbidden' }))
 
-    await expect(fetchSearchResults({ token: TOKEN })).rejects.toMatchObject({
-      statusCode: 403
-    })
+    await expect(
+      fetchSearchResults({ query: 'acme', token: TOKEN })
+    ).rejects.toMatchObject({ statusCode: 403 })
   })
 
-  test('throws 502 when a 2xx response is not a list', async () => {
-    vi.mocked(fetch).mockResolvedValue(response(200, { reference: 'OCR-1' }))
-
-    await expect(fetchSearchResults({ token: TOKEN })).rejects.toMatchObject({
-      statusCode: 502
-    })
-  })
-})
-
-describe('#fetchByReference', () => {
-  test('returns the registration on 200', async () => {
-    const registration = { reference: 'OCR-1', businessName: 'Acme' }
-    vi.mocked(fetch).mockResolvedValue(response(200, registration))
-
-    expect(await fetchByReference('OCR-1', TOKEN)).toEqual(registration)
-    const [url] = vi.mocked(fetch).mock.calls[0]
-    expect(url.toString()).toBe(`${BACKEND_URL}/search?reference=OCR-1`)
-  })
-
-  test('maps a 404 to null (genuine not-found, not an error)', async () => {
-    vi.mocked(fetch).mockResolvedValue(response(404, { message: 'Not Found' }))
-
-    expect(await fetchByReference('OCR-nope', TOKEN)).toBeNull()
-  })
-
-  test('throws a 400 (malformed reference) rather than treating it as not-found', async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      response(400, { message: 'Invalid reference number' })
-    )
+  test.each([
+    ['a bare list', [{ reference: 'OCR-1' }]],
+    ['no data list', { data: {}, pagination: body.pagination }],
+    ['no pagination', { data: [] }],
+    ['null', null]
+  ])('throws 502 when a 2xx body is %s', async (_case, payload) => {
+    vi.mocked(fetch).mockResolvedValue(response(200, payload))
 
     await expect(
-      fetchByReference('not-a-reference', TOKEN)
-    ).rejects.toMatchObject({ statusCode: 400 })
-  })
-
-  test('throws with the upstream status on other non-2xx responses', async () => {
-    vi.mocked(fetch).mockResolvedValue(response(500, {}))
-
-    await expect(
-      fetchByReference('OCR-1', TOKEN)
-    ).rejects.toMatchObject({ statusCode: 500 })
-  })
-
-  test('encodes the reference into the query string', async () => {
-    vi.mocked(fetch).mockResolvedValue(response(200, {}))
-
-    await fetchByReference('OCR/../secret', TOKEN)
-
-    const [url] = vi.mocked(fetch).mock.calls[0]
-    expect(url.toString()).toBe(
-      `${BACKEND_URL}/search?reference=OCR%2F..%2Fsecret`
-    )
+      fetchSearchResults({ query: 'acme', token: TOKEN })
+    ).rejects.toMatchObject({ statusCode: 502 })
   })
 })
 
@@ -158,7 +131,7 @@ describe('#fetchExport', () => {
 
 describe('error handling', () => {
   test('throws 401 and does not call the backend when no token is forwarded', async () => {
-    await expect(fetchSearchResults({ token: '' })).rejects.toMatchObject({
+    await expect(fetchSearchResults({ query: 'acme', token: '' })).rejects.toMatchObject({
       statusCode: 401
     })
     expect(fetch).not.toHaveBeenCalled()
@@ -167,7 +140,7 @@ describe('error handling', () => {
   test('throws 502 when the backend URL is not configured', async () => {
     config.set('ocrBackend.url', '')
 
-    await expect(fetchSearchResults({ token: TOKEN })).rejects.toMatchObject({
+    await expect(fetchSearchResults({ query: 'acme', token: TOKEN })).rejects.toMatchObject({
       statusCode: 502
     })
     expect(fetch).not.toHaveBeenCalled()
@@ -176,7 +149,7 @@ describe('error handling', () => {
   test('throws 502 when the backend is unreachable (network error)', async () => {
     vi.mocked(fetch).mockRejectedValue(new Error('ECONNREFUSED'))
 
-    await expect(fetchSearchResults({ token: TOKEN })).rejects.toMatchObject({
+    await expect(fetchSearchResults({ query: 'acme', token: TOKEN })).rejects.toMatchObject({
       statusCode: 502
     })
   })
@@ -190,7 +163,7 @@ describe('error handling', () => {
       }
     })
 
-    await expect(fetchSearchResults({ token: TOKEN })).rejects.toMatchObject({
+    await expect(fetchSearchResults({ query: 'acme', token: TOKEN })).rejects.toMatchObject({
       statusCode: 502
     })
   })
@@ -198,7 +171,7 @@ describe('error handling', () => {
   test('throws 502 when the configured backend URL is malformed', async () => {
     config.set('ocrBackend.url', 'not-a-valid-url')
 
-    await expect(fetchSearchResults({ token: TOKEN })).rejects.toMatchObject({
+    await expect(fetchSearchResults({ query: 'acme', token: TOKEN })).rejects.toMatchObject({
       statusCode: 502
     })
     expect(fetch).not.toHaveBeenCalled()

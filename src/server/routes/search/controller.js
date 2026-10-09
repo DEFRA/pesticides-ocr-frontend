@@ -4,7 +4,9 @@ import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { buildMockAccessToken } from '#/server/common/helpers/mock-access-token.js'
 import { app, SEARCH_FIELD } from './options.js'
 import { exampleReference, toReference } from './reference.js'
-import { searchRegister, getByReference } from './search-data.js'
+import { searchRegister } from './search-data.js'
+import { buildPagination, pageHref } from './pagination.js'
+import { buildResultRows } from './results-table.js'
 import { fetchExport } from './search-client.js'
 
 const VIEW = 'search/index'
@@ -98,37 +100,42 @@ function handleApiError(err, request, h, { search, isReference }) {
   return view
 }
 
-// Find the registrations for a term: a reference is an exact lookup (none if
-// not found); anything else is a free-text search, where blank lists everything.
-async function findOperators(search, reference, token) {
-  if (reference) {
-    const operator = await getByReference(reference, token)
-    return operator ? [operator] : []
-  }
-  return searchRegister({ query: search, token })
-}
-
 // Search the register (Search API). No term in the query is the initial visit,
 // so only the form is shown.
 export const searchController = {
   async handler(request, h) {
-    const search = request.query[SEARCH_FIELD]
+    const { [SEARCH_FIELD]: search, page } = request.query
 
     if (search === undefined) {
       return h.view(VIEW, pageContext())
     }
 
-    const reference = toReference(search)
     try {
       const token = getForwardedToken(request)
-      const operators = await findOperators(search, reference, token)
-
-      return h.view(VIEW, { ...pageContext(search), operators })
-    } catch (err) {
-      return handleApiError(err, request, h, {
-        search,
-        isReference: Boolean(reference)
+      const { operators, pagination } = await searchRegister({
+        query: search,
+        page,
+        token
       })
+
+      const { totalPages, totalRecords } = pagination
+
+      if (totalPages > 0 && page > totalPages) {
+        return h.redirect(pageHref(search, totalPages))
+      }
+
+      return h.view(VIEW, {
+        ...pageContext(search),
+        ...(totalPages > 1 && {
+          pageTitle: `${app.pageTitle} (page ${page} of ${totalPages})`
+        }),
+        operators,
+        resultRows: buildResultRows(operators),
+        totalRecords,
+        pagination: buildPagination(search, pagination)
+      })
+    } catch (err) {
+      return handleApiError(err, request, h, { search, isReference: false })
     }
   }
 }

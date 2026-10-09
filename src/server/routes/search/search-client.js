@@ -51,8 +51,6 @@ function backendBaseUrl() {
   return url
 }
 
-// GET a backend path with the forwarded token. Returns the raw Response so
-// callers can distinguish 404 (missing resource) from real errors.
 async function backendGet(pathAndQuery, token, accept = 'application/json') {
   if (!token) {
     // A signed-in case officer with no forwardable token means a session/token
@@ -95,49 +93,25 @@ async function backendGet(pathAndQuery, token, accept = 'application/json') {
   }
 }
 
-// Free-text search of registrations (backend GET /search?q=). A blank term
-// matches everything. The backend returns stored registrations, so callers map
-// them for display.
-export async function fetchSearchResults({ query = '', token = '' } = {}) {
-  const res = await backendGet(`/search?q=${encodeURIComponent(query)}`, token)
+export async function fetchSearchResults({ query, page = 1, token = '' }) {
+  const res = await backendGet(
+    `/search?q=${encodeURIComponent(query)}&page=${page}`,
+    token
+  )
   if (!res.ok) {
     throw backendError(
       res.status,
       `OCR backend GET /search returned ${res.status}`
     )
   }
-  const registrations = await parseJson(res, 'GET /search')
-  // Callers map over the result, so anything but a list is an upstream fault,
-  // surfaced like an unparseable body rather than as a TypeError 500.
-  if (!Array.isArray(registrations)) {
+  const body = await parseJson(res, 'GET /search')
+  if (!Array.isArray(body?.data) || !body.pagination) {
     throw backendError(
       statusCodes.badGateway,
-      'OCR backend GET /search returned a non-list body'
+      'OCR backend GET /search returned an unexpected body'
     )
   }
-  return registrations
-}
-
-// Fetch a single registration by reference (backend GET /search?reference=).
-// A 404 is a genuine "not found" and maps to null (not an error). Anything else
-// non-2xx throws with the upstream status — including a 400, which is how the
-// backend rejects a malformed reference, so the search page can tell the
-// officer the format is wrong rather than that nothing matched.
-export async function fetchByReference(reference, token = '') {
-  const res = await backendGet(
-    `/search?reference=${encodeURIComponent(reference)}`,
-    token
-  )
-  if (res.status === statusCodes.notFound) {
-    return null
-  }
-  if (!res.ok) {
-    throw backendError(
-      res.status,
-      `OCR backend GET /search?reference= returned ${res.status}`
-    )
-  }
-  return parseJson(res, 'GET /search?reference=')
+  return body
 }
 
 // Export one registration as CSV (backend GET /export?reference=). Returns the
