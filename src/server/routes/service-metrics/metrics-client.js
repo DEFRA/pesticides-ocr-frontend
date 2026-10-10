@@ -41,7 +41,7 @@ export async function fetchJourneyMetrics(token) {
     )
   }
   const metrics = await parseJson(res, 'GET /metrics/journeys')
-  const { error } = metricsSchema.validate(metrics)
+  const { error } = metricsSchema.validate(metrics, { convert: false })
   if (error) {
     throw backendError(
       statusCodes.badGateway,
