@@ -1,4 +1,10 @@
-import { findFirstMissingPage, getNextPage, isOnRoute, removeSkippedAnswers } from './journey.js'
+import {
+  findFirstMissingPage,
+  getNextPage,
+  getPreviousPage,
+  isOnRoute,
+  removeSkippedAnswers
+} from './journey.js'
 
 describe('#journey', () => {
   const amateurSeller = {
@@ -84,6 +90,29 @@ describe('#journey', () => {
       expect(
         findFirstMissingPage({ ...professionalUser, memberSchemes: [undefined] })
       ).toBe('/check-answers')
+    })
+  })
+
+  describe('#getPreviousPage', () => {
+    test('Should return the page before on the route the answers take', () => {
+      expect(getPreviousPage('/business-name', professionalUser)).toBe('/main-customer')
+      expect(getPreviousPage('/business-name', amateurSeller)).toBe('/business-activities')
+      expect(getPreviousPage('/professional-sectors', professionalUser)).toBe('/quantity')
+    })
+
+    test('Should return the last answered page for the first unanswered page', () => {
+      expect(getPreviousPage('/quantity', { ...amateurSeller, addressActivities: ['use'] })).toBe(
+        '/address-activity'
+      )
+    })
+
+    test('Should return nothing for the first page', () => {
+      expect(getPreviousPage('/business-activities', professionalUser)).toBeUndefined()
+    })
+
+    test('Should return nothing for a page the answers skip', () => {
+      expect(getPreviousPage('/main-customer', amateurSeller)).toBeUndefined()
+      expect(getPreviousPage('/quantity', amateurSeller)).toBeUndefined()
     })
   })
 

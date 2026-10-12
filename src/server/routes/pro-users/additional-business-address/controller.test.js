@@ -233,4 +233,36 @@ describe('#additionalBusinessAddressController', () => {
       expect(headers['cache-control']).toBe('no-store')
     })
   })
+
+  describe('Back link', () => {
+    const url = '/additional-addresses/address'
+    const backLinkOf = (page) => page('.govuk-back-link').attr('href')
+
+    test('Should go back to the additional addresses question for the first address', async () => {
+      const cookie = await answerStep(server, {
+        url,
+        payload: { addressLine1: 'Highfield Farm', addressTown: 'Farm town', addressPostcode: 'PH1 1FT' }
+      })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(backLinkOf(page)).toBe('/additional-addresses')
+    })
+
+    test('Should go back to the address list once an address is complete', async () => {
+      const cookie = await answerStep(server, {
+        url,
+        payload: { addressLine1: 'Highfield Farm', addressTown: 'Farm town', addressPostcode: 'PH1 1FT' }
+      })
+      await answerStep(server, {
+        url: '/additional-addresses/activity',
+        payload: { addressActivities: ['store'] },
+        cookie
+      })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(backLinkOf(page)).toBe('/check-additional-address')
+    })
+  })
 })

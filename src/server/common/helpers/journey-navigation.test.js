@@ -31,16 +31,11 @@ describe('#journeyNavigation', () => {
   const h = { redirect: (location) => ({ location }) }
 
   describe('#redirectToNextPage', () => {
-    test('Should redirect to the next page and record where it was reached from', () => {
-      const store = { returnUrls: { '/business-name': '/business-activities' } }
-      const request = createRequest({ store })
+    test('Should redirect to the next page', () => {
+      const request = createRequest({ store: { formSession: answeredJourney } })
 
       expect(redirectToNextPage(request, h, '/business-address')).toEqual({
         location: '/business-address'
-      })
-      expect(store.returnUrls).toEqual({
-        '/business-name': '/business-activities',
-        '/business-address': '/business-name'
       })
     })
 
@@ -51,7 +46,6 @@ describe('#journeyNavigation', () => {
       expect(redirectToNextPage(request, h, '/business-address')).toEqual({
         location: '/check-answers'
       })
-      expect(store.returnUrls).toBeUndefined()
     })
 
     test('Should remove answers to pages the route now skips', () => {
@@ -77,40 +71,51 @@ describe('#journeyNavigation', () => {
 
   describe('#getBackLink', () => {
     test('Should return to check answers in change mode', () => {
-      const request = createRequest({
-        query: { change: 'true' },
-        store: { returnUrls: { '/business-name': '/main-customer' } }
-      })
+      const request = createRequest({ query: { change: 'true' }, store: { formSession: answeredJourney } })
 
       expect(getBackLink(request)).toBe('/check-answers')
     })
 
-    test('Should return the page this page was reached from', () => {
-      const request = createRequest({
-        store: { returnUrls: { '/business-name': '/main-customer' } }
+    test('Should return the previous page on the route the answers take', () => {
+      const professional = createRequest({
+        store: { formSession: { businessActivities: ['manufacture'], mainCustomer: 'both' } }
       })
+      const amateur = createRequest({ store: { formSession: answeredJourney } })
 
-      expect(getBackLink(request)).toBe('/main-customer')
+      expect(getBackLink(professional)).toBe('/main-customer')
+      expect(getBackLink(amateur)).toBe('/business-activities')
     })
 
-    test('Should fall back to the back link set on the route', () => {
+    test('Should return nothing for a page the answers skip', () => {
+      const request = createRequest({ path: '/main-customer', store: { formSession: answeredJourney } })
+
+      expect(getBackLink(request)).toBeUndefined()
+    })
+
+    test('Should use the back link set on the route', () => {
       const request = createRequest({ path: '/business-activities', app: { backLink: '/' } })
 
       expect(getBackLink(request)).toBe('/')
+    })
+
+    test('Should work out the back link from the answers when the route sets a function', () => {
+      const request = createRequest({
+        path: '/additional-addresses/address',
+        app: { backLink: (formSession) => formSession.businessName },
+        store: { formSession: answeredJourney }
+      })
+
+      expect(getBackLink(request)).toBe('Pesticides Ltd')
     })
 
     test('Should return nothing when the route hides the back link', () => {
       const request = createRequest({
         path: '/check-answers',
         app: { hideBackLink: true },
-        store: { returnUrls: { '/check-answers': '/address-activity' } }
+        store: { formSession: answeredJourney }
       })
 
       expect(getBackLink(request)).toBeUndefined()
-    })
-
-    test('Should return nothing when the page was not reached from another page', () => {
-      expect(getBackLink(createRequest())).toBeUndefined()
     })
 
     test('Should not read the session before it has started', () => {

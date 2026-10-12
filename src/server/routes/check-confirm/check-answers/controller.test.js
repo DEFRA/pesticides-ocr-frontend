@@ -351,7 +351,7 @@ describe('#checkAnswersController', () => {
         expect(statusCode).toBe(statusCodes.badRequest)
       })
 
-      test('Should link to add another address with a back link to check answers', async () => {
+      test('Should link to add another address with a back link to the address list', async () => {
         const cookie = await newSessionCookie()
         await addAnAddress(cookie)
 
@@ -363,7 +363,7 @@ describe('#checkAnswersController', () => {
         })
 
         expect(load(result)('a[href="/additional-addresses/address"]').text()).toBe('Add another address')
-        expect(load(addPage.result)('.govuk-back-link').attr('href')).toBe('/check-answers')
+        expect(load(addPage.result)('.govuk-back-link').attr('href')).toBe('/check-additional-address')
       })
 
       test('Should not show the section when no additional address was added', async () => {

@@ -2,7 +2,11 @@ import Joi from 'joi'
 import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 
 export const app = {
-  pageTitle: 'Business Address'
+  pageTitle: 'Business Address',
+  backLink: (formSession) =>
+    formSession['additionalAddresses']?.some((entry) => entry.activity)
+      ? '/check-additional-address'
+      : '/additional-addresses'
 }
 
 export const validate = {

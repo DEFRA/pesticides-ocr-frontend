@@ -1,7 +1,10 @@
 import { getSession } from './get-session.js'
-import { CHECK_ANSWERS_PAGE, findFirstMissingPage, removeSkippedAnswers } from './journey.js'
-
-const RETURN_URLS_KEY = 'returnUrls'
+import {
+  CHECK_ANSWERS_PAGE,
+  findFirstMissingPage,
+  getPreviousPage,
+  removeSkippedAnswers
+} from './journey.js'
 
 const isChangeMode = (request) => request?.query?.change === 'true'
 
@@ -17,22 +20,13 @@ export function redirectToNextPage(request, h, nextPage) {
     return h.redirect(missingPage === CHECK_ANSWERS_PAGE ? missingPage : `${missingPage}?change=true`)
   }
 
-  setReturnUrl(request, nextPage, request.path)
-
   return h.redirect(nextPage)
 }
 
-export function setReturnUrl(request, page, returnUrl) {
-  request.yar.set(RETURN_URLS_KEY, {
-    ...request.yar.get(RETURN_URLS_KEY),
-    [page]: returnUrl
-  })
-}
-
 export function getBackLink(request) {
-  const app = request?.route?.settings?.app
+  const app = request?.route?.settings?.app ?? {}
 
-  if (app?.hideBackLink) {
+  if (app.hideBackLink) {
     return undefined
   }
 
@@ -40,9 +34,13 @@ export function getBackLink(request) {
     return CHECK_ANSWERS_PAGE
   }
 
-  const returnUrls = hasSession(request) ? request.yar.get(RETURN_URLS_KEY) : undefined
+  const formSession = hasSession(request) ? getSession(request, 'formSession') : {}
 
-  return returnUrls?.[request.path] ?? app?.backLink
+  if (typeof app.backLink === 'function') {
+    return app.backLink(formSession)
+  }
+
+  return app.backLink ?? getPreviousPage(request?.path, formSession)
 }
 
 export function getFormAction(request) {

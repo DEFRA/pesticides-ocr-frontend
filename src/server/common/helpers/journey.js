@@ -77,6 +77,14 @@ export function findFirstMissingPage(formSession) {
   return followRoute(formSession).stoppedAt
 }
 
+export function getPreviousPage(page, formSession) {
+  const { answeredPages, stoppedAt } = followRoute(formSession)
+  const route = [...answeredPages, stoppedAt]
+  const position = route.indexOf(page)
+
+  return position > 0 ? route[position - 1] : undefined
+}
+
 export function isOnRoute(page, formSession) {
   return followRoute(formSession).answeredPages.includes(page)
 }
