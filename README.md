@@ -105,6 +105,10 @@ REFERENCE_PREFIX='PPP'
 
 `REFERENCE_PREFIX` must match the backend's, and defaults to `PPP`. In mock sign-in mode (the local default), the frontend forwards an unsigned token built from the mock identity, which only a backend in mock auth mode accepts.
 
+#### Service metrics
+
+`/dashboard/metrics` shows the journey metrics from the backend's `GET /metrics/journeys` (EQ-472): starts, registrations, not-eligible exits, finished, drop-outs and the completion rate, all time and by month. It is in the case-officer area, so it needs the case-officer role, and like the other case-officer pages it sends nothing to Google Analytics. Locally it uses the same `OCR_BACKEND_URL` as the search.
+
 ### Production
 
 To mimic the application running in `production` mode locally run:

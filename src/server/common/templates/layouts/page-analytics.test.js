@@ -43,6 +43,7 @@ describe('#pageLayout analytics', () => {
 
   test.each([
     ['/dashboard', 'OCR Register dashboard'],
+    ['/dashboard/metrics', 'Service metrics'],
     ['/search', 'Search the register'],
     ['/search?search=Smith', 'Search the register']
   ])(
