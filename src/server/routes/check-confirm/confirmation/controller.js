@@ -15,8 +15,7 @@ export const get = {
       })
     }
 
-    // One event per saved registration, matching the registrations metric, so
-    // reloading this page doesn't send another.
+    // Once per saved registration, so a reload doesn't send it again.
     const isNewRegistration =
       request.yar.get('registrationCompleteTracked') !== reference
     request.yar.set('registrationCompleteTracked', reference)

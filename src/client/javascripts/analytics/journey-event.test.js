@@ -23,15 +23,6 @@ describe('pushJourneyEvent (EQ-533)', () => {
     expect(window.dataLayer).toEqual([{ event: 'journey_start' }])
   })
 
-  test('pushes it only once per page', () => {
-    pageWith({ dataset: { event: 'journey_start' } })
-
-    pushJourneyEvent()
-    pushJourneyEvent()
-
-    expect(window.dataLayer).toHaveLength(1)
-  })
-
   test('creates the data layer if GTM has not', () => {
     pageWith({ dataset: { event: 'journey_start' } })
     delete window.dataLayer

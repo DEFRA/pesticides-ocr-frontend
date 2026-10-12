@@ -119,7 +119,7 @@ To line GA up with the journey metrics (EQ-533), three GTM events are pushed at 
 | `journey_not_eligible`  | `/not-eligible` is first shown in the session        |
 | `registration_complete` | `/confirmation` is shown for a new registration      |
 
-The server marks the page with the event (`data-event` on `#js-analytics-config`), and the browser pushes it only once analytics consent is given: on load if it already was, or as soon as the user accepts on that page. Run with `ANALYTICS_ENABLED=true` to see them locally.
+The server marks the page with the event (`data-event` on `#js-analytics-config`), and the browser pushes it only once analytics consent is given: on load if it already was, or as soon as the user accepts on that page. GA only sees sessions that had accepted cookies by the milestone page, and a milestone reached before consent isn't sent later, so GA's totals are lower than the journey metrics and its rates can differ. Compare like for like with a test user who accepts at the start. Run with `ANALYTICS_ENABLED=true` to see the events locally.
 
 ### Production
 

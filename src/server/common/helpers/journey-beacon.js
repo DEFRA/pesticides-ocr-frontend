@@ -90,7 +90,6 @@ export function recordJourneyNotEligible(request) {
 // sets its flag, logs it (one line per session — the log demonstrates the
 // de-duplication), and fires the beacon; later calls no-op, so refreshes /
 // back-navigation don't double-count. Shared by the journey milestone routes.
-// Returns true for the call that recorded it.
 export function recordOncePerSession(request, { sessionKey, record, logMessage }) {
   if (request.yar.get(sessionKey)) {
     return false
