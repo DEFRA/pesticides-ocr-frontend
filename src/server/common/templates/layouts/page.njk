@@ -66,11 +66,15 @@
     serviceUrl: serviceUrl
   }) }}
 
+  {% set phaseBannerHtml -%}
+    This is a new service.
+    {%- if feedbackSurveyUrl %} Help us improve it and <a class="govuk-link" href="{{ feedbackSurveyUrl }}" target="_blank" rel="noopener noreferrer">give your feedback (opens in new tab)</a>.{% endif %}
+  {%- endset %}
   {{ govukPhaseBanner({
     tag: {
     text: "Alpha"
     },
-    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+    html: phaseBannerHtml
   }) }}
 
 {% endblock %}

@@ -36,6 +36,9 @@ export function context(request) {
     analyticsEnabled:
       config.get('analytics.enabled') && !isCaseOfficerPage(request?.path),
     analyticsGtmId: config.get('analytics.gtmId'),
+    feedbackSurveyUrl: isCaseOfficerPage(request?.path)
+      ? undefined
+      : config.get('feedbackSurveyUrl'),
     breadcrumbs: [],
     account: buildAccount(request),
     navigation: buildNavigation(request),
