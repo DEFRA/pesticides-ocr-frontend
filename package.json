@@ -86,7 +86,6 @@
   "overrides": {
     "tmp": "0.2.5",
     "joi": "18.2.9",
-    "@hapi/joi": "npm:joi@18.2.9",
     "undici": "8.11.2",
     "nunjucks": {
       "chokidar": "$chokidar"
