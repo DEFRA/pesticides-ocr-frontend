@@ -4,7 +4,7 @@ export const get = {
   handler(request, h) {
     request.yar.set('formSession', getSession(request, 'formSession'))
     return h.view(
-      'pro-users/additional-business-address/additional-business-address'
+      'pro-users/additional-business-address/index'
     )
   }
 }

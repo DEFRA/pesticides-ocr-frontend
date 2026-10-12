@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
+import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 import {
   additionalBusinessActivityItems,
   additionalBusinessActivityValues
@@ -28,6 +28,6 @@ export const validate = {
       'object.base': selectAtLeastOne
     }),
   failAction: viewFailAction(
-    'pro-users/additional-business-activity/additional-business-activity'
+    'pro-users/additional-business-activity/index'
   )
 }

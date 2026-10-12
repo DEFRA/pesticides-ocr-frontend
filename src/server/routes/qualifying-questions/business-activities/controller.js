@@ -16,7 +16,7 @@ export const get = {
       logMessage: 'Journey start recorded for this session (EQ-472)'
     })
 
-    return h.view('qualifying-questions/business-activities/business-activities')
+    return h.view('qualifying-questions/business-activities/index')
   }
 }
 

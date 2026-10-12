@@ -6,7 +6,7 @@ export const get = {
 
     const currentAddressLineOne = getSession(request, 'formSession')['additionalAddresses']?.at(-1)?.['address']?.['addressLine1']
 
-    return h.view('pro-users/additional-business-activity/additional-business-activity', { currentAddressLineOne })
+    return h.view('pro-users/additional-business-activity/index', { currentAddressLineOne })
   }
 }
 

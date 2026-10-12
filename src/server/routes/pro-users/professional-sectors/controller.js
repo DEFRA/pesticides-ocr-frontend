@@ -1,7 +1,7 @@
 export const get = {
   handler(request, h) {
     request.yar.set('formSession', request.yar.get('formSession') ?? {})
-    return h.view('pro-users/professional-sectors/professional-sectors')
+    return h.view('pro-users/professional-sectors/index')
   }
 }
 

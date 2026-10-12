@@ -14,6 +14,6 @@ export const get = {
       logMessage: 'Journey not-eligible finish recorded for this session (EQ-472)'
     })
 
-    return h.view('qualifying-questions/not-eligible/not-eligible')
+    return h.view('qualifying-questions/not-eligible/index')
   }
 }

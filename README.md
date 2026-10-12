@@ -14,6 +14,7 @@ Core delivery platform Node.js Frontend Template.
   - [Setup](#setup)
   - [Development](#development)
   - [Production](#production)
+  - [Project structure](#project-structure)
   - [Npm scripts](#npm-scripts)
   - [Update dependencies](#update-dependencies)
   - [Formatting](#formatting)
@@ -57,7 +58,7 @@ to how services might have a database (or MongoDB). All frontend services are gi
 matches the service name. e.g. `my-service` will have access to everything in Redis that is prefixed with `my-service`.
 
 If your service does not require a session cache to be shared between instances or if you don't require Redis, you can
-disable setting `SESSION_CACHE_ENGINE=false` or changing the default value in `src/config/index.js`.
+disable setting `SESSION_CACHE_ENGINE=false` or changing the default value in `src/config/config.js`.
 
 ## Proxy
 
@@ -111,6 +112,13 @@ To mimic the application running in `production` mode locally run:
 ```bash
 npm start
 ```
+
+### Project structure
+
+Pages live in `src/server/routes/<journey>/<page>/`, with `index.js` (route plugin) and
+`index.njk` (view) as the entry points, alongside `controller.js` and `options.js`.
+See [Folder structure and naming conventions](./AGENTS.md#folder-structure-and-naming-conventions)
+before adding a new page.
 
 ### Npm scripts
 

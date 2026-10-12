@@ -14,7 +14,7 @@ export const get = {
       })
     }
 
-    return h.view('check-confirm/confirmation/confirmation', {
+    return h.view('check-confirm/confirmation/index', {
       reference
     })
   }

@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
+import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 import { checkAdditionalAddressItems, checkAdditionalAddressValues } from './items.js'
 import { buildLatestAddress } from './helpers/build-latest-address.js'
 import { getSession } from '#/server/common/helpers/get-session.js'
@@ -23,7 +23,7 @@ export const validate = {
       })
   }),
   failAction: viewFailAction(
-    'pro-users/check-additional-address/check-additional-address', (request) => ({
+    'pro-users/check-additional-address/index', (request) => ({
       address: buildLatestAddress(getSession(request, 'formSession')['additionalAddresses'] ?? [])
     })
   )

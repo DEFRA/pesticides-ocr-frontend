@@ -1,7 +1,7 @@
 import Joi from 'joi'
 import { requireAuthorised } from '@defra/hapi-oidc-auth'
 
-import { viewFailAction } from '#/client/common/helpers/view-fail-action.js'
+import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 import { exampleReference } from './reference.js'
 
 // Matches the backend's bound on a free-text search term.

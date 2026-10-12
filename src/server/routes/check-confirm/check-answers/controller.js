@@ -7,7 +7,7 @@ export const get = {
   handler(request, h) {
     const formData = request.yar.get('formSession') ?? {}
 
-    return h.view('check-confirm/check-answers/check-answers', {
+    return h.view('check-confirm/check-answers/index', {
       answers: buildAnswers(formData)
     })
   }
