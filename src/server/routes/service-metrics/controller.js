@@ -33,7 +33,7 @@ const toRow = (label, figures) => [
   numeric(figures.notEligible),
   numeric(figures.finished),
   numeric(figures.dropOuts),
-  { text: percentage(figures.completionRate), format: 'numeric' }
+  numeric(percentage(figures.completionRate))
 ]
 
 const toRows = (metrics) => [
