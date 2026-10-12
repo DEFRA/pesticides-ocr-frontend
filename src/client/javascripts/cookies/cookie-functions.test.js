@@ -162,6 +162,33 @@ describe('cookie-functions (EQ-363)', () => {
     })
   })
 
+  describe('the page journey event (EQ-533)', () => {
+    const journeyEvents = () =>
+      window.dataLayer.filter((e) => e.event === 'journey_start')
+
+    beforeEach(() => {
+      document.getElementById = (id) =>
+        id === 'js-analytics-config'
+          ? { dataset: { event: 'journey_start' } }
+          : null
+    })
+
+    test('is pushed after the consent-granted event when the user accepts', () => {
+      setConsentCookie({ analytics: true })
+
+      expect(journeyEvents()).toHaveLength(1)
+      expect(
+        window.dataLayer.findIndex((e) => e.event === CONSENT_GRANTED_EVENT)
+      ).toBeLessThan(window.dataLayer.indexOf(journeyEvents()[0]))
+    })
+
+    test('is not pushed when the user rejects', () => {
+      setConsentCookie({ analytics: false })
+
+      expect(journeyEvents()).toHaveLength(0)
+    })
+  })
+
   test('applyConsent with no cookie defaults to denied', () => {
     applyConsent()
     expect(lastConsentUpdate()?.[2].analytics_storage).toBe('denied')

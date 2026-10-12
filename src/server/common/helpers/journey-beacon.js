@@ -90,9 +90,10 @@ export function recordJourneyNotEligible(request) {
 // sets its flag, logs it (one line per session — the log demonstrates the
 // de-duplication), and fires the beacon; later calls no-op, so refreshes /
 // back-navigation don't double-count. Shared by the journey milestone routes.
+// Returns true for the call that recorded it.
 export function recordOncePerSession(request, { sessionKey, record, logMessage }) {
   if (request.yar.get(sessionKey)) {
-    return
+    return false
   }
   request.yar.set(sessionKey, true)
   request.logger.info(logMessage)
@@ -100,4 +101,5 @@ export function recordOncePerSession(request, { sessionKey, record, logMessage }
   // catches its own errors), so a floating promise is intended here. (`void` is
   // disallowed by this repo's lint config, hence the bare call.)
   record(request)
+  return true
 }

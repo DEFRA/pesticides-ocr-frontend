@@ -1,3 +1,4 @@
+import { analyticsEvents } from '#/server/common/constants/analytics-events.js'
 import { getSession } from '#/server/common/helpers/get-session.js'
 import {
   recordJourneyStart,
@@ -10,13 +11,15 @@ export const get = {
 
     // Record the journey start once per session (consent-free, EQ-472) — this is
     // the first page after the "Start now" button.
-    recordOncePerSession(request, {
+    const started = recordOncePerSession(request, {
       sessionKey: 'journeyStarted',
       record: recordJourneyStart,
       logMessage: 'Journey start recorded for this session (EQ-472)'
     })
 
-    return h.view('qualifying-questions/business-activities/index')
+    return h.view('qualifying-questions/business-activities/index', {
+      analyticsEvent: started ? analyticsEvents.journeyStart : undefined
+    })
   }
 }
 

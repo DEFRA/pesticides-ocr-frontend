@@ -109,6 +109,18 @@ REFERENCE_PREFIX='PPP'
 
 `/dashboard/metrics` shows the journey metrics from the backend's `GET /metrics/journeys` (EQ-472): starts, registrations, not-eligible exits, finished, drop-outs and the completion rate, all time and by month. It is in the case-officer area, so it needs the case-officer role, and like the other case-officer pages it sends nothing to Google Analytics. Locally it uses the same `OCR_BACKEND_URL` as the search.
 
+#### Journey events in Google Analytics
+
+To line GA up with the journey metrics (EQ-533), three GTM events are pushed at the same points and with the same once-per-session rule as the server-side counts:
+
+| Event                   | When                                                 |
+| ----------------------- | ---------------------------------------------------- |
+| `journey_start`         | `/business-activities` is first shown in the session |
+| `journey_not_eligible`  | `/not-eligible` is first shown in the session        |
+| `registration_complete` | `/confirmation` is shown for a new registration      |
+
+The server marks the page with the event (`data-event` on `#js-analytics-config`), and the browser pushes it only once analytics consent is given: on load if it already was, or as soon as the user accepts on that page. Run with `ANALYTICS_ENABLED=true` to see them locally.
+
 ### Production
 
 To mimic the application running in `production` mode locally run:

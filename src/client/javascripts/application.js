@@ -8,6 +8,7 @@ import {
 } from 'govuk-frontend'
 
 import { loadAnalytics } from './analytics/load-analytics.js'
+import { pushJourneyEvent } from './analytics/journey-event.js'
 import { getConsentCookie } from './cookies/cookie-functions.js'
 import { initCookieBanner } from './cookies/cookie-banner.js'
 import { initCookiesPage } from './cookies/cookies-page.js'
@@ -28,6 +29,9 @@ if (analyticsConfig) {
   loadAnalytics(analyticsConfig.dataset.gtmId, {
     analytics: Boolean(consent?.analytics)
   })
+  if (consent?.analytics) {
+    pushJourneyEvent()
+  }
 }
 initCookieBanner()
 initCookiesPage()

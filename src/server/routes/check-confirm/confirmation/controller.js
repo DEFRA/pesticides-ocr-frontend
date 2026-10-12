@@ -1,4 +1,5 @@
 import Boom from '@hapi/boom'
+import { analyticsEvents } from '#/server/common/constants/analytics-events.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 
 export const get = {
@@ -14,8 +15,17 @@ export const get = {
       })
     }
 
+    // One event per saved registration, matching the registrations metric, so
+    // reloading this page doesn't send another.
+    const isNewRegistration =
+      request.yar.get('registrationCompleteTracked') !== reference
+    request.yar.set('registrationCompleteTracked', reference)
+
     return h.view('check-confirm/confirmation/index', {
-      reference
+      reference,
+      analyticsEvent: isNewRegistration
+        ? analyticsEvents.registrationComplete
+        : undefined
     })
   }
 }
