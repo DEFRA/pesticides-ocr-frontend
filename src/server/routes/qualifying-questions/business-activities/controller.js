@@ -7,7 +7,8 @@ import {
 
 export const get = {
   handler(request, h) {
-    request.yar.set('formSession', request.yar.get('formSession') ?? {})
+    const formSession = request.yar.get('formSession') ?? {}
+    request.yar.set('formSession', formSession)
 
     // Record the journey start once per session (consent-free, EQ-472) — this is
     // the first page after the "Start now" button.
@@ -18,6 +19,7 @@ export const get = {
     })
 
     return h.view('qualifying-questions/business-activities/index', {
+      selected: [formSession.businessActivities ?? []].flat(),
       analyticsEvent: started ? analyticsEvents.journeyStart : undefined
     })
   }

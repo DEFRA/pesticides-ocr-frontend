@@ -187,6 +187,15 @@ describe('cookie-functions (EQ-363)', () => {
 
       expect(journeyEvents()).toHaveLength(0)
     })
+
+    test('is not pushed again when analytics was already accepted', () => {
+      setConsentCookie({ analytics: true })
+      window.dataLayer.length = 0
+
+      setConsentCookie({ analytics: true })
+
+      expect(journeyEvents()).toHaveLength(0)
+    })
   })
 
   test('applyConsent with no cookie defaults to denied', () => {

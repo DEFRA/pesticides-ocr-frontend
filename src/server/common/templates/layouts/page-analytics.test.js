@@ -149,6 +149,7 @@ describe('#pageLayout analytics', () => {
       const second = await get('/confirmation', { cookie })
 
       expect(event(confirmation.result)).toBe('registration_complete')
+      expect(confirmation.headers['cache-control']).toBe('no-store')
       expect(event(reload.result)).toBeUndefined()
       expect(event(second.result)).toBe('registration_complete')
     })
