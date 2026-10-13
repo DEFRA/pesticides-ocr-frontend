@@ -26,6 +26,8 @@ export function context(request) {
     }
   }
 
+  const caseOfficerPage = isCaseOfficerPage(request?.path)
+
   return {
     assetPath: `${assetPath}/assets`,
     serviceName: config.get('serviceName'),
@@ -33,10 +35,9 @@ export function context(request) {
     // Google Tag Manager + cookie banner (EQ-388/EQ-363) render only when
     // analytics is enabled — production by default, or ANALYTICS_ENABLED=true to
     // exercise it locally. The container id is config-driven (per environment).
-    analyticsEnabled:
-      config.get('analytics.enabled') && !isCaseOfficerPage(request?.path),
+    analyticsEnabled: config.get('analytics.enabled') && !caseOfficerPage,
     analyticsGtmId: config.get('analytics.gtmId'),
-    feedbackSurveyUrl: isCaseOfficerPage(request?.path)
+    feedbackSurveyUrl: caseOfficerPage
       ? undefined
       : config.get('feedbackSurveyUrl'),
     breadcrumbs: [],
