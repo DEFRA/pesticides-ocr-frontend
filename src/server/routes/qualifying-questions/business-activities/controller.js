@@ -4,6 +4,7 @@ import {
   recordJourneyStart,
   recordOncePerSession
 } from '#/server/common/helpers/journey-beacon.js'
+import { businessActivityItems } from './items.js'
 
 export const get = {
   handler(request, h) {
@@ -18,8 +19,13 @@ export const get = {
       logMessage: 'Journey start recorded for this session (EQ-472)'
     })
 
+    const selected = [formSession.businessActivities ?? []].flat()
+
     return h.view('qualifying-questions/business-activities/index', {
-      selected: [formSession.businessActivities ?? []].flat(),
+      items: businessActivityItems.map((item) => ({
+        ...item,
+        checked: selected.includes(item.value)
+      })),
       analyticsEvent: started ? analyticsEvents.journeyStart : undefined
     })
   }
