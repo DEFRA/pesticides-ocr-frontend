@@ -1,4 +1,5 @@
 import { createServer } from '#/server/server.js'
+import { config } from '#/config/config.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { signInCaseOfficer } from '#/test-helpers/session-helpers.js'
 
@@ -78,5 +79,42 @@ describe('#pageLayout Google Analytics gating', () => {
     expect(result).not.toContain('GTM-WS6QGKZN')
     // The cookie banner only appears where analytics can run.
     expect(result).not.toContain('govuk-cookie-banner')
+  })
+})
+
+describe('#pageLayout feedback link', () => {
+  let server
+
+  beforeAll(async () => {
+    server = await createServer()
+    await server.initialize()
+  })
+
+  afterAll(async () => {
+    await server.stop({ timeout: 0 })
+  })
+
+  const surveyLink = () =>
+    `<a class="govuk-link" href="${config.get('feedbackSurveyUrl')}" target="_blank" rel="noopener noreferrer">give your feedback (opens in new tab)</a>`
+
+  test('links the phase banner to the survey on applicant pages', async () => {
+    const { result } = await server.inject({ method: 'GET', url: '/' })
+
+    expect(result).toEqual(expect.stringContaining(surveyLink()))
+  })
+
+  test('leaves the survey link out on case-officer pages', async () => {
+    const cookie = await signInCaseOfficer(server)
+
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/dashboard',
+      headers: { cookie }
+    })
+
+    expect(result).toEqual(expect.stringContaining('This is a new service.'))
+    expect(result).not.toEqual(
+      expect.stringContaining(config.get('feedbackSurveyUrl'))
+    )
   })
 })

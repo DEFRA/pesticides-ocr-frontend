@@ -60,6 +60,8 @@ describe('context and cache', () => {
           account: null,
           analyticsEnabled: false,
           analyticsGtmId: 'GTM-WS6QGKZN',
+          feedbackSurveyUrl:
+            'https://defragroup.eu.qualtrics.com/jfe/form/SV_5zNPlVmqjyQZxye',
           breadcrumbs: [],
           getAssetPath: expect.any(Function),
           navigation: [
@@ -154,6 +156,8 @@ describe('context and cache', () => {
           account: null,
           analyticsEnabled: false,
           analyticsGtmId: 'GTM-WS6QGKZN',
+          feedbackSurveyUrl:
+            'https://defragroup.eu.qualtrics.com/jfe/form/SV_5zNPlVmqjyQZxye',
           breadcrumbs: [],
           getAssetPath: expect.any(Function),
           navigation: [

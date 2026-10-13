@@ -1,6 +1,7 @@
 import { vi } from 'vitest'
 
 import { createServer } from '#/server/server.js'
+import { config } from '#/config/config.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie } from '#/test-helpers/session-helpers.js'
 
@@ -69,6 +70,18 @@ describe('#confirmationController', () => {
       expect(result).toEqual(
         expect.stringContaining(
           'Your reference number<br><strong>PPP-123-45A</strong>'
+        )
+      )
+    })
+
+    test('Should link to the feedback survey, opening in a new tab', async () => {
+      const cookie = await sessionWithReference('PPP-123-45A')
+
+      const { result } = await loadConfirmation(cookie)
+
+      expect(result).toEqual(
+        expect.stringContaining(
+          `href="${config.get('feedbackSurveyUrl')}" target="_blank" rel="noopener noreferrer">What did you think of this service? (opens in new tab)</a>`
         )
       )
     })
