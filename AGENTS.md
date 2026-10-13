@@ -25,13 +25,20 @@ This file defines shared instructions for AI coding tools working in this reposi
 - Shared Nunjucks components and layouts: `src/server/common/components/**`,
   `src/server/common/templates/**`
 - Browser code (bundled by Vite): `src/client/javascripts/**`, `src/client/stylesheets/**`
+- Case-officer auth: `src/server/server.js` registers `@defra/hapi-oidc-auth`
+  (Entra). Case-officer pages (e.g. `dashboard`, `search`) are gated with
+  `requireAuthorised` in `options.pre`, and any `validate.failAction` on those
+  routes must run the same guard itself (see `search/options.js`), since Hapi
+  runs validation `failAction` before route `pre` handlers.
 
 ## Folder structure and naming conventions
 
 Each page (or group of related routes) lives in its own kebab-case folder under
 `src/server/routes/`, optionally nested in a journey folder
-(`qualifying-questions/`, `pro-users/`, `check-confirm/`, `admin/`). Files inside
-a page folder have fixed names, so do not repeat the folder name in them:
+(`qualifying-questions/`, `pro-users/`, `check-confirm/`). Top-level pages that
+aren't part of a journey (`home`, `cookies`, `dashboard`, `search`) sit directly
+under `src/server/routes/` rather than in a journey folder. Files inside a page
+folder have fixed names, so do not repeat the folder name in them:
 
 ```text
 src/server/routes/<journey>/<page>/
@@ -44,10 +51,19 @@ src/server/routes/<journey>/<page>/
   helpers/          # page-specific helpers, with co-located tests (if needed)
 ```
 
+This is the template for journey/form pages; other folders may reasonably
+differ and should not be "fixed" to match it exactly. For example: `search/`
+also has `reference.js`, `search-client.js`, `search-data.js` and
+`registration-mapper.js` at the top level; `cookies/` has no `options.js`;
+`error/` is a view rendered by `catchAll` rather than its own route folder;
+and `health/` is registered directly by `router.js` rather than via
+`routes.js`.
+
 - Reference views by folder path ending in `index`, e.g.
   `h.view('pro-users/member-schemes/index')` and
   `viewFailAction('pro-users/member-schemes/index')`.
-- Import the plugin from the folder's `index.js` in `src/server/routes/routes.js`.
+- Import the plugin from the folder's `index.js` in `src/server/routes/routes.js`
+  (except `health`, which `router.js` registers directly).
 - Tests are co-located next to the file under test as `<file>.test.js`.
   Use a suffix such as `controller.unit.test.js` only to separate a second test style.
 - Helpers used by more than one page go in `src/server/common/helpers/`, not in

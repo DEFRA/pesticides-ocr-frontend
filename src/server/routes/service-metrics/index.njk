@@ -1,0 +1,53 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <h1 class="govuk-heading-xl">Service metrics</h1>
+
+    <p class="govuk-body">Journeys through the online registration, counted for every applicant whether or not they accept analytics cookies.</p>
+
+    {% if rows %}
+    {{ govukTable({
+      caption: "Registration journeys",
+      captionClasses: "govuk-visually-hidden",
+      firstCellIsHeader: true,
+      head: [
+        { text: "Period" },
+        { text: "Starts", format: "numeric" },
+        { text: "Registrations", format: "numeric" },
+        { text: "Not eligible", format: "numeric" },
+        { text: "Finished", format: "numeric" },
+        { text: "Drop-outs", format: "numeric" },
+        { text: "Completion rate", format: "numeric" }
+      ],
+      rows: rows
+    }) }}
+
+    <h2 class="govuk-heading-m">What the figures mean</h2>
+    {{ govukSummaryList({
+      classes: "govuk-summary-list--no-border",
+      rows: [
+        { key: { text: "Starts" }, value: { text: "Journeys that reached the first question, after Start now." } },
+        { key: { text: "Registrations" }, value: { text: "Journeys that ended in a registration." } },
+        { key: { text: "Not eligible" }, value: { text: "Journeys that ended on the ‘You do not need to use this service’ page." } },
+        { key: { text: "Finished" }, value: { text: "Registrations plus not eligible." } },
+        { key: { text: "Drop-outs" }, value: { text: "Starts that have not finished." } },
+        { key: { text: "Completion rate" }, value: { text: "Finished as a percentage of starts." } }
+      ]
+    }) }}
+    <p class="govuk-body">Each browser session counts once. A journey can start in one month and finish in the next, and a few starts may not be recorded, so the figures are approximate.</p>
+    {% endif %}
+
+    <p class="govuk-body"><a class="govuk-link" href="/dashboard">Back to the dashboard</a></p>
+
+  </div>
+</div>
+{% endblock %}

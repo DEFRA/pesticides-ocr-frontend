@@ -1,18 +1,11 @@
-// Data access for the case-officer search (EQ-442): calls the
-// pesticides-ocr-backend search and export APIs (EQ-366, EQ-369) with the
-// signed-in case officer's token forwarded as a bearer — the Entra ACCESS token
-// in live mode (per Microsoft guidance: access tokens, not ID tokens, for API
-// authorization), or the mock-identity token in mock mode.
-//
-// The API is exposed on the same app registration shared with this frontend, so
-// we request its custom scope (api://<client-id>/access_as_user, via the plugin's
-// additionalScopes / ENTRA_API_SCOPE) — that makes the access token's `aud` the
-// app's own client id, which the backend validates, and it carries
-// scp=access_as_user. This requires @defra/hapi-oidc-auth >= 0.4.0 to honour
-// additionalScopes, so do not downgrade the dependency below it.
+// The case-officer search and export APIs (EQ-442, EQ-366, EQ-369).
 
-import { config } from '#/config/config.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
+import {
+  backendError,
+  backendGet,
+  parseJson
+} from '#/server/common/helpers/ocr-backend-client.js'
 
 // Throw a plain Error carrying an intended `.statusCode`, which the search page
 // maps to an error summary (and a 401 to re-authentication). An upstream
