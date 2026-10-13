@@ -76,6 +76,7 @@ describe('#catchAll', () => {
 
     expect(mockErrorLogger).not.toHaveBeenCalledWith(mockStack)
     expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      analyticsEnabled: false,
       pageTitle: 'Page not found',
       heading: statusCodes.notFound,
       message: 'Page not found'
@@ -129,6 +130,17 @@ describe('#catchAll', () => {
       message: 'Something went wrong'
     })
     expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.imATeapot)
+  })
+
+  test('only a 404 page turns analytics off', () => {
+    catchAll(mockRequest(statusCodes.internalServerError), mockToolkit)
+    catchAll(mockRequest(statusCodes.notFound), mockToolkit)
+
+    const [serverErrorContext, notFoundContext] = mockToolkitView.mock.calls.map(
+      ([, context]) => context
+    )
+    expect(serverErrorContext).not.toHaveProperty('analyticsEnabled')
+    expect(notFoundContext.analyticsEnabled).toBe(false)
   })
 
   test('Should provide expected "Something went wrong" page and log error for internalServerError', () => {
