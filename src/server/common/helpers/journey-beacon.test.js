@@ -139,12 +139,13 @@ describe('#recordOncePerSession', () => {
     const record = vi.fn()
     const req = fakeRequest()
 
-    recordOncePerSession(req, {
+    const recorded = recordOncePerSession(req, {
       sessionKey: 'k',
       record,
       logMessage: 'msg'
     })
 
+    expect(recorded).toBe(true)
     expect(record).toHaveBeenCalledTimes(1)
     expect(record).toHaveBeenCalledWith(req)
     expect(req.yar.get('k')).toBe(true)
@@ -155,8 +156,13 @@ describe('#recordOncePerSession', () => {
     const record = vi.fn()
     const req = fakeRequest({ k: true })
 
-    recordOncePerSession(req, { sessionKey: 'k', record, logMessage: 'msg' })
+    const recorded = recordOncePerSession(req, {
+      sessionKey: 'k',
+      record,
+      logMessage: 'msg'
+    })
 
+    expect(recorded).toBe(false)
     expect(record).not.toHaveBeenCalled()
     expect(req.logger.info).not.toHaveBeenCalled()
   })

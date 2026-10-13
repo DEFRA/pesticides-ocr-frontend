@@ -92,7 +92,7 @@ export function recordJourneyNotEligible(request) {
 // back-navigation don't double-count. Shared by the journey milestone routes.
 export function recordOncePerSession(request, { sessionKey, record, logMessage }) {
   if (request.yar.get(sessionKey)) {
-    return
+    return false
   }
   request.yar.set(sessionKey, true)
   request.logger.info(logMessage)
@@ -100,4 +100,5 @@ export function recordOncePerSession(request, { sessionKey, record, logMessage }
   // catches its own errors), so a floating promise is intended here. (`void` is
   // disallowed by this repo's lint config, hence the bare call.)
   record(request)
+  return true
 }

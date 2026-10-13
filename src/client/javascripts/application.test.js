@@ -73,4 +73,40 @@ describe('application entry (EQ-388/EQ-363 wiring)', () => {
       appended.some((el) => String(el.src).includes('gtm.js?id=GTM-TEST'))
     ).toBe(true)
   })
+
+  const pageWithJourneyEvent = (cookie) => {
+    global.document = {
+      querySelector: () => null,
+      querySelectorAll: () => [],
+      getElementById: (id) =>
+        id === 'js-analytics-config'
+          ? { dataset: { gtmId: 'GTM-TEST', event: 'journey_start' } }
+          : null,
+      createElement: () => ({}),
+      head: { appendChild: () => {} },
+      cookie,
+      body: { classList: { contains: () => false } },
+      location: { protocol: 'http:', hostname: 'localhost' }
+    }
+  }
+
+  test('pushes the page journey event when analytics was already accepted', async () => {
+    pageWithJourneyEvent(
+      `ocr_cookies_analytics=${encodeURIComponent(
+        JSON.stringify({ analytics: true, version: 1 })
+      )}`
+    )
+
+    await import('#/client/javascripts/application.js')
+
+    expect(window.dataLayer).toContainEqual({ event: 'journey_start' })
+  })
+
+  test('does not push the page journey event without consent', async () => {
+    pageWithJourneyEvent('')
+
+    await import('#/client/javascripts/application.js')
+
+    expect(window.dataLayer).not.toContainEqual({ event: 'journey_start' })
+  })
 })

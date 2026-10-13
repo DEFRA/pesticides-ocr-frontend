@@ -1,3 +1,4 @@
+import { milestonePageCache } from '#/server/common/constants/analytics-events.js'
 import { get, post } from './controller.js'
 import { app, validate } from './options.js'
 
@@ -11,7 +12,8 @@ export const businessActivities = {
           path: '/business-activities',
           ...get,
           options: {
-            app
+            app,
+            cache: milestonePageCache
           }
         },
         {

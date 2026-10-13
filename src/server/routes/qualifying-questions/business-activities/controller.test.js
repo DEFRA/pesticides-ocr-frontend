@@ -29,6 +29,28 @@ describe('#businessActivitiesController', () => {
     })
   })
 
+  test('shows the activities already chosen when the user comes back', async () => {
+    const first = await server.inject({ method: 'GET', url: '/business-activities' })
+    const cookie = first.headers['set-cookie'][0].split(';')[0]
+    await server.inject({
+      method: 'POST',
+      url: '/business-activities',
+      headers: { cookie },
+      payload: { businessActivities: ['market', 'use-professional'] }
+    })
+
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/business-activities',
+      headers: { cookie }
+    })
+
+    const checked = [...result.matchAll(/value="([^"]+)" checked/g)].map(
+      ([, value]) => value
+    )
+    expect(checked).toEqual(['market', 'use-professional'])
+  })
+
   describe('POST /business-activities', () => {
     test('Should redirect to main customer page', async () => {
       const { statusCode, headers } = await injectWithSession(server, {

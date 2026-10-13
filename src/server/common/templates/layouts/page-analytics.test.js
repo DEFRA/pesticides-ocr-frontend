@@ -1,7 +1,10 @@
 import { vi } from 'vitest'
 
 import { statusCodes } from '#/server/common/constants/status-codes.js'
-import { signInCaseOfficer } from '#/test-helpers/session-helpers.js'
+import {
+  getSessionCookie,
+  signInCaseOfficer
+} from '#/test-helpers/session-helpers.js'
 
 vi.mock(import('#/config/config.js'), async (importOriginal) => {
   const originalModule = await importOriginal()
@@ -89,5 +92,75 @@ describe('#pageLayout analytics', () => {
     const { headers } = await get('/')
 
     expect(headers['referrer-policy']).toBe('strict-origin')
+  })
+
+  describe('journey events (EQ-533)', () => {
+    const event = (html) => html.match(/data-event="([^"]+)"/)?.[1]
+
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    const firstThenReload = async (url) => {
+      const first = await get(url)
+      const cookie = first.headers['set-cookie'][0].split(';')[0]
+      return { first, reload: await get(url, { cookie }) }
+    }
+
+    const register = (cookie, reference) => {
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+        status: statusCodes.created,
+        ok: true,
+        json: async () => ({ reference })
+      })
+      return server.inject({
+        method: 'POST',
+        url: '/check-answers',
+        headers: { cookie },
+        payload: {}
+      })
+    }
+
+    test('a page that is not a journey milestone carries no event', async () => {
+      expect(event((await get('/')).result)).toBeUndefined()
+    })
+
+    test('the first question carries journey_start once per session', async () => {
+      const { first, reload } = await firstThenReload('/business-activities')
+
+      expect(event(first.result)).toBe('journey_start')
+      expect(event(reload.result)).toBeUndefined()
+    })
+
+    test('the not-eligible page carries journey_not_eligible once per session', async () => {
+      const { first, reload } = await firstThenReload('/not-eligible')
+
+      expect(event(first.result)).toBe('journey_not_eligible')
+      expect(event(reload.result)).toBeUndefined()
+    })
+
+    test('the confirmation carries registration_complete once per registration', async () => {
+      const cookie = await getSessionCookie(server, '/business-activities')
+
+      await register(cookie, 'PPP-1A2-B3C')
+      const confirmation = await get('/confirmation', { cookie })
+      const reload = await get('/confirmation', { cookie })
+      await register(cookie, 'PPP-9Z8-Y7X')
+      const second = await get('/confirmation', { cookie })
+
+      expect(event(confirmation.result)).toBe('registration_complete')
+      expect(confirmation.headers['cache-control']).toBe('no-store')
+      expect(event(reload.result)).toBeUndefined()
+      expect(event(second.result)).toBe('registration_complete')
+    })
+
+    test.each(['/business-activities', '/not-eligible'])(
+      '%s is not cached, so going back asks the server again',
+      async (url) => {
+        const { headers } = await get(url)
+
+        expect(headers['cache-control']).toBe('no-store')
+      }
+    )
   })
 })

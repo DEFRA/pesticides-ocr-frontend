@@ -7,6 +7,7 @@
  */
 
 import { gtag, loadAnalytics } from '../analytics/load-analytics.js'
+import { pushJourneyEvent } from '../analytics/journey-event.js'
 import {
   CONSENT_COOKIE_NAME,
   CONSENT_COOKIE_VERSION,
@@ -113,6 +114,7 @@ export function setConsentCookie(options) {
 
   if (consent.analytics && !alreadyGranted) {
     window.dataLayer.push({ event: CONSENT_GRANTED_EVENT })
+    pushJourneyEvent()
   }
 }
 
