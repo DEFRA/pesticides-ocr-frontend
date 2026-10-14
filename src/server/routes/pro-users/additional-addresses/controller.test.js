@@ -1,6 +1,6 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
-import { injectWithSession } from '#/test-helpers/session-helpers.js'
+import { getSessionCookie, injectWithSession } from '#/test-helpers/session-helpers.js'
 
 describe('#additionalAddressesController', () => {
   let server
@@ -61,6 +61,27 @@ describe('#additionalAddressesController', () => {
 
       expect(statusCode).toBe(statusCodes.redirect)
       expect(headers.location).toBe('/additional-addresses/address')
+    })
+
+    test('Should discard an address that was abandoned before it was finished', async () => {
+      const cookie = await getSessionCookie(server, '/additional-addresses')
+      const post = (url, payload) =>
+        server.inject({ method: 'POST', url, headers: { cookie }, payload })
+
+      await post('/additional-addresses/address', {
+        addressLine1: 'Lowfield Farm',
+        addressTown: 'Leeds',
+        addressPostcode: 'LS1 1AA'
+      })
+      await post('/additional-addresses', { additionalAddresses: 'yes' })
+
+      const { result } = await server.inject({
+        method: 'GET',
+        url: '/additional-addresses/address',
+        headers: { cookie }
+      })
+
+      expect(result).not.toEqual(expect.stringContaining('Lowfield Farm'))
     })
 
     test('Should redirect to check-answers page when No is selected', async () => {

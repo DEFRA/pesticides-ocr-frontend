@@ -5,6 +5,7 @@ import {
   getSessionCookie,
   signInCaseOfficer
 } from '#/test-helpers/session-helpers.js'
+import { completeJourney } from '#/test-helpers/journey-helpers.js'
 
 vi.mock(import('#/config/config.js'), async (importOriginal) => {
   const originalModule = await importOriginal()
@@ -107,7 +108,8 @@ describe('#pageLayout analytics', () => {
       return { first, reload: await get(url, { cookie }) }
     }
 
-    const register = (cookie, reference) => {
+    const register = async (cookie, reference) => {
+      await completeJourney(server, cookie)
       vi.spyOn(globalThis, 'fetch').mockResolvedValue({
         status: statusCodes.created,
         ok: true,

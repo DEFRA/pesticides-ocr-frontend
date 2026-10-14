@@ -29,7 +29,7 @@ describe('#journey', () => {
     test.each([
       ['/business-activities', { businessActivities: ['seller-amateur'] }, '/business-name'],
       ['/business-activities', { businessActivities: ['manufacture'] }, '/main-customer'],
-      ['/business-activities', { businessActivities: ['seller-amateur', 'seller-professional'] }, '/main-customer'],
+      ['/business-activities', { businessActivities: ['seller-amateur', 'seller-professional'] }, '/business-name'],
       ['/address-activity', { addressActivities: ['use'] }, '/quantity'],
       ['/address-activity', { addressActivities: ['store'] }, '/check-answers'],
       ['/quantity', { businessActivities: ['seller-amateur'] }, '/check-answers'],
@@ -144,13 +144,13 @@ describe('#journey', () => {
       expect(formSession).not.toHaveProperty('mainCustomer')
     })
 
-    test('Should keep the main customer when amateur selling is one of several activities', () => {
+    test('Should remove the main customer when amateur selling is one of several activities', () => {
       const formSession = removeSkippedAnswers({
         ...professionalUser,
         businessActivities: ['seller-amateur', 'use-professional']
       })
 
-      expect(formSession).toHaveProperty('mainCustomer')
+      expect(formSession).not.toHaveProperty('mainCustomer')
       expect(formSession).toHaveProperty('professionalSectors')
     })
 

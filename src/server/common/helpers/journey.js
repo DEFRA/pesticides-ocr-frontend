@@ -5,11 +5,14 @@ const onlySellsAmateurProducts = (formSession) =>
   formSession['businessActivities'].length === 1 &&
   formSession['businessActivities'][0] === 'seller-amateur'
 
+const sellsAmateurProducts = (formSession) =>
+  formSession['businessActivities'].includes('seller-amateur')
+
 export const JOURNEY = {
   '/business-activities': {
     sessionKey: 'businessActivities',
     next: (formSession) =>
-      onlySellsAmateurProducts(formSession) ? '/business-name' : '/main-customer'
+      sellsAmateurProducts(formSession) ? '/business-name' : '/main-customer'
   },
   '/main-customer': {
     sessionKey: 'mainCustomer',

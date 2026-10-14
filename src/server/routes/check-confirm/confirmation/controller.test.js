@@ -3,7 +3,7 @@ import { vi } from 'vitest'
 import { createServer } from '#/server/server.js'
 import { config } from '#/config/config.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
-import { getSessionCookie } from '#/test-helpers/session-helpers.js'
+import { completeJourney } from '#/test-helpers/journey-helpers.js'
 
 describe('#confirmationController', () => {
   let server
@@ -35,7 +35,7 @@ describe('#confirmationController', () => {
   // the check answers submission, so a session under test is seeded the same
   // way, with the backend stubbed.
   const sessionWithReference = async (reference) => {
-    const cookie = await getSessionCookie(server, '/business-activities')
+    const cookie = await completeJourney(server)
 
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       status: statusCodes.created,
@@ -98,8 +98,9 @@ describe('#confirmationController', () => {
       expect(third.result).toBe(first.result)
     })
 
-    test('Should show the latest reference when the user submits check answers again', async () => {
+    test('Should show the latest reference when the user registers again', async () => {
       const cookie = await sessionWithReference('PPP-123-45A')
+      await completeJourney(server, cookie)
 
       vi.spyOn(globalThis, 'fetch').mockResolvedValue({
         status: statusCodes.created,

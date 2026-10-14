@@ -27,7 +27,7 @@ export const checkAdditionalAddress = {
           }
         },
         {
-          method: 'GET',
+          method: 'POST',
           path: '/check-additional-address/remove',
           ...removeLatest
         }

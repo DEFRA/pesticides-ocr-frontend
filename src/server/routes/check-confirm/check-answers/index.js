@@ -27,7 +27,7 @@ export const checkAnswers = {
           }
         },
         {
-          method: 'GET',
+          method: 'POST',
           path: '/check-answers/additional-addresses/{number}/delete',
           ...deleteAdditionalAddress,
           options: {

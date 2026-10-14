@@ -21,14 +21,6 @@
           card: {
             title: { 
               text: "Additional address details" 
-            },
-            actions : {
-              items: [
-                {
-                  href: "/check-additional-address/remove",
-                  text: "Remove"
-                }
-              ]
             }
           },
           rows: [
@@ -59,6 +51,13 @@
             }
           ]
         }) }}
+
+      <form method="post" action="/check-additional-address/remove" novalidate>
+        {{ govukButton({
+          html: "Remove<span class=\"govuk-visually-hidden\"> (Additional address details)</span>",
+          classes: "govuk-button--secondary"
+        }) }}
+      </form>
     </div>
     {% endif %}
 

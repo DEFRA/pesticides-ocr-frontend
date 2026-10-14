@@ -1,6 +1,7 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
 import { buildLatestAddress } from './helpers/build-latest-address.js'
 import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
+import { removeUnfinishedAddresses } from '#/server/common/helpers/additional-addresses.js'
 
 export const get = {
   handler(request, h) {
@@ -18,6 +19,8 @@ export const post = {
     const payload = request.payload['checkAdditionalAddress']
 
     if (payload === 'yes') {
+      request.yar.set('formSession', removeUnfinishedAddresses(getSession(request, 'formSession')))
+
       return redirectToNextPage(request, h, '/additional-addresses/address')
     }
 

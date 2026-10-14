@@ -90,8 +90,7 @@
         {% for entry in answers.additionalAddresses %}
           {{ govukSummaryList({
             card: {
-              title: { text: "Additional address " ~ loop.index },
-              actions: { items: [{ href: "/check-answers/additional-addresses/" ~ loop.index ~ "/delete", text: "Delete" }] }
+              title: { text: "Additional address " ~ loop.index }
             },
             rows: [
               { 
@@ -116,6 +115,13 @@
               } if entry.activity
             ]
           }) }}
+
+          <form method="post" action="/check-answers/additional-addresses/{{ loop.index }}/delete" novalidate>
+            {{ govukButton({
+              html: "Delete<span class=\"govuk-visually-hidden\"> (Additional address " ~ loop.index ~ ")</span>",
+              classes: "govuk-button--secondary"
+            }) }}
+          </form>
         {% endfor %}
 
         <p class="govuk-body">

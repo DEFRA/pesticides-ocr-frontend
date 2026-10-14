@@ -177,6 +177,34 @@ describe('#checkAdditionalAddressController', () => {
       expect(headers.location).toBe('/additional-addresses/address')
     })
 
+    test('Should start the next address afresh when an unfinished one was abandoned', async () => {
+      const cookie = await newSessionCookie()
+      await addAnAddress(cookie)
+      await submitAddress(cookie, { addressLine1: 'Lowfield Farm' })
+      await submitContact(cookie, { contactName: 'Jane Doe' })
+
+      await server.inject({
+        method: 'POST',
+        url: '/check-additional-address',
+        headers: { cookie },
+        payload: { checkAdditionalAddress: 'yes' }
+      })
+      const addressPage = await server.inject({
+        method: 'GET',
+        url: '/additional-addresses/address',
+        headers: { cookie }
+      })
+      await submitAddress(cookie, { addressLine1: 'Wetfield Farm' })
+      const contactPage = await server.inject({
+        method: 'GET',
+        url: '/additional-addresses/contact',
+        headers: { cookie }
+      })
+
+      expect(addressPage.result).not.toEqual(expect.stringContaining('Lowfield Farm'))
+      expect(contactPage.result).not.toEqual(expect.stringContaining('Jane Doe'))
+    })
+
     test('Should redirect to the check answers page when No is selected', async () => {
       const cookie = await newSessionCookie()
 
@@ -282,13 +310,13 @@ describe('#checkAdditionalAddressController', () => {
     })
   })
 
-  describe('GET /check-additional-address/remove', () => {
+  describe('POST /check-additional-address/remove', () => {
     test('Should remove the address that was just entered', async () => {
       const cookie = await newSessionCookie()
       await addAnAddress(cookie)
 
       const { statusCode, headers } = await server.inject({
-        method: 'GET',
+        method: 'POST',
         url: '/check-additional-address/remove',
         headers: { cookie }
       })
@@ -309,7 +337,7 @@ describe('#checkAdditionalAddressController', () => {
       })
 
       await server.inject({
-        method: 'GET',
+        method: 'POST',
         url: '/check-additional-address/remove',
         headers: { cookie }
       })
@@ -321,11 +349,37 @@ describe('#checkAdditionalAddressController', () => {
       expect(result).not.toEqual(expect.stringContaining('Lowfield Farm'))
     })
 
+    test('Should not remove the address from a GET request', async () => {
+      const cookie = await newSessionCookie()
+      await addAnAddress(cookie)
+
+      const { statusCode } = await server.inject({
+        method: 'GET',
+        url: '/check-additional-address/remove',
+        headers: { cookie }
+      })
+      const { result } = await checkPage(cookie)
+
+      expect(statusCode).toBe(statusCodes.notFound)
+      expect(result).toEqual(expect.stringContaining('Highfield Farm'))
+    })
+
+    test('Should show the remove action as a form that posts', async () => {
+      const cookie = await newSessionCookie()
+      await addAnAddress(cookie)
+
+      const { result } = await checkPage(cookie)
+
+      expect(result).toEqual(
+        expect.stringContaining('<form method="post" action="/check-additional-address/remove"')
+      )
+    })
+
     test('Should redirect without erroring when there is nothing to remove', async () => {
       const cookie = await newSessionCookie()
 
       const { statusCode, headers } = await server.inject({
-        method: 'GET',
+        method: 'POST',
         url: '/check-additional-address/remove',
         headers: { cookie }
       })
