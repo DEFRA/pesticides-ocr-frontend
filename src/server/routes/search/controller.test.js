@@ -52,6 +52,16 @@ describe('#search (EQ-227, EQ-402)', () => {
 
   const requestedUrl = () => fetch.mock.calls[0][0].toString()
 
+  const searchBody = (data = []) => ({
+    data,
+    pagination: {
+      page: 1,
+      pageSize: 10,
+      totalRecords: data.length,
+      totalPages: data.length ? 1 : 0
+    }
+  })
+
   test('redirects an unauthenticated visitor to the Entra sign-in', async () => {
     const { statusCode, headers } = await server.inject({
       method: 'GET',
@@ -70,7 +80,7 @@ describe('#search (EQ-227, EQ-402)', () => {
     expect($('h1').text()).toContain('Search the register')
     expect($('form input.govuk-input')).toHaveLength(1)
     expect($('#search-hint').text()).toContain(
-      'Search for a reference, such as PPP-1A2-B3C, or a business name, contact, town or postcode'
+      'Search for a reference, such as PPP-1A2-B3C, or a business name, contact name, email, town or postcode. Use * to match any characters.'
     )
     expect($('form .govuk-button')).toHaveLength(1)
     expect($('.govuk-summary-card')).toHaveLength(0)
@@ -78,50 +88,102 @@ describe('#search (EQ-227, EQ-402)', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
-  test('a term in the reference format is an exact lookup, in any case', async () => {
+  test('searches the backend for the term, from the first page', async () => {
+    fetch.mockResolvedValue(jsonResponse(searchBody()))
+
+    await get('/search?search=Green%20Acres')
+
+    expect(requestedUrl()).toBe(`${BACKEND_URL}/search?q=Green%20Acres&page=1`)
+  })
+
+  test('a term in the reference format is searched like any other', async () => {
     fetch.mockResolvedValue(
-      jsonResponse({ reference: 'PPP-1A2-B3C', businessName: 'Live Co' })
+      jsonResponse(
+        searchBody([{ reference: 'PPP-1A2-B3C', businessName: 'Live Co' }])
+      )
     )
 
     const { statusCode, result } = await get('/search?search=ppp-1a2-b3c')
 
     expect(statusCode).toBe(statusCodes.ok)
-    expect(requestedUrl()).toBe(`${BACKEND_URL}/search?reference=PPP-1A2-B3C`)
+    expect(requestedUrl()).toBe(`${BACKEND_URL}/search?q=ppp-1a2-b3c&page=1`)
     expect(load(result)('.govuk-summary-card')).toHaveLength(1)
   })
 
-  test('any other term is a free-text search', async () => {
-    fetch.mockResolvedValue(jsonResponse([]))
+  test('asks the backend for the requested page', async () => {
+    fetch.mockResolvedValue(jsonResponse(searchBody()))
 
-    await get('/search?search=Green%20Acres')
+    await get('/search?search=Green&page=3')
 
-    expect(requestedUrl()).toBe(`${BACKEND_URL}/search?q=Green%20Acres`)
+    expect(requestedUrl()).toBe(`${BACKEND_URL}/search?q=Green&page=3`)
   })
 
-  test('a blank search lists everything', async () => {
-    fetch.mockResolvedValue(jsonResponse([]))
+  test.each(['0', '-1', 'abc', '1.5', '10001'])(
+    'treats page=%s as the first page',
+    async (page) => {
+      fetch.mockResolvedValue(jsonResponse(searchBody()))
 
-    await get('/search?search=')
+      const { statusCode } = await get(`/search?search=Green&page=${page}`)
 
-    expect(requestedUrl()).toBe(`${BACKEND_URL}/search?q=`)
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(requestedUrl()).toBe(`${BACKEND_URL}/search?q=Green&page=1`)
+    }
+  )
+
+  test.each([
+    [
+      'a blank search',
+      '',
+      'Enter a reference, business name, contact name, email, town or postcode'
+    ],
+    [
+      'a whitespace search',
+      '%20%20',
+      'Enter a reference, business name, contact name, email, town or postcode'
+    ],
+    ['a wildcard-only search', '**', 'Search must include more than just *'],
+    [
+      'a search with too many wildcards',
+      'a*b*c*d*e*f*g',
+      'Search must use * no more than 5 times'
+    ]
+  ])(
+    '%s shows an error on the field without calling the backend',
+    async (_case, search, message) => {
+      const { statusCode, result } = await get(`/search?search=${search}`)
+      const $ = load(result)
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect($('.govuk-error-summary a[href="#search"]').text()).toContain(
+        message
+      )
+      expect($('#search-error').text()).toContain(message)
+      expect(fetch).not.toHaveBeenCalled()
+    }
+  )
+
+  test.each([
+    ['exactly 5 wildcards', 'a*b*c*d*e*f', 'a*b*c*d*e*f'],
+    ['a run of wildcards, as one', 'a***b', 'a*b'],
+    ['runs counting once towards the limit', 'a**b**c**d**e**f', 'a*b*c*d*e*f']
+  ])('accepts %s', async (_case, search, sent) => {
+    fetch.mockResolvedValue(jsonResponse(searchBody()))
+
+    const { statusCode } = await get(
+      `/search?search=${encodeURIComponent(search)}`
+    )
+
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(requestedUrl()).toBe(
+      `${BACKEND_URL}/search?q=${encodeURIComponent(sent)}&page=1`
+    )
   })
 
-  test('a reference with a different prefix is a free-text search', async () => {
-    fetch.mockResolvedValue(jsonResponse([]))
-
-    await get('/search?search=ABC-1A2-B3C')
-
-    expect(requestedUrl()).toBe(`${BACKEND_URL}/search?q=ABC-1A2-B3C`)
-  })
-
-  test('the reference prefix comes from config', async () => {
+  test('the example reference in the hint comes from config', async () => {
     config.set('referencePrefix', 'OCR')
     try {
-      fetch.mockResolvedValue(jsonResponse(null))
+      const { result } = await get('/search')
 
-      const { result } = await get('/search?search=OCR-1A2-B3C')
-
-      expect(requestedUrl()).toBe(`${BACKEND_URL}/search?reference=OCR-1A2-B3C`)
       expect(load(result)('#search-hint').text()).toContain('OCR-1A2-B3C')
     } finally {
       config.set('referencePrefix', 'PPP')
@@ -199,7 +261,9 @@ describe('#search (EQ-227, EQ-402)', () => {
   // accepts — the search reaches the backend instead of bouncing to sign-in.
   test('mock mode forwards a mock-identity token to the backend', async () => {
     fetch.mockResolvedValue(
-      jsonResponse({ reference: 'PPP-1A2-B3C', businessName: 'Live Co' })
+      jsonResponse(
+        searchBody([{ reference: 'PPP-1A2-B3C', businessName: 'Live Co' }])
+      )
     )
 
     const { statusCode, result } = await get('/search?search=PPP-1A2-B3C')

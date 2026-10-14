@@ -14,7 +14,6 @@
 
       {{ govukCheckboxes({
         name: "businessActivities",
-        values: values["businessActivities"] if values,
         fieldset: {
           legend: {
             text: "What are your business’s activities with plant protection products (PPPs)?",
@@ -27,7 +26,8 @@
           classes: "govuk-!-margin-bottom-6"
         },
         errorMessage: errors["businessActivities"] if errors["businessActivities"],
-        items: items
+        items: items,
+        values: selected
       }) }}
 
       {{ govukButton({

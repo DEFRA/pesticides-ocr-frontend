@@ -129,6 +129,12 @@ export const config = convict({
     default: isProduction,
     env: 'ENABLE_SECURE_CONTEXT'
   },
+  feedbackSurveyUrl: {
+    doc: 'User satisfaction survey (Qualtrics), linked from the phase banner and the confirmation page. Use the live /jfe/form/ link: preview links do not record responses.',
+    format: 'url',
+    default: 'https://defragroup.eu.qualtrics.com/jfe/form/SV_5zNPlVmqjyQZxye',
+    env: 'FEEDBACK_SURVEY_URL'
+  },
   analytics: {
     enabled: {
       doc: 'Load Google Tag Manager + show the cookie banner. Production only by default; set ANALYTICS_ENABLED=true to exercise it locally (EQ-388/EQ-363).',
