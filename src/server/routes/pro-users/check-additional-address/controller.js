@@ -1,6 +1,7 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
 import { buildLatestAddress } from './helpers/build-latest-address.js'
 import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
+import { CHECK_ANSWERS_PAGE } from '#/server/common/helpers/journey.js'
 import { removeUnfinishedAddresses } from '#/server/common/helpers/additional-addresses.js'
 
 export const get = {
@@ -24,7 +25,7 @@ export const post = {
       return redirectToNextPage(request, h, '/additional-addresses/address')
     }
 
-    return redirectToNextPage(request, h, '/check-answers')
+    return redirectToNextPage(request, h, CHECK_ANSWERS_PAGE)
   }
 }
 

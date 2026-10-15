@@ -1,4 +1,5 @@
 import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
+import { CHECK_ANSWERS_PAGE } from '#/server/common/helpers/journey.js'
 import { getSession } from '#/server/common/helpers/get-session.js'
 import { removeUnfinishedAddresses } from '#/server/common/helpers/additional-addresses.js'
 
@@ -13,7 +14,7 @@ export const post = {
     const payload = request.payload['additionalAddresses']
 
     if (payload === 'no') {
-      return redirectToNextPage(request, h, '/check-answers')
+      return redirectToNextPage(request, h, CHECK_ANSWERS_PAGE)
     }
 
     request.yar.set('formSession', removeUnfinishedAddresses(getSession(request, 'formSession')))

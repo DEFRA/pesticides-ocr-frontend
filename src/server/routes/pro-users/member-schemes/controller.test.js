@@ -76,6 +76,21 @@ describe('#memberSchemesController', () => {
       expect(headers.location).toBe('/additional-addresses')
     })
 
+    test('Should save no schemes as an empty list when neither is given', async () => {
+      const cookie = await answerStep(server, {
+        url: '/member-schemes',
+        payload: { memberSchemesOther: '' }
+      })
+
+      const { result } = await server.inject({
+        method: 'GET',
+        url: '/check-answers',
+        headers: { cookie }
+      })
+
+      expect(result).toEqual(expect.stringMatching(/Assurance schemes[\s\S]*?None/))
+    })
+
     test('Should show an error when both a scheme and Other are given', async () => {
       const { statusCode, result } = await postSchemes({
         memberSchemes: 'red-tractor',

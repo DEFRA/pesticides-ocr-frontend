@@ -68,7 +68,8 @@ export const post = {
     }
 
     const responseData = await response.json()
-    request.yar.set('formSession', { 'confirmation-reference': responseData.reference })
+    request.yar.set('formSession', {})
+    request.yar.set('confirmationReference', responseData.reference)
 
     return h.redirect('/confirmation')
   }

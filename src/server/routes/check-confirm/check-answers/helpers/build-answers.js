@@ -45,6 +45,16 @@ function additionalAddress(entry = {}) {
   })
 }
 
+function memberSchemeLines(memberSchemes) {
+  if (memberSchemes === undefined) {
+    return []
+  }
+
+  const labels = labelsFor(memberSchemesItems, memberSchemes)
+
+  return labels.length > 0 ? labels : ['None']
+}
+
 function quantityLines(quantity = {}) {
   const type = quantityTypeItems.find(
     (item) => item.value === quantity['quantityType']
@@ -72,7 +82,7 @@ export function buildAnswers(formData = {}) {
     quantity: quantityLines(formData.quantity),
     quantityType: formData.quantity?.['quantityType'],
     professionalSectors: labelsFor(professionalSectorsItems, formData['professionalSectors']),
-    memberSchemes: labelsFor(memberSchemesItems, formData['memberSchemes']),
+    memberSchemes: memberSchemeLines(formData['memberSchemes']),
     additionalAddresses: (formData['additionalAddresses'] ?? []).map(additionalAddress)
   })
 }

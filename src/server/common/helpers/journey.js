@@ -1,12 +1,11 @@
 const FIRST_PAGE = '/business-activities'
 export const CHECK_ANSWERS_PAGE = '/check-answers'
 
-const onlySellsAmateurProducts = (formSession) =>
-  formSession['businessActivities'].length === 1 &&
-  formSession['businessActivities'][0] === 'seller-amateur'
+const onlySellsAmateurProducts = ({ businessActivities = [] }) =>
+  businessActivities.length === 1 && businessActivities[0] === 'seller-amateur'
 
-const sellsAmateurProducts = (formSession) =>
-  formSession['businessActivities'].includes('seller-amateur')
+const sellsAmateurProducts = ({ businessActivities = [] }) =>
+  businessActivities.includes('seller-amateur')
 
 export const JOURNEY = {
   '/business-activities': {
@@ -96,11 +95,13 @@ export function removeSkippedAnswers(formSession) {
   const { answeredPages, stoppedAt } = followRoute(formSession)
   const knownRouteEnd = stoppedAt === CHECK_ANSWERS_PAGE ? JOURNEY_PAGES.length : JOURNEY_PAGES.indexOf(stoppedAt)
 
-  const skippedKeys = JOURNEY_PAGES.slice(0, knownRouteEnd)
-    .filter((page) => !answeredPages.includes(page))
-    .map((page) => JOURNEY[page].sessionKey)
+  const skippedKeys = new Set(
+    JOURNEY_PAGES.slice(0, knownRouteEnd)
+      .filter((page) => !answeredPages.includes(page))
+      .map((page) => JOURNEY[page].sessionKey)
+  )
 
   return Object.fromEntries(
-    Object.entries(formSession).filter(([key]) => !skippedKeys.includes(key))
+    Object.entries(formSession).filter(([key]) => !skippedKeys.has(key))
   )
 }

@@ -60,6 +60,16 @@ describe('#quantityController', () => {
       })
     }
 
+    test('Should not error when the session has expired', async () => {
+      const { statusCode } = await server.inject({
+        method: 'POST',
+        url: '/quantity',
+        payload: { quantityType: 'amount', quantityAmount: '80000', quantityArea: '' }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+    })
+
     test('Should redirect to check answers page when an amount is given and the only activity is selling amateur PPPs', async () => {
       const { statusCode, headers } = await postQuantityAfterActivities(
         ['seller-amateur'],

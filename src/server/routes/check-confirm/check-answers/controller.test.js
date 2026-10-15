@@ -631,6 +631,21 @@ describe('#checkAnswersController', () => {
       expect(registerCalls(fetchSpy)).toHaveLength(1)
       expect(headers.location).toBe('/business-activities?change=true')
     })
+
+    test('Should register a second business in the same session without the first reference', async () => {
+      const fetchSpy = stubBackend(created())
+      const cookie = await completeJourney(server)
+
+      await submit(cookie)
+      await completeJourney(server, cookie)
+      await submit(cookie)
+
+      const [, options] = registerCalls(fetchSpy).at(-1)
+
+      expect(registerCalls(fetchSpy)).toHaveLength(2)
+      expect(JSON.parse(options.body)).not.toHaveProperty('confirmation-reference')
+      expect(JSON.parse(options.body)).not.toHaveProperty('confirmationReference')
+    })
   })
 
   test('Should tell the browser not to store the page', async () => {

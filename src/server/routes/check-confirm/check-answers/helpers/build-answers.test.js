@@ -80,11 +80,18 @@ describe('#buildAnswers', () => {
   test('Should only return the questions that have an answer', () => {
     const answers = buildAnswers({
       businessName: 'Pesticides Ltd',
-      address: { addressLine2: '' },
-      memberSchemes: [undefined]
+      address: { addressLine2: '' }
     })
 
     expect(answers).toEqual({ businessName: ['Pesticides Ltd'] })
+  })
+
+  test('Should show None when no member scheme was chosen', () => {
+    expect(buildAnswers({ memberSchemes: [] }).memberSchemes).toEqual(['None'])
+  })
+
+  test('Should show None for an older session that saved an empty scheme', () => {
+    expect(buildAnswers({ memberSchemes: [undefined] }).memberSchemes).toEqual(['None'])
   })
 
   test('Should map the professional answers to the labels used on the question pages', () => {

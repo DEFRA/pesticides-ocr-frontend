@@ -88,7 +88,7 @@ describe('#journey', () => {
 
     test('Should treat a member scheme answer with nothing selected as answered', () => {
       expect(
-        findFirstMissingPage({ ...professionalUser, memberSchemes: [undefined] })
+        findFirstMissingPage({ ...professionalUser, memberSchemes: [] })
       ).toBe('/check-answers')
     })
   })

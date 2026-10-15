@@ -25,7 +25,7 @@ export const post = {
     const other = request.payload['memberSchemesOther']
     const formSession = getSession(request, 'formSession')
 
-    formSession['memberSchemes'] = schemes ?? [other]
+    formSession['memberSchemes'] = schemes ?? (other ? [other] : [])
     request.yar.set('formSession', formSession)
 
     return redirectToNextPage(request, h, getNextPage('/member-schemes', formSession))
