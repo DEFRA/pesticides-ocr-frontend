@@ -1,12 +1,18 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
+import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
+import { getNextPage } from '#/server/common/helpers/journey.js'
 
 export const get = {
   handler(request, h) {
     request.yar.set('formSession', request.yar.get('formSession') ?? {})
 
-    const currentAddressLineOne = getSession(request, 'formSession')['address']?.['addressLine1']
+    const formSession = getSession(request, 'formSession')
+    const currentAddressLineOne = formSession['address']?.['addressLine1']
 
-    return h.view('qualifying-questions/address-activity/index', { currentAddressLineOne })
+    return h.view('qualifying-questions/address-activity/index', {
+      currentAddressLineOne,
+      values: { addressActivities: formSession['addressActivities'] }
+    })
   }
 }
 
@@ -18,10 +24,6 @@ export const post = {
     formSession['addressActivities'] = payload
     request.yar.set('formSession', formSession)
 
-    if (payload.includes('use')) {
-      return h.redirect('/quantity')
-    }
-
-    return h.redirect('/check-answers')
+    return redirectToNextPage(request, h, getNextPage('/address-activity', formSession))
   }
 }

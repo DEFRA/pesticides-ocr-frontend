@@ -9,6 +9,7 @@ const selectAtLeastOne = 'Select at least one address activity'
 
 export const app = {
   pageTitle: 'Additional Business Activity',
+  backLink: '/additional-addresses/contact',
   items: additionalBusinessActivityItems
 }
 

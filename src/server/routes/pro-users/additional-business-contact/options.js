@@ -2,7 +2,8 @@ import Joi from 'joi'
 import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 
 export const app = {
-  pageTitle: 'Business Contact'
+  pageTitle: 'Business Contact',
+  backLink: '/additional-addresses/address'
 }
 
 export const validate = {

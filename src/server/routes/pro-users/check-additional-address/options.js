@@ -8,6 +8,7 @@ const selectYesOrNo = 'Select whether you want to add another address'
 
 export const app = {
   pageTitle: 'Check Additional Address',
+  backLink: '/additional-addresses/activity',
   items: checkAdditionalAddressItems
 }
 

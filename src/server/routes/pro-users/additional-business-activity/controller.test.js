@@ -1,4 +1,5 @@
 import { createServer } from '#/server/server.js'
+import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import {
   createSessionRequest,
@@ -187,6 +188,33 @@ describe('#additionalBusinessActivityController', () => {
       })
 
       expect(currentAddressLineOne).toBeUndefined()
+    })
+  })
+
+  describe('Pre-populating from the session', () => {
+    const url = '/additional-addresses/activity'
+
+    test('Should check the activities of the latest entry', async () => {
+      const cookie = await answerStep(server, {
+        url,
+        payload: { addressActivities: ['use', 'records'] }
+      })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(checkedValues(page, 'addressActivities')).toEqual(['use', 'records'])
+    })
+
+    test('Should check nothing when no activities are held in the session', async () => {
+      const page = await revisitStep(server, { url })
+
+      expect(checkedValues(page, 'addressActivities')).toEqual([])
+    })
+
+    test('Should tell the browser not to store the page', async () => {
+      const { headers } = await server.inject({ method: 'GET', url })
+
+      expect(headers['cache-control']).toBe('no-store')
     })
   })
 })

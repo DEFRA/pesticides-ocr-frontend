@@ -2,20 +2,48 @@ import { buildAnswers } from './helpers/build-answers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import Boom from '@hapi/boom'
 import { config } from '#/config/config.js'
+import { getSession } from '#/server/common/helpers/get-session.js'
+import { CHECK_ANSWERS_PAGE, findFirstMissingPage, isOnRoute } from '#/server/common/helpers/journey.js'
+import { removeUnfinishedAddresses } from '#/server/common/helpers/additional-addresses.js'
 
 export const get = {
   handler(request, h) {
-    const formData = request.yar.get('formSession') ?? {}
+    const formData = removeUnfinishedAddresses(request.yar.get('formSession') ?? {})
+    request.yar.set('formSession', formData)
 
     return h.view('check-confirm/check-answers/index', {
-      answers: buildAnswers(formData)
+      answers: buildAnswers(formData),
+      canAddAdditionalAddresses: isOnRoute('/additional-addresses', formData)
     })
+  }
+}
+
+export const deleteAdditionalAddress = {
+  handler(request, h) {
+    const formSession = getSession(request, 'formSession')
+    const additionalAddresses = formSession['additionalAddresses'] ?? []
+    const index = request.params.number - 1
+
+    if (index >= additionalAddresses.length) {
+      return Boom.notFound('Additional address not found')
+    }
+
+    additionalAddresses.splice(index, 1)
+    formSession['additionalAddresses'] = additionalAddresses
+    request.yar.set('formSession', formSession)
+
+    return h.redirect(CHECK_ANSWERS_PAGE)
   }
 }
 
 export const post = {
   async handler(request, h) {
-    const formSession = request.yar.get('formSession') ?? {}
+    const formSession = removeUnfinishedAddresses(request.yar.get('formSession') ?? {})
+    const missingPage = findFirstMissingPage(formSession)
+
+    if (missingPage !== CHECK_ANSWERS_PAGE) {
+      return h.redirect(`${missingPage}?change=true`)
+    }
 
     const url = `${config.get('ocrBackend.url')}/register`
     const postOptions = {
@@ -40,9 +68,8 @@ export const post = {
     }
 
     const responseData = await response.json()
-    formSession['confirmation-reference'] = responseData.reference
-
-    request.yar.set('formSession', formSession)
+    request.yar.set('formSession', {})
+    request.yar.set('confirmationReference', responseData.reference)
 
     return h.redirect('/confirmation')
   }

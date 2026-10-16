@@ -1,6 +1,6 @@
-import { milestonePageCache } from '#/server/common/constants/analytics-events.js'
 import { get } from './controller.js'
 import { app } from './options.js'
+import { NO_STORE_CACHE } from '#/server/common/constants/cache-control.js'
 
 export const notEligible = {
   plugin: {
@@ -12,8 +12,8 @@ export const notEligible = {
           path: '/not-eligible',
           ...get,
           options: {
-            app,
-            cache: milestonePageCache
+            cache: NO_STORE_CACHE,
+            app
           }
         }
       ])

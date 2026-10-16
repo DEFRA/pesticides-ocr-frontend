@@ -1,6 +1,6 @@
-import { milestonePageCache } from '#/server/common/constants/analytics-events.js'
 import { get, post } from './controller.js'
 import { app, validate } from './options.js'
+import { NO_STORE_CACHE } from '#/server/common/constants/cache-control.js'
 
 export const businessActivities = {
   plugin: {
@@ -12,8 +12,8 @@ export const businessActivities = {
           path: '/business-activities',
           ...get,
           options: {
-            app,
-            cache: milestonePageCache
+            cache: NO_STORE_CACHE,
+            app
           }
         },
         {
@@ -21,6 +21,7 @@ export const businessActivities = {
           path: '/business-activities',
           ...post,
           options: {
+            cache: NO_STORE_CACHE,
             app,
             validate
           }

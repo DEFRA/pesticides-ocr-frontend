@@ -4,8 +4,6 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
-{% set backLink = "/business-name" %}
-
 {% block content %}
 
 <div class="govuk-grid-row">
@@ -17,7 +15,7 @@
 
     <p class="govuk-body">Enter the address that is most relevant to your professional PPP activity. This might be a head office, or where you keep your records. You can add other addresses later if you have them</p>
 
-    <form method="post" action="/business-address" novalidate>
+    <form method="post" action="{{ formAction }}" novalidate>
 
       {% call govukFieldset({
       }) %}
@@ -28,6 +26,7 @@
           },
           id: "addressLine1",
           name: "addressLine1",
+          value: values["addressLine1"] if values,
           errorMessage: errors["addressLine1"] if errors["addressLine1"],
           autocomplete: "address-line1",
           classes: "govuk-!-width-two-thirds"
@@ -39,6 +38,7 @@
           },
           id: "addressLine2",
           name: "addressLine2",
+          value: values["addressLine2"] if values,
           autocomplete: "address-line2",
           classes: "govuk-!-width-two-thirds"
         }) }}
@@ -49,6 +49,7 @@
           },
           id: "addressTown",
           name: "addressTown",
+          value: values["addressTown"] if values,
           errorMessage: errors["addressTown"] if errors["addressTown"],
           autocomplete: "address-level2",
           classes: "govuk-!-width-one-third"
@@ -60,6 +61,7 @@
           },
           id: "addressCounty",
           name: "addressCounty",
+          value: values["addressCounty"] if values,
           autocomplete: "address-level1",
           classes: "govuk-!-width-one-third"
         }) }}
@@ -71,6 +73,7 @@
           classes: "govuk-input--width-10",
           id: "addressPostcode",
           name: "addressPostcode",
+          value: values["addressPostcode"] if values,
           errorMessage: errors["addressPostcode"] if errors["addressPostcode"],
           autocomplete: "postal-code"
         }) }}

@@ -4,12 +4,9 @@ import { statusCodes } from '#/server/common/constants/status-codes.js'
 
 export const get = {
   handler(request, h) {
-    let reference
-    const formSession = request.yar.get('formSession') ?? {}
+    const reference = request.yar.get('confirmationReference')
 
-    if (formSession['confirmation-reference']) {
-      reference = formSession['confirmation-reference']
-    } else {
+    if (!reference) {
       return Boom.badData(new Error('Confirmation reference not found in session data'), {
         statusCode: statusCodes.badData
       })

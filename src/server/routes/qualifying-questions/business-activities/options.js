@@ -6,6 +6,7 @@ const selectAtLeastOne = 'Select at least one business activity'
 
 export const app = {
   pageTitle: 'Business Activities',
+  backLink: '/',
   items: businessActivityItems
 }
 
