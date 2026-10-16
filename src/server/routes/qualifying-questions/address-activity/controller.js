@@ -4,7 +4,7 @@ import { getNextPage } from '#/server/common/helpers/journey.js'
 
 export const get = {
   handler(request, h) {
-    request.yar.set('formSession', request.yar.get('formSession') ?? {})
+    request.yar.set('formSession', getSession(request, 'formSession'))
 
     const formSession = getSession(request, 'formSession')
     const currentAddressLineOne = formSession['address']?.['addressLine1']

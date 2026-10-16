@@ -4,7 +4,7 @@ import { getNextPage } from '#/server/common/helpers/journey.js'
 
 export const get = {
   handler(request, h) {
-    request.yar.set('formSession', request.yar.get('formSession') ?? {})
+    request.yar.set('formSession', getSession(request, 'formSession'))
 
     return h.view('qualifying-questions/business-address/index', {
       values: getSession(request, 'formSession')['address']
@@ -15,7 +15,7 @@ export const get = {
 export const post = {
   handler(request, h) {
     const payload = request.payload
-    const formSession = request.yar.get('formSession') ?? {}
+    const formSession = getSession(request, 'formSession')
 
     formSession['address'] = payload
     request.yar.set('formSession', formSession)

@@ -4,26 +4,12 @@ import { addressActivityItems } from '../../../qualifying-questions/address-acti
 import { quantityTypeItems } from '../../../qualifying-questions/quantity/items.js'
 import { professionalSectorsItems } from '../../../pro-users/professional-sectors/items.js'
 import { memberSchemesItems } from '../../../pro-users/member-schemes/items.js'
-import { additionalBusinessActivityItems } from '../../../pro-users/additional-business-activity/items.js'
-
-function toLines(...values) {
-  return values.filter((value) => value !== undefined && value !== '')
-}
-
-function labelsFor(items, values) {
-  return toLines(...[values ?? []].flat())
-    .map((value) => items.find((item) => item.value === value)?.text ?? value)
-}
-
-function addressLines(address = {}) {
-  return toLines(
-    address['addressLine1'],
-    address['addressLine2'],
-    address['addressTown'],
-    address['addressCounty'],
-    address['addressPostcode']
-  )
-}
+import {
+  additionalAddressLines,
+  addressLines,
+  labelsFor,
+  toLines
+} from '#/server/common/helpers/answer-lines.js'
 
 function hasValue(value) {
   return Array.isArray(value) ? value.length > 0 : value !== undefined
@@ -33,16 +19,6 @@ function withValues(answers) {
   return Object.fromEntries(
     Object.entries(answers).filter(([, value]) => hasValue(value))
   )
-}
-
-function additionalAddress(entry = {}) {
-  return withValues({
-    address: addressLines(entry.address),
-    contactName: toLines(entry.contact?.['contactName']),
-    contactEmail: toLines(entry.contact?.['contactEmail']),
-    contactTelephone: toLines(entry.contact?.['contactTelephone']),
-    activity: labelsFor(additionalBusinessActivityItems, entry.activity)
-  })
 }
 
 function memberSchemeLines(memberSchemes) {
@@ -83,6 +59,6 @@ export function buildAnswers(formData = {}) {
     quantityType: formData.quantity?.['quantityType'],
     professionalSectors: labelsFor(professionalSectorsItems, formData['professionalSectors']),
     memberSchemes: memberSchemeLines(formData['memberSchemes']),
-    additionalAddresses: (formData['additionalAddresses'] ?? []).map(additionalAddress)
+    additionalAddresses: (formData['additionalAddresses'] ?? []).map((entry) => withValues(additionalAddressLines(entry)))
   })
 }
