@@ -4,7 +4,6 @@ import { dashboard } from './dashboard/index.js'
 import { search } from './search/index.js'
 import { serviceMetrics } from './service-metrics/index.js'
 import { businessActivities } from './qualifying-questions/business-activities/index.js'
-import { mainCustomer } from './qualifying-questions/main-customer/index.js'
 import { businessName } from './qualifying-questions/business-name/index.js'
 import { businessAddress } from './qualifying-questions/business-address/index.js'
 import { businessContact } from './qualifying-questions/business-contact/index.js'
@@ -28,7 +27,6 @@ export const routes = [
   search,
   serviceMetrics,
   businessActivities,
-  mainCustomer,
   businessName,
   businessAddress,
   businessContact,

@@ -71,7 +71,6 @@
           { key: { text: "Status" }, value: { text: operator.status } },
           { key: { text: "Registered" }, value: { text: operator.registeredDate | formatDate("d MMMM yyyy") if operator.registeredDate } },
           { key: { text: "Business activities" }, value: { text: operator.activities | join(", ") } },
-          { key: { text: "Main customer" }, value: { text: operator.mainCustomer } },
           { key: { text: "Address" }, value: { html: addressHtml } },
           { key: { text: "Contact" }, value: { html: contactHtml } },
           { key: { text: "Address activities" }, value: { text: operator.addressActivities | join(", ") } },

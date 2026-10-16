@@ -21,11 +21,6 @@
             actions: { items: [{ href: "/business-activities?change=true", text: "Change", visuallyHiddenText: "business PPP activities" }] }
           } if answers.businessActivities,
           {
-            key: { text: "Main customer" },
-            value: { html: appAnswerList({ values: answers.mainCustomer }) },
-            actions: { items: [{ href: "/main-customer?change=true", text: "Change", visuallyHiddenText: "main customer" }] }
-          } if answers.mainCustomer,
-          {
             key: { text: "Business name" },
             value: { html: appAnswerList({ values: answers.businessName }) },
             actions: { items: [{ href: "/business-name?change=true", text: "Change", visuallyHiddenText: "business name" }] }

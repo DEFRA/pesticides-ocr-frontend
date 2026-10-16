@@ -9,7 +9,6 @@
 
 import { businessActivityItems } from '#/server/routes/qualifying-questions/business-activities/items.js'
 import { addressActivityItems } from '#/server/routes/qualifying-questions/address-activity/items.js'
-import { mainCustomerItems } from '#/server/routes/qualifying-questions/main-customer/items.js'
 import { quantityTypeItems } from '#/server/routes/qualifying-questions/quantity/items.js'
 
 // --- POC mapping defaults --------------------------------------------------
@@ -20,11 +19,8 @@ import { quantityTypeItems } from '#/server/routes/qualifying-questions/quantity
 //   - status:       no approval/status workflow exists; treated as Registered.
 //   - country:      the register journey captures postcode/county but not a
 //                   country; left blank until the field is added.
-//   - mainCustomer: the backend now requires and stores this, so the fallback
-//                   only covers records written before the field was added.
 const DEFAULT_STATUS = 'Registered'
 const DEFAULT_COUNTRY = ''
-const DEFAULT_MAIN_CUSTOMER = 'N/A'
 
 const ISO_DATE_LENGTH = 10
 
@@ -37,7 +33,6 @@ const labelsByValue = (items) =>
 
 const BUSINESS_ACTIVITY_LABELS = labelsByValue(businessActivityItems)
 const ADDRESS_ACTIVITY_LABELS = labelsByValue(addressActivityItems)
-const MAIN_CUSTOMER_LABELS = labelsByValue(mainCustomerItems)
 
 const QUANTITY_UNITS = Object.fromEntries(
   quantityTypeItems.map(({ value, unit }) => [value, unit])
@@ -117,9 +112,6 @@ export function toOperatorView(doc = {}) {
     activities: (doc.businessActivities ?? []).map(
       labelFor(BUSINESS_ACTIVITY_LABELS)
     ),
-    mainCustomer: doc.mainCustomer
-      ? labelFor(MAIN_CUSTOMER_LABELS)(doc.mainCustomer)
-      : DEFAULT_MAIN_CUSTOMER,
     address: mapAddress(doc.address),
     contact: mapContact(doc.primaryContact),
     addressActivities: (doc.addressActivities ?? []).map(

@@ -8,7 +8,7 @@ import { removeUnfinishedAddresses } from '#/server/common/helpers/additional-ad
 
 export const get = {
   handler(request, h) {
-    const formData = removeUnfinishedAddresses(request.yar.get('formSession') ?? {})
+    const formData = removeUnfinishedAddresses(getSession(request, 'formSession'))
     request.yar.set('formSession', formData)
 
     return h.view('check-confirm/check-answers/index', {
@@ -38,7 +38,7 @@ export const deleteAdditionalAddress = {
 
 export const post = {
   async handler(request, h) {
-    const formSession = removeUnfinishedAddresses(request.yar.get('formSession') ?? {})
+    const formSession = removeUnfinishedAddresses(getSession(request, 'formSession'))
     const missingPage = findFirstMissingPage(formSession)
 
     if (missingPage !== CHECK_ANSWERS_PAGE) {
