@@ -8,7 +8,7 @@ import {
 
 describe('#journey', () => {
   const storesProducts = {
-    businessActivities: ['selling'],
+    businessActivities: ['distributing'],
     businessName: 'Pesticides Ltd',
     address: { addressLine1: 'Lower Meadow Barn' },
     primaryContact: { contactName: 'Jo Bloggs' },
@@ -29,6 +29,9 @@ describe('#journey', () => {
       ['/business-activities', { businessActivities: ['selling'] }, '/business-name'],
       ['/business-activities', { businessActivities: ['manufacturing', 'importing'] }, '/business-name'],
       ['/business-activities', { businessActivities: ['only-storing'] }, '/business-name'],
+      ['/business-name', { businessActivities: ['selling'] }, '/sell'],
+      ['/business-name', { businessActivities: ['selling', 'distributing'] }, '/business-address'],
+      ['/business-name', { businessActivities: ['only-storing'] }, '/business-address'],
       ['/address-activity', { addressActivities: ['use'] }, '/quantity'],
       ['/address-activity', { addressActivities: ['store'] }, '/check-answers'],
       ['/quantity', { businessActivities: ['selling'] }, '/professional-sectors'],
@@ -53,6 +56,12 @@ describe('#journey', () => {
       expect(findFirstMissingPage({ businessActivities: ['manufacturing'] })).toBe(
         '/business-name'
       )
+    })
+
+    test('Should go to the sell section after the business name when only selling', () => {
+      expect(
+        findFirstMissingPage({ businessActivities: ['selling'], businessName: 'Pesticides Ltd' })
+      ).toBe('/sell')
     })
 
     test('Should ask for quantity once using products makes it relevant', () => {
@@ -154,6 +163,12 @@ describe('#journey', () => {
       expect(formSession).toHaveProperty('professionalSectors')
       expect(formSession).toHaveProperty('memberSchemes')
       expect(formSession).toHaveProperty('additionalAddresses')
+    })
+
+    test('Should keep the later answers when the route leaves for the sell section', () => {
+      const formSession = { ...storesProducts, businessActivities: ['selling'] }
+
+      expect(removeSkippedAnswers(formSession)).toEqual(formSession)
     })
 
     test('Should keep answers beyond the first unanswered page', () => {

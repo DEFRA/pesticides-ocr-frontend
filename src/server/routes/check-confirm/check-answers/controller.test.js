@@ -509,7 +509,7 @@ describe('#checkAnswersController', () => {
       expect(options.headers).toEqual({ 'Content-Type': 'application/json' })
       expect(JSON.parse(options.body)).toEqual(
         expect.objectContaining({
-          businessActivities: ['selling'],
+          businessActivities: ['distributing'],
           businessName: 'Pesticides Ltd'
         })
       )

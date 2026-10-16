@@ -2,7 +2,7 @@ import { getBackLink, getFormAction, redirectToNextPage } from './journey-naviga
 
 describe('#journeyNavigation', () => {
   const answeredJourney = {
-    businessActivities: ['selling'],
+    businessActivities: ['distributing'],
     businessName: 'Pesticides Ltd',
     address: { addressLine1: 'Lower Meadow Barn' },
     primaryContact: { contactName: 'Jo Bloggs' },

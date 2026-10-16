@@ -1,6 +1,13 @@
 const FIRST_PAGE = '/business-activities'
 export const CHECK_ANSWERS_PAGE = '/check-answers'
 
+// The sell section isn't built yet, so this route doesn't exist and the
+// journey stops here for anyone who only sells PPPs.
+export const SELL_SECTION_PAGE = '/sell'
+
+const onlySellsProducts = ({ businessActivities = [] }) =>
+  businessActivities.length === 1 && businessActivities[0] === 'selling'
+
 export const JOURNEY = {
   '/business-activities': {
     sessionKey: 'businessActivities',
@@ -8,7 +15,8 @@ export const JOURNEY = {
   },
   '/business-name': {
     sessionKey: 'businessName',
-    next: () => '/business-address'
+    next: (formSession) =>
+      onlySellsProducts(formSession) ? SELL_SECTION_PAGE : '/business-address'
   },
   '/business-address': {
     sessionKey: 'address',
@@ -45,7 +53,8 @@ export const JOURNEY = {
 const JOURNEY_PAGES = Object.keys(JOURNEY)
 
 const isAnswered = (page, formSession) =>
-  JOURNEY[page].optional || formSession[JOURNEY[page].sessionKey] !== undefined
+  page in JOURNEY &&
+  (JOURNEY[page].optional || formSession[JOURNEY[page].sessionKey] !== undefined)
 
 export function getNextPage(page, formSession) {
   return JOURNEY[page].next(formSession)
@@ -79,9 +88,21 @@ export function isOnRoute(page, formSession) {
   return followRoute(formSession).answeredPages.includes(page)
 }
 
+// A route that leaves the journey map (e.g. into the sell section) gives no
+// view of the pages after it, so only pages up to the last answered one count.
+function routeEnd(answeredPages, stoppedAt) {
+  if (stoppedAt === CHECK_ANSWERS_PAGE) {
+    return JOURNEY_PAGES.length
+  }
+
+  return stoppedAt in JOURNEY
+    ? JOURNEY_PAGES.indexOf(stoppedAt)
+    : JOURNEY_PAGES.indexOf(answeredPages.at(-1)) + 1
+}
+
 export function removeSkippedAnswers(formSession) {
   const { answeredPages, stoppedAt } = followRoute(formSession)
-  const knownRouteEnd = stoppedAt === CHECK_ANSWERS_PAGE ? JOURNEY_PAGES.length : JOURNEY_PAGES.indexOf(stoppedAt)
+  const knownRouteEnd = routeEnd(answeredPages, stoppedAt)
 
   const skippedKeys = new Set(
     JOURNEY_PAGES.slice(0, knownRouteEnd)
