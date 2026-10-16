@@ -2,7 +2,7 @@ import { getBackLink, getFormAction, redirectToNextPage } from './journey-naviga
 
 describe('#journeyNavigation', () => {
   const answeredJourney = {
-    businessActivities: ['seller-amateur'],
+    businessActivities: ['selling'],
     businessName: 'Pesticides Ltd',
     address: { addressLine1: 'Lower Meadow Barn' },
     primaryContact: { contactName: 'Jo Bloggs' },
@@ -77,17 +77,18 @@ describe('#journeyNavigation', () => {
     })
 
     test('Should return the previous page on the route the answers take', () => {
-      const professional = createRequest({
-        store: { formSession: { businessActivities: ['manufacture'], mainCustomer: 'both' } }
+      const businessName = createRequest({ store: { formSession: answeredJourney } })
+      const addressActivity = createRequest({
+        path: '/address-activity',
+        store: { formSession: answeredJourney }
       })
-      const amateur = createRequest({ store: { formSession: answeredJourney } })
 
-      expect(getBackLink(professional)).toBe('/main-customer')
-      expect(getBackLink(amateur)).toBe('/business-activities')
+      expect(getBackLink(businessName)).toBe('/business-activities')
+      expect(getBackLink(addressActivity)).toBe('/business-contact')
     })
 
     test('Should return nothing for a page the answers skip', () => {
-      const request = createRequest({ path: '/main-customer', store: { formSession: answeredJourney } })
+      const request = createRequest({ path: '/quantity', store: { formSession: answeredJourney } })
 
       expect(getBackLink(request)).toBeUndefined()
     })

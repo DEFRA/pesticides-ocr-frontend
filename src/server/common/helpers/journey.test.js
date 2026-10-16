@@ -7,18 +7,17 @@ import {
 } from './journey.js'
 
 describe('#journey', () => {
-  const amateurSeller = {
-    businessActivities: ['seller-amateur'],
+  const storesProducts = {
+    businessActivities: ['selling'],
     businessName: 'Pesticides Ltd',
     address: { addressLine1: 'Lower Meadow Barn' },
     primaryContact: { contactName: 'Jo Bloggs' },
     addressActivities: ['store']
   }
 
-  const professionalUser = {
-    ...amateurSeller,
-    businessActivities: ['use-professional'],
-    mainCustomer: 'professional',
+  const usesProducts = {
+    ...storesProducts,
+    businessActivities: ['using'],
     addressActivities: ['use'],
     quantity: { quantityType: 'amount', quantity: '80000' },
     professionalSectors: ['amenity'],
@@ -27,13 +26,13 @@ describe('#journey', () => {
 
   describe('#getNextPage', () => {
     test.each([
-      ['/business-activities', { businessActivities: ['seller-amateur'] }, '/business-name'],
-      ['/business-activities', { businessActivities: ['manufacture'] }, '/main-customer'],
-      ['/business-activities', { businessActivities: ['seller-amateur', 'seller-professional'] }, '/business-name'],
+      ['/business-activities', { businessActivities: ['selling'] }, '/business-name'],
+      ['/business-activities', { businessActivities: ['manufacturing', 'importing'] }, '/business-name'],
+      ['/business-activities', { businessActivities: ['only-storing'] }, '/business-name'],
       ['/address-activity', { addressActivities: ['use'] }, '/quantity'],
       ['/address-activity', { addressActivities: ['store'] }, '/check-answers'],
-      ['/quantity', { businessActivities: ['seller-amateur'] }, '/check-answers'],
-      ['/quantity', { businessActivities: ['seller-amateur', 'manufacture'] }, '/professional-sectors'],
+      ['/quantity', { businessActivities: ['selling'] }, '/professional-sectors'],
+      ['/quantity', { businessActivities: ['only-storing'] }, '/professional-sectors'],
       ['/member-schemes', {}, '/additional-addresses']
     ])('Should go from %s to the right page for %o', (page, formSession, nextPage) => {
       expect(getNextPage(page, formSession)).toBe(nextPage)
@@ -46,28 +45,26 @@ describe('#journey', () => {
     })
 
     test('Should return check answers when every relevant page is answered', () => {
-      expect(findFirstMissingPage(amateurSeller)).toBe('/check-answers')
-      expect(findFirstMissingPage(professionalUser)).toBe('/check-answers')
+      expect(findFirstMissingPage(storesProducts)).toBe('/check-answers')
+      expect(findFirstMissingPage(usesProducts)).toBe('/check-answers')
+    })
+
+    test('Should go straight from the business activities to the business name', () => {
+      expect(findFirstMissingPage({ businessActivities: ['manufacturing'] })).toBe(
+        '/business-name'
+      )
     })
 
     test('Should ask for quantity once using products makes it relevant', () => {
       expect(
-        findFirstMissingPage({ ...amateurSeller, addressActivities: ['use'] })
+        findFirstMissingPage({ ...storesProducts, addressActivities: ['use'] })
       ).toBe('/quantity')
     })
 
-    test('Should ask for the main customer once a professional activity makes it relevant', () => {
-      expect(
-        findFirstMissingPage({ ...amateurSeller, businessActivities: ['manufacture'] })
-      ).toBe('/main-customer')
-    })
-
-    test('Should ask for the professional sectors once selling only amateur products no longer applies', () => {
+    test('Should ask for the professional sectors once the quantity is given, whatever the activities', () => {
       expect(
         findFirstMissingPage({
-          ...amateurSeller,
-          businessActivities: ['seller-amateur', 'manufacture'],
-          mainCustomer: 'both',
+          ...storesProducts,
           addressActivities: ['use'],
           quantity: { quantityType: 'area', quantity: '250' }
         })
@@ -75,54 +72,49 @@ describe('#journey', () => {
     })
 
     test('Should ignore pages the answers no longer lead to', () => {
-      const { mainCustomer, ...withoutMainCustomer } = professionalUser
+      const { professionalSectors, ...withoutSectors } = usesProducts
 
       expect(
-        findFirstMissingPage({
-          ...withoutMainCustomer,
-          businessActivities: ['seller-amateur'],
-          addressActivities: ['store']
-        })
+        findFirstMissingPage({ ...withoutSectors, addressActivities: ['store'] })
       ).toBe('/check-answers')
     })
 
     test('Should treat a member scheme answer with nothing selected as answered', () => {
       expect(
-        findFirstMissingPage({ ...professionalUser, memberSchemes: [] })
+        findFirstMissingPage({ ...usesProducts, memberSchemes: [] })
       ).toBe('/check-answers')
     })
   })
 
   describe('#getPreviousPage', () => {
     test('Should return the page before on the route the answers take', () => {
-      expect(getPreviousPage('/business-name', professionalUser)).toBe('/main-customer')
-      expect(getPreviousPage('/business-name', amateurSeller)).toBe('/business-activities')
-      expect(getPreviousPage('/professional-sectors', professionalUser)).toBe('/quantity')
+      expect(getPreviousPage('/business-name', usesProducts)).toBe('/business-activities')
+      expect(getPreviousPage('/business-name', storesProducts)).toBe('/business-activities')
+      expect(getPreviousPage('/professional-sectors', usesProducts)).toBe('/quantity')
     })
 
     test('Should return the last answered page for the first unanswered page', () => {
-      expect(getPreviousPage('/quantity', { ...amateurSeller, addressActivities: ['use'] })).toBe(
+      expect(getPreviousPage('/quantity', { ...storesProducts, addressActivities: ['use'] })).toBe(
         '/address-activity'
       )
     })
 
     test('Should return nothing for the first page', () => {
-      expect(getPreviousPage('/business-activities', professionalUser)).toBeUndefined()
+      expect(getPreviousPage('/business-activities', usesProducts)).toBeUndefined()
     })
 
     test('Should return nothing for a page the answers skip', () => {
-      expect(getPreviousPage('/main-customer', amateurSeller)).toBeUndefined()
-      expect(getPreviousPage('/quantity', amateurSeller)).toBeUndefined()
+      expect(getPreviousPage('/quantity', storesProducts)).toBeUndefined()
     })
   })
 
   describe('#isOnRoute', () => {
-    test('Should include the additional addresses when the professional questions apply', () => {
-      expect(isOnRoute('/additional-addresses', professionalUser)).toBe(true)
+    test('Should include the additional addresses when products are used at the address', () => {
+      expect(isOnRoute('/additional-addresses', usesProducts)).toBe(true)
     })
 
-    test('Should exclude the additional addresses when only amateur products are sold', () => {
-      expect(isOnRoute('/additional-addresses', amateurSeller)).toBe(false)
+    test('Should exclude the additional addresses when products are not used at the address', () => {
+      expect(isOnRoute('/additional-addresses', storesProducts)).toBe(false)
     })
   })
 
@@ -130,33 +122,14 @@ describe('#journey', () => {
     const additionalAddresses = [{ address: { addressLine1: 'Highfield Farm' } }]
 
     test('Should keep every answer on the route', () => {
-      const formSession = { ...professionalUser, additionalAddresses }
+      const formSession = { ...usesProducts, additionalAddresses }
 
       expect(removeSkippedAnswers(formSession)).toEqual(formSession)
     })
 
-    test('Should remove the main customer once only amateur selling skips it', () => {
-      const formSession = removeSkippedAnswers({
-        ...professionalUser,
-        businessActivities: ['seller-amateur']
-      })
-
-      expect(formSession).not.toHaveProperty('mainCustomer')
-    })
-
-    test('Should remove the main customer when amateur selling is one of several activities', () => {
-      const formSession = removeSkippedAnswers({
-        ...professionalUser,
-        businessActivities: ['seller-amateur', 'use-professional']
-      })
-
-      expect(formSession).not.toHaveProperty('mainCustomer')
-      expect(formSession).toHaveProperty('professionalSectors')
-    })
-
     test('Should remove the quantity and professional answers once products are no longer used', () => {
       const formSession = removeSkippedAnswers({
-        ...professionalUser,
+        ...usesProducts,
         addressActivities: ['store'],
         additionalAddresses
       })
@@ -166,32 +139,31 @@ describe('#journey', () => {
         'businessName',
         'address',
         'primaryContact',
-        'addressActivities',
-        'mainCustomer'
+        'addressActivities'
       ])
     })
 
-    test('Should remove the professional answers once only amateur products are sold', () => {
+    test('Should keep the professional answers whatever the business activities are', () => {
       const formSession = removeSkippedAnswers({
-        ...professionalUser,
-        businessActivities: ['seller-amateur'],
+        ...usesProducts,
+        businessActivities: ['only-storing'],
         additionalAddresses
       })
 
       expect(formSession).toHaveProperty('quantity')
-      expect(formSession).not.toHaveProperty('professionalSectors')
-      expect(formSession).not.toHaveProperty('memberSchemes')
-      expect(formSession).not.toHaveProperty('additionalAddresses')
+      expect(formSession).toHaveProperty('professionalSectors')
+      expect(formSession).toHaveProperty('memberSchemes')
+      expect(formSession).toHaveProperty('additionalAddresses')
     })
 
     test('Should keep answers beyond the first unanswered page', () => {
-      const { quantity, ...withoutQuantity } = professionalUser
+      const { quantity, ...withoutQuantity } = usesProducts
 
       expect(removeSkippedAnswers(withoutQuantity)).toEqual(withoutQuantity)
     })
 
     test('Should keep answers that do not belong to a journey page', () => {
-      const formSession = { ...amateurSeller, 'confirmation-reference': 'OCR-123' }
+      const formSession = { ...storesProducts, 'confirmation-reference': 'OCR-123' }
 
       expect(removeSkippedAnswers(formSession)).toEqual(formSession)
     })

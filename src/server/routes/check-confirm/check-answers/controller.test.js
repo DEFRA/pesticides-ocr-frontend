@@ -50,8 +50,7 @@ describe('#checkAnswersController', () => {
     const cookie = await getSessionCookie(server, '/business-activities')
     const answer = answerAs(cookie)
 
-    await answer('/business-activities', { businessActivities: ['use-professional'] })
-    await answer('/main-customer', { mainCustomer: 'professional' })
+    await answer('/business-activities', { businessActivities: ['using'] })
     await answer('/business-name', { businessName: 'Pesticides Ltd' })
     await answer('/business-address', {
       addressLine1: 'Lower Meadow Barn',
@@ -103,7 +102,7 @@ describe('#checkAnswersController', () => {
         server.inject({ method: 'POST', url, headers: { cookie }, payload })
 
       await answer('/business-activities', {
-        businessActivities: ['manufacture', 'seller-amateur']
+        businessActivities: ['manufacturing', 'selling']
       })
       await answer('/address-activity', { addressActivities: ['store'] })
       await answer('/quantity', {
@@ -120,7 +119,7 @@ describe('#checkAnswersController', () => {
 
       expect(result).toEqual(
         expect.stringContaining(
-          'Manufacture, process or import<br>Sell amateur PPPs'
+          'Manufacturing PPPs<br>Selling PPPs'
         )
       )
       expect(result).toEqual(
@@ -192,25 +191,6 @@ describe('#checkAnswersController', () => {
       expect(result).not.toEqual(expect.stringContaining('Main sectors of work'))
       expect(result).not.toEqual(expect.stringContaining('Assurance schemes'))
       expect(result).not.toEqual(expect.stringContaining('Quantity of PPPs used'))
-    })
-
-    test('Should omit the main customer row when that question was skipped', async () => {
-      const cookie = await getSessionCookie(server, '/business-activities')
-
-      await server.inject({
-        method: 'POST',
-        url: '/business-activities',
-        headers: { cookie },
-        payload: { businessActivities: ['seller-amateur'] }
-      })
-
-      const { result } = await server.inject({
-        method: 'GET',
-        url: '/check-answers',
-        headers: { cookie }
-      })
-
-      expect(result).not.toEqual(expect.stringContaining('Main customer'))
     })
 
     test('Should escape answers rather than trusting them as markup', async () => {
@@ -529,7 +509,7 @@ describe('#checkAnswersController', () => {
       expect(options.headers).toEqual({ 'Content-Type': 'application/json' })
       expect(JSON.parse(options.body)).toEqual(
         expect.objectContaining({
-          businessActivities: ['seller-amateur'],
+          businessActivities: ['selling'],
           businessName: 'Pesticides Ltd'
         })
       )
@@ -584,7 +564,7 @@ describe('#checkAnswersController', () => {
       const fetchSpy = stubBackend(created())
       const cookie = await getSessionCookie(server, '/business-activities')
 
-      await answerAs(cookie)('/business-activities', { businessActivities: ['seller-amateur'] })
+      await answerAs(cookie)('/business-activities', { businessActivities: ['selling'] })
       const { statusCode, headers } = await submit(cookie)
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -728,17 +708,17 @@ describe('#checkAnswersController', () => {
       })
 
       expect(activity.headers.location).toBe('/quantity?change=true')
-      expect(quantity.headers.location).toBe('/check-answers')
+      expect(quantity.headers.location).toBe('/professional-sectors?change=true')
     })
 
-    test('Should ask for the main customer once amateur selling is replaced', async () => {
+    test('Should return to check answers once the business activities are changed', async () => {
       const cookie = await completeJourney(server)
 
       const { headers } = await submit('/business-activities?change=true', cookie, {
-        businessActivities: ['manufacture']
+        businessActivities: ['only-storing']
       })
 
-      expect(headers.location).toBe('/main-customer?change=true')
+      expect(headers.location).toBe('/check-answers')
     })
 
     test('Should remove answers an amended answer makes irrelevant', async () => {

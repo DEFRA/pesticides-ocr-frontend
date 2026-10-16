@@ -6,7 +6,7 @@ const storedDoc = {
   reference: 'PPP-A1B-2C3',
   submittedAt: '2026-03-11T09:30:00.000Z',
   businessName: 'Pesticides Ltd',
-  businessActivities: ['manufacture', 'market'],
+  businessActivities: ['manufacturing', 'distributing'],
   address: {
     addressLine1: 'Highfield Farm',
     addressLine2: '',
@@ -28,11 +28,7 @@ describe('toOperatorView', () => {
     expect(toOperatorView(storedDoc)).toEqual({
       reference: 'PPP-A1B-2C3',
       businessName: 'Pesticides Ltd',
-      activities: [
-        'Manufacture, process or import',
-        'Place on the market or distribute'
-      ],
-      mainCustomer: 'N/A',
+      activities: ['Manufacturing PPPs', 'Distributing PPPs'],
       address: {
         line1: 'Highfield Farm',
         town: 'Farmtown',
@@ -104,38 +100,13 @@ describe('toOperatorView', () => {
   test('uses the journey label for every business activity', () => {
     const operator = toOperatorView({
       ...storedDoc,
-      businessActivities: ['use-professional', 'seller-amateur']
+      businessActivities: ['using', 'only-storing']
     })
 
     expect(operator.activities).toEqual([
-      'Use professional PPPs as part of work',
-      'Sell amateur PPPs'
+      'Using PPPs as part of your work',
+      'Only storing PPPs for other businesses'
     ])
-  })
-
-  test.each([
-    ['professional', 'Professional user'],
-    ['amateur', 'Amateur user'],
-    ['both', 'Both professional and amateur users']
-  ])('labels a stored mainCustomer of %s', (code, label) => {
-    expect(toOperatorView({ ...storedDoc, mainCustomer: code }).mainCustomer).toBe(
-      label
-    )
-  })
-
-  test.each([
-    ['missing', undefined],
-    ['empty', '']
-  ])('shows N/A when mainCustomer is %s', (_description, value) => {
-    expect(
-      toOperatorView({ ...storedDoc, mainCustomer: value }).mainCustomer
-    ).toBe('N/A')
-  })
-
-  test('falls back to the raw value for an unknown mainCustomer', () => {
-    expect(
-      toOperatorView({ ...storedDoc, mainCustomer: 'wholesale' }).mainCustomer
-    ).toBe('wholesale')
   })
 
   test('prefers a stored status/country when present', () => {
@@ -152,13 +123,10 @@ describe('toOperatorView', () => {
   test('falls back to the raw slug for an unknown activity code', () => {
     const operator = toOperatorView({
       ...storedDoc,
-      businessActivities: ['manufacture', 'some-new-code']
+      businessActivities: ['manufacturing', 'some-new-code']
     })
 
-    expect(operator.activities).toEqual([
-      'Manufacture, process or import',
-      'some-new-code'
-    ])
+    expect(operator.activities).toEqual(['Manufacturing PPPs', 'some-new-code'])
   })
 
   test('tolerates a sparse document without throwing', () => {
@@ -196,6 +164,7 @@ describe('toOperatorView', () => {
         addressLine2: 'Unit 2',
         addressCounty: 'Surrey'
       },
+      mainCustomer: 'both',
       professionalSectors: ['forestry'],
       memberSchemes: ['Red Tractor'],
       additionalAddresses: [{ address: {}, contact: {}, activity: ['use'] }]
@@ -203,6 +172,7 @@ describe('toOperatorView', () => {
 
     expect(operator.address).not.toHaveProperty('line2')
     expect(operator.address).not.toHaveProperty('county')
+    expect(operator).not.toHaveProperty('mainCustomer')
     expect(operator).not.toHaveProperty('professionalSectors')
     expect(operator).not.toHaveProperty('memberSchemes')
     expect(operator).not.toHaveProperty('additionalAddresses')

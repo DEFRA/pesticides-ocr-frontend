@@ -1,5 +1,4 @@
 import { businessActivityItems } from '../../../qualifying-questions/business-activities/items.js'
-import { mainCustomerItems } from '../../../qualifying-questions/main-customer/items.js'
 import { addressActivityItems } from '../../../qualifying-questions/address-activity/items.js'
 import { quantityTypeItems } from '../../../qualifying-questions/quantity/items.js'
 import { professionalSectorsItems } from '../../../pro-users/professional-sectors/items.js'
@@ -48,7 +47,6 @@ export function buildAnswers(formData = {}) {
 
   return withValues({
     businessActivities: labelsFor(businessActivityItems, formData['businessActivities']),
-    mainCustomer: labelsFor(mainCustomerItems, formData['mainCustomer']),
     businessName: toLines(formData['businessName']),
     address: addressLines(formData.address),
     contactName: toLines(contact['contactName']),

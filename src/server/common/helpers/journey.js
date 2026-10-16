@@ -1,20 +1,9 @@
 const FIRST_PAGE = '/business-activities'
 export const CHECK_ANSWERS_PAGE = '/check-answers'
 
-const onlySellsAmateurProducts = ({ businessActivities = [] }) =>
-  businessActivities.length === 1 && businessActivities[0] === 'seller-amateur'
-
-const sellsAmateurProducts = ({ businessActivities = [] }) =>
-  businessActivities.includes('seller-amateur')
-
 export const JOURNEY = {
   '/business-activities': {
     sessionKey: 'businessActivities',
-    next: (formSession) =>
-      sellsAmateurProducts(formSession) ? '/business-name' : '/main-customer'
-  },
-  '/main-customer': {
-    sessionKey: 'mainCustomer',
     next: () => '/business-name'
   },
   '/business-name': {
@@ -36,8 +25,7 @@ export const JOURNEY = {
   },
   '/quantity': {
     sessionKey: 'quantity',
-    next: (formSession) =>
-      onlySellsAmateurProducts(formSession) ? CHECK_ANSWERS_PAGE : '/professional-sectors'
+    next: () => '/professional-sectors'
   },
   '/professional-sectors': {
     sessionKey: 'professionalSectors',

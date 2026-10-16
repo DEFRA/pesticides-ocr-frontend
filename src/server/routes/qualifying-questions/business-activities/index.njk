@@ -5,10 +5,16 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
 {% block content %}
+{% set question = "Which activities does your organisation carry out?" %}
+
 <div class="govuk-grid-row">
 
   <div class="govuk-grid-column-full">
     {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <h1 class="govuk-heading-l">{{ question }}</h1>
+
+    <p class="govuk-body">These activities must be carried out in Great Britain (England, Scotland or Wales).</p>
 
     <form method="post" action="{{ formAction }}" novalidate>
 
@@ -16,14 +22,12 @@
         name: "businessActivities",
         fieldset: {
           legend: {
-            text: "What are your business’s activities with plant protection products (PPPs)?",
-            isPageHeading: true,
-            classes: "govuk-fieldset__legend--l govuk-!-margin-bottom-6"
+            text: question,
+            classes: "govuk-visually-hidden"
           }
         },
         hint: {
-          text: "Select all that apply.",
-          classes: "govuk-!-margin-bottom-6"
+          text: "Select all that apply."
         },
         errorMessage: errors["businessActivities"] if errors["businessActivities"],
         items: items,
@@ -38,7 +42,7 @@
     </form>
 
     <p class="govuk-body">
-      <a class="govuk-link" href="/not-eligible">I only use products in my own home or garden</a>
+      <a class="govuk-link" href="/not-eligible">I only use plant protection products (PPPs) in my own home or garden</a>
     </p>
   </div>
 </div>

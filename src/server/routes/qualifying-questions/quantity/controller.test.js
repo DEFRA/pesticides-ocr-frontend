@@ -1,7 +1,7 @@
 import { createServer } from '#/server/server.js'
 import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
-import { getSessionCookie, injectWithSession } from '#/test-helpers/session-helpers.js'
+import { injectWithSession } from '#/test-helpers/session-helpers.js'
 
 describe('#quantityController', () => {
   let server
@@ -40,25 +40,8 @@ describe('#quantityController', () => {
   })
 
   describe('POST /quantity', () => {
-    // Where /quantity redirects to depends on the business activities already in
-    // the session, so the earlier step has to be answered first.
-    const postQuantityAfterActivities = async (activities, payload) => {
-      const cookie = await getSessionCookie(server, '/business-activities')
-
-      await server.inject({
-        method: 'POST',
-        url: '/business-activities',
-        payload: { businessActivities: activities },
-        headers: { cookie }
-      })
-
-      return server.inject({
-        method: 'POST',
-        url: '/quantity',
-        payload,
-        headers: { cookie }
-      })
-    }
+    const postQuantity = (payload) =>
+      injectWithSession(server, { method: 'POST', url: '/quantity', payload })
 
     test('Should not error when the session has expired', async () => {
       const { statusCode } = await server.inject({
@@ -70,74 +53,37 @@ describe('#quantityController', () => {
       expect(statusCode).toBe(statusCodes.redirect)
     })
 
-    test('Should redirect to check answers page when an amount is given and the only activity is selling amateur PPPs', async () => {
-      const { statusCode, headers } = await postQuantityAfterActivities(
-        ['seller-amateur'],
-        {
-          quantityType: 'amount',
-          quantityAmount: '80000',
-          quantityArea: ''
-        }
-      )
-
-      expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/check-answers')
-    })
-
-    test('Should redirect to check answers page when an area is given and the only activity is selling amateur PPPs', async () => {
-      const { statusCode, headers } = await postQuantityAfterActivities(
-        ['seller-amateur'],
-        {
-          quantityType: 'area',
-          quantityAmount: '',
-          quantityArea: '250'
-        }
-      )
-
-      expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/check-answers')
-    })
-
-    test('Should redirect to professional sectors page when a professional activity is also selected', async () => {
-      const { statusCode, headers } = await postQuantityAfterActivities(
-        ['seller-amateur', 'manufacture'],
-        {
-          quantityType: 'amount',
-          quantityAmount: '80000',
-          quantityArea: ''
-        }
-      )
+    test('Should redirect to professional sectors page when an amount is given', async () => {
+      const { statusCode, headers } = await postQuantity({
+        quantityType: 'amount',
+        quantityAmount: '80000',
+        quantityArea: ''
+      })
 
       expect(statusCode).toBe(statusCodes.redirect)
       expect(headers.location).toBe('/professional-sectors')
     })
 
-    test('Should redirect to professional sectors page when amateur selling is not selected', async () => {
-      const { statusCode, headers } = await postQuantityAfterActivities(
-        ['manufacture'],
-        {
-          quantityType: 'amount',
-          quantityAmount: '80000',
-          quantityArea: ''
-        }
-      )
+    test('Should redirect to professional sectors page when an area is given', async () => {
+      const { statusCode, headers } = await postQuantity({
+        quantityType: 'area',
+        quantityAmount: '',
+        quantityArea: '250'
+      })
 
       expect(statusCode).toBe(statusCodes.redirect)
       expect(headers.location).toBe('/professional-sectors')
     })
 
     test('Should not validate the area when an amount is selected', async () => {
-      const { statusCode, headers } = await postQuantityAfterActivities(
-        ['seller-amateur'],
-        {
-          quantityType: 'amount',
-          quantityAmount: '80000',
-          quantityArea: 'not a number'
-        }
-      )
+      const { statusCode, headers } = await postQuantity({
+        quantityType: 'amount',
+        quantityAmount: '80000',
+        quantityArea: 'not a number'
+      })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/check-answers')
+      expect(headers.location).toBe('/professional-sectors')
     })
 
     test('Should return view with error message when nothing is selected', async () => {
@@ -218,7 +164,7 @@ describe('#quantityController', () => {
     const answerQuantity = async (payload) => {
       const cookie = await answerStep(server, {
         url: '/business-activities',
-        payload: { businessActivities: ['seller-amateur'] }
+        payload: { businessActivities: ['selling'] }
       })
 
       return answerStep(server, { url, payload, cookie })

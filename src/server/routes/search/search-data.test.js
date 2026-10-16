@@ -12,7 +12,7 @@ vi.mock('./search-client.js', () => ({
 const storedRegistration = {
   reference: 'OCR-9',
   businessName: 'Live Co',
-  businessActivities: ['manufacture'],
+  businessActivities: ['manufacturing'],
   address: {
     addressLine1: 'Farm',
     addressTown: 'Town',
@@ -63,7 +63,7 @@ describe('searchRegister', () => {
     expect(result.pagination).toEqual(pagination)
     expect(operator.businessName).toBe('Live Co')
     // Coded slugs become display labels, and the nested stored names flatten.
-    expect(operator.activities).toEqual(['Manufacture, process or import'])
+    expect(operator.activities).toEqual(['Manufacturing PPPs'])
     expect(operator.contact.name).toBe('Jo')
     expect(operator.address.town).toBe('Town')
     expect(operator.registeredDate).toBe('2026-03-11')

@@ -3,25 +3,29 @@ import { buildAnswers } from './build-answers.js'
 describe('#buildAnswers', () => {
   test('Should map coded answers to the labels used on the question pages', () => {
     const answers = buildAnswers({
-      businessActivities: ['seller-amateur', 'manufacture'],
-      addressActivities: ['store'],
-      mainCustomer: 'both'
+      businessActivities: ['selling', 'manufacturing'],
+      addressActivities: ['store']
     })
 
     expect(answers.businessActivities).toEqual([
-      'Sell amateur PPPs',
-      'Manufacture, process or import'
+      'Selling PPPs',
+      'Manufacturing PPPs'
     ])
     expect(answers.addressActivities).toEqual([
       'Store plant protection products (PPPs) or adjuvants'
     ])
-    expect(answers.mainCustomer).toEqual(['Both professional and amateur users'])
+  })
+
+  test('Should label the exclusive only storing activity', () => {
+    expect(buildAnswers({ businessActivities: ['only-storing'] }).businessActivities).toEqual([
+      'Only storing PPPs for other businesses'
+    ])
   })
 
   test('Should fall back to the raw value when it is not a known option', () => {
-    const answers = buildAnswers({ mainCustomer: 'unknown' })
+    const answers = buildAnswers({ businessActivities: ['unknown'] })
 
-    expect(answers.mainCustomer).toEqual(['unknown'])
+    expect(answers.businessActivities).toEqual(['unknown'])
   })
 
   test('Should read the quantity back in the unit it was given in', () => {
