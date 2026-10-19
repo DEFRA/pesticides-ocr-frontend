@@ -1,0 +1,77 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    {% if addressCount == 1 %}
+
+      <h1 class="govuk-heading-l">What is the main address for your business or organisation?</h1>
+
+      <p class="govuk-body" id="address-search-summary">
+        1 address found for <strong>{{ postcode }}</strong>{% if building %} and <strong>{{ building }}</strong>{% endif %}.
+        <a class="govuk-link" href="{{ searchPage }}">Search again</a>
+      </p>
+
+      {% call govukInsetText({ attributes: { id: "address-found" } }) %}
+        {% for line in foundAddressLines %}{{ line }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+      {% endcall %}
+
+      <form method="post" action="{{ formAction }}" novalidate>
+
+        <input type="hidden" name="address" value="0">
+
+        {{ govukButton({
+          text: "Use this address",
+          type: "submit"
+        }) }}
+
+      </form>
+
+    {% elif addressCount %}
+
+      <h1 class="govuk-heading-l">What is the main address for your business or organisation?</h1>
+
+      <form method="post" action="{{ formAction }}" novalidate>
+
+        {{ govukSelect({
+          id: "address",
+          name: "address",
+          label: {
+            text: "Select an address"
+          },
+          errorMessage: errors["address"] if errors["address"],
+          items: addressItems
+        }) }}
+
+        {{ govukButton({
+          text: "Continue",
+          type: "submit"
+        }) }}
+
+      </form>
+
+    {% else %}
+
+      <h1 class="govuk-heading-l">No address found</h1>
+
+      <p class="govuk-body" id="address-search-summary">
+        We could not find an address for
+        {% if building %}<strong>{{ building }}</strong> and {% endif %}<strong>{{ postcode }}</strong>.
+      </p>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="{{ searchPage }}">Search again</a>
+      </p>
+
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

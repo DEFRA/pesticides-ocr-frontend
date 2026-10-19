@@ -1,25 +1,26 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
-import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
-import { getNextPage } from '#/server/common/helpers/journey.js'
+
+// Shows the addresses found for the search and saves the chosen one as
+// `address` (see ./select). The lookup behind it is still a stub.
+export const ADDRESS_SELECT_PAGE = '/business-address/select'
 
 export const get = {
   handler(request, h) {
     request.yar.set('formSession', getSession(request, 'formSession'))
 
     return h.view('qualifying-questions/business-address/index', {
-      values: getSession(request, 'formSession')['address']
+      values: getSession(request, 'formSession')['addressSearch']
     })
   }
 }
 
 export const post = {
   handler(request, h) {
-    const payload = request.payload
     const formSession = getSession(request, 'formSession')
 
-    formSession['address'] = payload
+    formSession['addressSearch'] = request.payload
     request.yar.set('formSession', formSession)
 
-    return redirectToNextPage(request, h, getNextPage('/business-address', formSession))
+    return h.redirect(`${ADDRESS_SELECT_PAGE}${request.url.search}`)
   }
 }
