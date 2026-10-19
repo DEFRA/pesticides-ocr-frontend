@@ -5,6 +5,8 @@ import { getSession } from '#/server/common/helpers/get-session.js'
 import { isChangeMode } from '#/server/common/helpers/journey-navigation.js'
 import { CHECK_ANSWERS_PAGE, getPreviousPage } from '#/server/common/helpers/journey.js'
 import { formatPostcode } from '#/server/common/helpers/postcode.js'
+import { ADDRESS_SEARCH_KEY } from '../../controller.js'
+import { manualPageFor } from '../../controller.js'
 
 export const ADDRESS_SEARCH_PAGE = '/business-address'
 
@@ -16,13 +18,14 @@ const ADDRESS_FIELDS = [
   'addressLine2',
   'addressTown',
   'addressCounty',
-  'addressPostcode'
+  'addressPostcode',
+  'addressRegion'
 ]
 
 // Keeps `?change=true`, so a search started from check answers stays in change mode.
 const searchPageFor = (request) => `${ADDRESS_SEARCH_PAGE}${request.url.search}`
 
-export const getAddressSearch = (request) => getSession(request, 'formSession')['addressSearch']
+export const getAddressSearch = (request) => request.yar.get(ADDRESS_SEARCH_KEY)
 
 export const redirectToSearch = (request, h) => h.redirect(searchPageFor(request))
 
@@ -51,6 +54,7 @@ function confirmState(request, addresses) {
     ? {
         pageTitle: CONFIRM_TITLE,
         foundAddressLines: addressLines(addresses[0]),
+        manualAddressPage: manualPageFor(request),
         backLink: journeyBackLink(request)
       }
     : {}

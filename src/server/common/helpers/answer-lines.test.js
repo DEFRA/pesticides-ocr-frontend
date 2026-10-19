@@ -48,6 +48,18 @@ describe('#answerLines', () => {
       ).toEqual(['Highfield Farm', 'Farm town', 'PH1 1FT'])
     })
 
+    test('Should end an address with the label of its region', () => {
+      expect(
+        addressLines({
+          addressLine1: '1 High Street',
+          addressLine2: '',
+          addressTown: 'Cardiff',
+          addressPostcode: 'CF10 1AA',
+          addressRegion: 'wales'
+        })
+      ).toEqual(['1 High Street', 'Cardiff', 'CF10 1AA', 'Wales'])
+    })
+
     test('Should return nothing when no address is held', () => {
       expect(addressLines()).toEqual([])
     })

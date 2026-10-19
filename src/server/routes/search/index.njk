@@ -43,7 +43,7 @@
     {% if totalRecords == 1 %}
     {% set operator = operators[0] %}
     {% set addressHtml %}
-    {%- for line in [operator.address.line1, operator.address.town, operator.address.postcode, operator.address.country] | select -%}
+    {%- for line in [operator.address.line1, operator.address.town, operator.address.postcode, operator.address.region] | select -%}
     {{ line }}{% if not loop.last %}<br>{% endif %}
     {%- endfor -%}
     {% endset %}

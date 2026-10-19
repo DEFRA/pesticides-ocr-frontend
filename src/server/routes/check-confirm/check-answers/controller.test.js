@@ -559,6 +559,17 @@ describe('#checkAnswersController', () => {
       )
     })
 
+    test('Should not send the address search to the backend', async () => {
+      const fetchSpy = stubBackend(created())
+      const cookie = await completeJourney(server)
+
+      await submit(cookie)
+
+      const [, options] = fetchSpy.mock.lastCall
+
+      expect(JSON.parse(options.body)).not.toHaveProperty('addressSearch')
+    })
+
     test('Should keep the reference the backend issued for the confirmation page', async () => {
       stubBackend(created('PPP-987-65Z'))
       const cookie = await completeJourney(server)

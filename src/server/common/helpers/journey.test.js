@@ -182,32 +182,5 @@ describe('#journey', () => {
 
       expect(removeSkippedAnswers(formSession)).toEqual(formSession)
     })
-
-    test('Should keep the address search, whether or not an address has been chosen', () => {
-      const addressSearch = { addressPostcode: 'AA3 1AB', addressBuilding: '' }
-      const { address, ...withoutAddress } = storesProducts
-
-      expect(removeSkippedAnswers({ ...storesProducts, addressSearch })).toHaveProperty(
-        'addressSearch',
-        addressSearch
-      )
-      expect(removeSkippedAnswers({ ...withoutAddress, addressSearch })).toHaveProperty(
-        'addressSearch',
-        addressSearch
-      )
-    })
-
-    test('Should keep the address search when the address is no longer on the route', () => {
-      const addressSearch = { addressPostcode: 'AA3 1AB' }
-
-      const formSession = removeSkippedAnswers({
-        businessActivities: ['selling'],
-        businessName: 'Pesticides Ltd',
-        address: { addressLine1: 'Lower Meadow Barn' },
-        addressSearch
-      })
-
-      expect(formSession).toHaveProperty('addressSearch', addressSearch)
-    })
   })
 })

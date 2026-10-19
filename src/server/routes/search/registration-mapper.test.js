@@ -33,7 +33,7 @@ describe('toOperatorView', () => {
         line1: 'Highfield Farm',
         town: 'Farmtown',
         postcode: 'PH1 1FT',
-        country: ''
+        region: ''
       },
       contact: {
         name: 'John Smith',
@@ -109,15 +109,15 @@ describe('toOperatorView', () => {
     ])
   })
 
-  test('prefers a stored status/country when present', () => {
+  test('prefers a stored status/region when present, shown as its label', () => {
     const operator = toOperatorView({
       ...storedDoc,
       status: 'Suspended',
-      address: { ...storedDoc.address, addressCountry: 'England' }
+      address: { ...storedDoc.address, addressRegion: 'england' }
     })
 
     expect(operator.status).toBe('Suspended')
-    expect(operator.address.country).toBe('England')
+    expect(operator.address.region).toBe('England')
   })
 
   test('falls back to the raw slug for an unknown activity code', () => {
@@ -142,7 +142,7 @@ describe('toOperatorView', () => {
       line1: '',
       town: '',
       postcode: '',
-      country: ''
+      region: ''
     })
     expect(operator.contact).toEqual({ name: '', email: '', telephone: '' })
     expect(operator.status).toBe('Registered')

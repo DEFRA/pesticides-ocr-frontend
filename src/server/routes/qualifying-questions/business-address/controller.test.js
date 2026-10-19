@@ -1,3 +1,5 @@
+import { load } from 'cheerio'
+
 import { createServer } from '#/server/server.js'
 import { answerStep, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
@@ -39,10 +41,24 @@ describe('#businessAddressController', () => {
       expect(page('button[type="submit"]').text().trim()).toBe('Find an address')
     })
 
-    test('Should not offer to enter an address manually', async () => {
+    test('Should offer to enter an address manually next to the button', async () => {
       const page = await revisitStep(server, { url: '/business-address' })
+      const group = page('form .govuk-button-group')
 
-      expect(page('main').text()).not.toEqual(expect.stringContaining('manually'))
+      expect(group.find('button[type="submit"]').text().trim()).toBe('Find an address')
+      expect(group.find('p').text().replaceAll(/\s+/g, ' ').trim()).toBe(
+        'or enter an address manually'
+      )
+      expect(group.find('a').text().trim()).toBe('enter an address manually')
+      expect(group.find('a').attr('href')).toBe('/business-address/manual')
+    })
+
+    test('Should keep change mode on the manual entry link', async () => {
+      const page = await revisitStep(server, { url: '/business-address?change=true' })
+
+      expect(page('a:contains("enter an address manually")').attr('href')).toBe(
+        '/business-address/manual?change=true'
+      )
     })
   })
 
@@ -86,6 +102,18 @@ describe('#businessAddressController', () => {
 
       expect(result).toEqual(expect.stringContaining(message))
       expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should still offer manual entry, keeping change mode, when the postcode is not valid', async () => {
+      const { result } = await server.inject({
+        method: 'POST',
+        url: '/business-address?change=true',
+        payload: { addressPostcode: '' }
+      })
+
+      expect(load(result)('a:contains("enter an address manually")').attr('href')).toBe(
+        '/business-address/manual?change=true'
+      )
     })
   })
 

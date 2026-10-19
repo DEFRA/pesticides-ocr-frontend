@@ -42,10 +42,15 @@
         value: values["addressBuilding"] if values
       }) }}
 
-      {{ govukButton({
-        text: "Find an address",
-        type: "submit"
-      }) }}
+      <div class="govuk-button-group">
+        {{ govukButton({
+          text: "Find an address",
+          type: "submit"
+        }) }}
+        <p class="govuk-body">or 
+          <a class="govuk-link" href="{{ manualAddressPage }}"> enter an address manually</a>
+        </p>
+      </div>
 
     </form>
   </div>

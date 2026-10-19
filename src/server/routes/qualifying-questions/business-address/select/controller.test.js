@@ -62,10 +62,10 @@ describe('#businessAddressSelectController', () => {
       expect(page('label[for="address"]').text().trim()).toBe('Select an address')
       expect(addressOptions(page)).toEqual([
         { value: '', text: '4 addresses found' },
-        { value: '0', text: 'Lower Meadow Barn, Mill Lane, Farm town, Farmshire, AA3 1AB' },
-        { value: '1', text: 'Highfield Farm, Mill Lane, Farm town, Farmshire, AA3 1AB' },
-        { value: '2', text: '1 Mill Lane, Farm town, AA3 1AB' },
-        { value: '3', text: '2 Mill Lane, Farm town, AA3 1AB' }
+        { value: '0', text: 'Lower Meadow Barn, Mill Lane, Farm town, Farmshire, AA3 1AB, England' },
+        { value: '1', text: 'Highfield Farm, Mill Lane, Farm town, Farmshire, AA3 1AB, England' },
+        { value: '2', text: '1 Mill Lane, Farm town, AA3 1AB, England' },
+        { value: '3', text: '2 Mill Lane, Farm town, AA3 1AB, England' }
       ])
       expect(page('#address-hint')).toHaveLength(0)
       expect(page('button[type="submit"]').text().trim()).toBe('Continue')
@@ -318,12 +318,13 @@ describe('#businessAddressSelectController', () => {
         'Mill Lane',
         'Farm town',
         'Farmshire',
-        'AA3 1AB'
+        'AA3 1AB',
+        'England'
       ])
       expect(page('#address-found').text()).not.toEqual(expect.stringContaining(','))
     })
 
-    test('Should offer one button and no dropdown or manual entry', async () => {
+    test('Should offer one button and no dropdown', async () => {
       const cookie = await searchFor(oneAddress)
 
       const page = await revisitStep(server, { url, cookie })
@@ -333,7 +334,31 @@ describe('#businessAddressSelectController', () => {
       expect(page('form').attr('action')).toBe(url)
       expect(page('select')).toHaveLength(0)
       expect(page('main').text()).not.toEqual(expect.stringContaining('addresses found'))
-      expect(page('main').text()).not.toEqual(expect.stringContaining('manually'))
+    })
+
+    test('Should offer to enter an address manually next to the button', async () => {
+      const cookie = await searchFor(oneAddress)
+
+      const page = await revisitStep(server, { url, cookie })
+      const group = page('form .govuk-button-group')
+
+      expect(group.find('button[type="submit"]').text().trim()).toBe('Use this address')
+      expect(group.find('p').text().replaceAll(/\s+/g, ' ').trim()).toBe(
+        'or enter an address manually'
+      )
+      expect(group.find('a').text().trim()).toBe('enter an address manually')
+      expect(group.find('a').attr('href')).toBe('/business-address/manual')
+    })
+
+    test('Should keep change mode on the manual entry link', async () => {
+      const cookie = await completeJourney(server)
+      await searchFor(oneAddress, cookie)
+
+      const page = await revisitStep(server, { url: `${url}?change=true`, cookie })
+
+      expect(page('a:contains("enter an address manually")').attr('href')).toBe(
+        '/business-address/manual?change=true'
+      )
     })
 
     test('Should link back to the page before the search', async () => {

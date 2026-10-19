@@ -1,4 +1,5 @@
 import { additionalBusinessActivityItems } from '#/server/routes/pro-users/additional-business-activity/items.js'
+import { regionItems } from '#/server/routes/qualifying-questions/business-address/manual/items.js'
 
 export function toLines(...values) {
   return values.filter((value) => value !== undefined && value !== '')
@@ -15,7 +16,9 @@ export function addressLines(address = {}) {
     address['addressLine2'],
     address['addressTown'],
     address['addressCounty'],
-    address['addressPostcode']
+    address['addressPostcode'],
+    // The region is a code (england, scotland, wales); the view calls it the country.
+    ...labelsFor(regionItems, address['addressRegion'])
   )
 }
 

@@ -63,6 +63,20 @@ describe('#buildAnswers', () => {
     expect(answers.address).toEqual(['Highfield Farm', 'Farm town', 'PH1 1FT'])
   })
 
+  test('Should end an address with its region', () => {
+    const answers = buildAnswers({
+      address: {
+        addressLine1: '1 High Street',
+        addressLine2: '',
+        addressTown: 'Edinburgh',
+        addressPostcode: 'EH1 1AA',
+        addressRegion: 'scotland'
+      }
+    })
+
+    expect(answers.address).toEqual(['1 High Street', 'Edinburgh', 'EH1 1AA', 'Scotland'])
+  })
+
   test('Should split the contact details into separate answers', () => {
     const answers = buildAnswers({
       primaryContact: {

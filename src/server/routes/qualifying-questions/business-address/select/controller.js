@@ -5,6 +5,7 @@ import { getNextPage } from '#/server/common/helpers/journey.js'
 import { SELECT_ADDRESS_MESSAGE } from './options.js'
 import {
   ADDRESS_SEARCH_PAGE,
+  getAddressSearch,
   isSameAddress,
   lookUpAddresses,
   redirectToSearch,
@@ -16,7 +17,7 @@ export const get = {
     const formSession = getSession(request, 'formSession')
     request.yar.set('formSession', formSession)
 
-    const addressSearch = formSession['addressSearch']
+    const addressSearch = getAddressSearch(request)
 
     if (!addressSearch) {
       return redirectToSearch(request, h)
@@ -38,7 +39,7 @@ export const get = {
 export const post = {
   async handler(request, h) {
     const formSession = getSession(request, 'formSession')
-    const addressSearch = formSession['addressSearch']
+    const addressSearch = getAddressSearch(request)
 
     if (!addressSearch) {
       return redirectToSearch(request, h)

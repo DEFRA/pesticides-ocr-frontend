@@ -4,8 +4,13 @@ import { formatPostcode } from './postcode.js'
 // this module with a real lookup, keeping the interface:
 //
 //   findAddresses({ postcode, building }) -> Promise<Array<{
-//     addressLine1, addressLine2?, addressTown, addressCounty?, addressPostcode
+//     addressLine1, addressLine2?, addressTown, addressCounty?, addressPostcode,
+//     addressRegion
 //   }>>
+//
+// `addressRegion` is where in Great Britain the address is: 'england',
+// 'scotland' or 'wales' (the values in manual/items.js). The view calls it the
+// country.
 //
 // The results must come back in the same order for the same search, because
 // the select page identifies the chosen address by its position in the list.
@@ -18,16 +23,18 @@ const STUB_ADDRESSES = [
     addressLine1: 'Lower Meadow Barn',
     addressLine2: 'Mill Lane',
     addressTown: 'Farm town',
-    addressCounty: 'Farmshire'
+    addressCounty: 'Farmshire',
+    addressRegion: 'england'
   },
   {
     addressLine1: 'Highfield Farm',
     addressLine2: 'Mill Lane',
     addressTown: 'Farm town',
-    addressCounty: 'Farmshire'
+    addressCounty: 'Farmshire',
+    addressRegion: 'england'
   },
-  { addressLine1: '1 Mill Lane', addressTown: 'Farm town' },
-  { addressLine1: '2 Mill Lane', addressTown: 'Farm town' }
+  { addressLine1: '1 Mill Lane', addressTown: 'Farm town', addressRegion: 'england' },
+  { addressLine1: '2 Mill Lane', addressTown: 'Farm town', addressRegion: 'england' }
 ]
 
 const matchesBuilding = (building) => (address) =>
