@@ -50,6 +50,7 @@ export function buildAnswers(formData = {}) {
     businessName: toLines(formData['businessName']),
     address: addressLines(formData.address),
     contactName: toLines(contact['contactName']),
+    contactJobTitle: toLines(contact['contactJobTitle']),
     contactTelephone: toLines(contact['contactTelephone']),
     contactEmail: toLines(contact['contactEmail']),
     addressActivities: labelsFor(addressActivityItems, formData['addressActivities']),

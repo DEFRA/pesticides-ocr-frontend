@@ -190,6 +190,53 @@ describe('#checkAnswersController', () => {
       expect(result).not.toEqual(expect.stringContaining('Quantity of PPPs used'))
     })
 
+    test('Should show the contact job title or role with a link to change it when one was given', async () => {
+      const cookie = await completeJourney(server)
+
+      await server.inject({
+        method: 'POST',
+        url: '/business-contact?change=true',
+        headers: { cookie },
+        payload: {
+          contactName: 'Jo Bloggs',
+          contactJobTitle: 'Farm manager',
+          contactTelephone: '01234 567890',
+          contactEmail: 'jo@example.com'
+        }
+      })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const row = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Job title or role'
+      )
+
+      expect(row).toHaveLength(1)
+      expect(row.find('.govuk-summary-list__value').text().trim()).toBe('Farm manager')
+      expect(row.find('a').attr('href')).toBe('/business-contact?change=true')
+      expect(row.find('.govuk-visually-hidden').text().trim()).toBe('job title or role')
+    })
+
+    test('Should not show a job title or role row when it was left empty', async () => {
+      const cookie = await completeJourney(server)
+
+      await server.inject({
+        method: 'POST',
+        url: '/business-contact?change=true',
+        headers: { cookie },
+        payload: {
+          contactName: 'Jo Bloggs',
+          contactJobTitle: '',
+          contactTelephone: '01234 567890',
+          contactEmail: 'jo@example.com'
+        }
+      })
+
+      const { result } = await loadAnswers(cookie)
+
+      expect(result).toEqual(expect.stringContaining('Jo Bloggs'))
+      expect(result).not.toEqual(expect.stringContaining('Job title or role'))
+    })
+
     test('Should escape answers rather than trusting them as markup', async () => {
       const cookie = await getSessionCookie(server, '/business-name')
 

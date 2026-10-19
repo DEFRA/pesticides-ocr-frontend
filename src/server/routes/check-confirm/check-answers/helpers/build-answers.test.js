@@ -77,6 +77,23 @@ describe('#buildAnswers', () => {
     expect(answers.contactEmail).toEqual(['john.smith@pesticides.co.uk'])
   })
 
+  test('Should include the contact job title or role when one was given', () => {
+    const answers = buildAnswers({
+      primaryContact: { contactName: 'John Smith', contactJobTitle: 'Farm manager' }
+    })
+
+    expect(answers.contactJobTitle).toEqual(['Farm manager'])
+  })
+
+  test('Should leave out the contact job title or role when it was left empty or not given', () => {
+    expect(
+      buildAnswers({ primaryContact: { contactName: 'John Smith', contactJobTitle: '' } })
+    ).not.toHaveProperty('contactJobTitle')
+    expect(
+      buildAnswers({ primaryContact: { contactName: 'John Smith' } })
+    ).not.toHaveProperty('contactJobTitle')
+  })
+
   test('Should leave out every unanswered question', () => {
     expect(buildAnswers()).toEqual({})
   })
