@@ -1,5 +1,5 @@
 import { renderComponent } from '#/test-helpers/component-helpers.js'
-import { regionItems } from '#/server/common/helpers/regions.js'
+import { regionItems } from '#/server/common/constants/regions.js'
 
 describe('Address Fields Component', () => {
   const address = {

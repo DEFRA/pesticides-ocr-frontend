@@ -2,9 +2,9 @@ import { buildErrorSummary } from '#/server/common/helpers/build-error-summary.j
 import { getSession } from '#/server/common/helpers/get-session.js'
 import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
 import { getNextPage } from '#/server/common/helpers/journey.js'
+import { ADDRESS_SEARCH_PAGE } from '#/server/common/constants/address-pages.js'
 import { SELECT_ADDRESS_MESSAGE } from './options.js'
 import {
-  ADDRESS_SEARCH_PAGE,
   getAddressSearch,
   isSameAddress,
   lookUpAddresses,

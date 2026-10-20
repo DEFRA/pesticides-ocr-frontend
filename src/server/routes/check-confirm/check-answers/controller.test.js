@@ -5,7 +5,8 @@ import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie } from '#/test-helpers/session-helpers.js'
 import { config } from '#/config/config.js'
-import { completeJourney } from '#/test-helpers/journey-helpers.js'
+import { completeJourney, revisitStep } from '#/test-helpers/journey-helpers.js'
+import { ADDRESS_SEARCH_PAGE, ADDRESS_SELECT_PAGE } from '#/server/common/constants/address-pages.js'
 
 describe('#checkAnswersController', () => {
   let server
@@ -783,6 +784,20 @@ describe('#checkAnswersController', () => {
       })
 
       expect(businessName.result).not.toEqual(expect.stringContaining('Pesticides Ltd'))
+    })
+
+    test('Should clear the address search once the registration is submitted', async () => {
+      stubBackend(created())
+      const cookie = await completeJourney(server)
+
+      await submit(cookie)
+      const search = await revisitStep(server, { url: ADDRESS_SEARCH_PAGE, cookie })
+      const select = await server.inject({ method: 'GET', url: ADDRESS_SELECT_PAGE, headers: { cookie } })
+
+      expect(search('#addressPostcode').val()).toBeFalsy()
+      expect(search('#addressBuilding').val()).toBeFalsy()
+      expect(select.statusCode).toBe(statusCodes.redirect)
+      expect(select.headers.location).toBe(ADDRESS_SEARCH_PAGE)
     })
 
     test('Should not submit the same registration twice', async () => {

@@ -151,7 +151,10 @@ describe('#businessAddressManualController', () => {
       ['addressPostcode', { addressPostcode: '' }, 'Enter a postcode'],
       ['addressPostcode', { addressPostcode: 'not a postcode' }, 'Enter a real postcode'],
       ['addressRegion', { addressRegion: undefined }, 'Select a country'],
-      ['addressRegion', { addressRegion: 'france' }, 'Select a country']
+      ['addressRegion', { addressRegion: 'france' }, 'Select a country'],
+      ['addressLine1', { addressLine1: 'a'.repeat(101) }, 'Address line 1 must be 100 characters or less'],
+      ['addressLine2', { addressLine2: 'a'.repeat(101) }, 'Address line 2 must be 100 characters or less'],
+      ['addressTown', { addressTown: 'a'.repeat(101) }, 'Town or city must be 100 characters or less']
     ])('Should show an error for %s given %o', async (field, change, message) => {
       const { result, statusCode } = await server.inject({
         method: 'POST',

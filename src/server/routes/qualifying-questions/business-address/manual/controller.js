@@ -1,11 +1,10 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
 import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
 import { getNextPage } from '#/server/common/helpers/journey.js'
-import { ADDRESS_SEARCH_PAGE } from '../select/helpers/select-page.js'
-
-// The page for an address outside Great Britain isn't built yet, so this
-// route doesn't exist and the link 404s, like the sell section.
-export const INTERNATIONAL_ADDRESS_PAGE = '/business-address/international'
+import {
+  ADDRESS_SEARCH_PAGE,
+  INTERNATIONAL_ADDRESS_PAGE
+} from '#/server/common/constants/address-pages.js'
 
 // The journey's back link goes to check answers in change mode; this page goes
 // back to the search instead, which keeps change mode itself.

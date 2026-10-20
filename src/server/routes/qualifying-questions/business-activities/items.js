@@ -1,11 +1,12 @@
 export const ONLY_STORING = 'only-storing'
+export const SELLING = 'selling'
 
 export const businessActivityItems = [
   { value: 'using', text: 'Using PPPs as part of your work' },
   { value: 'manufacturing', text: 'Manufacturing PPPs' },
   { value: 'importing', text: 'Importing PPPs' },
   { value: 'processing', text: 'Processing PPPs' },
-  { value: 'selling', text: 'Selling PPPs' },
+  { value: SELLING, text: 'Selling PPPs' },
   { value: 'distributing', text: 'Distributing PPPs' },
   {
     value: ONLY_STORING,

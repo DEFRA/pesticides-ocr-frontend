@@ -39,7 +39,8 @@
         classes: "govuk-!-width-one-half",
         id: "addressBuilding",
         name: "addressBuilding",
-        value: values["addressBuilding"] if values
+        value: values["addressBuilding"] if values,
+        errorMessage: errors["addressBuilding"] if errors["addressBuilding"]
       }) }}
 
       <div class="govuk-button-group">

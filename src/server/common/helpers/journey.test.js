@@ -5,6 +5,10 @@ import {
   isOnRoute,
   removeSkippedAnswers
 } from './journey.js'
+import {
+  ONLY_STORING,
+  SELLING
+} from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 describe('#journey', () => {
   const storesProducts = {
@@ -45,16 +49,16 @@ describe('#journey', () => {
 
   describe('#getNextPage', () => {
     test.each([
-      ['/business-activities', { businessActivities: ['selling'] }, '/business-name'],
+      ['/business-activities', { businessActivities: [SELLING] }, '/business-name'],
       ['/business-activities', { businessActivities: ['manufacturing', 'importing'] }, '/business-name'],
-      ['/business-activities', { businessActivities: ['only-storing'] }, '/business-name'],
-      ['/business-name', { businessActivities: ['selling'] }, '/sell'],
-      ['/business-name', { businessActivities: ['selling', 'distributing'] }, '/business-address'],
-      ['/business-name', { businessActivities: ['only-storing'] }, '/business-address'],
+      ['/business-activities', { businessActivities: [ONLY_STORING] }, '/business-name'],
+      ['/business-name', { businessActivities: [SELLING] }, '/sell'],
+      ['/business-name', { businessActivities: [SELLING, 'distributing'] }, '/business-address'],
+      ['/business-name', { businessActivities: [ONLY_STORING] }, '/business-address'],
       ['/business-contact', { businessActivities: ['using'] }, '/who-applies'],
-      ['/business-contact', { businessActivities: ['using', 'selling'] }, '/who-applies'],
+      ['/business-contact', { businessActivities: ['using', SELLING] }, '/who-applies'],
       ['/business-contact', { businessActivities: ['distributing'] }, '/address-activity'],
-      ['/business-contact', { businessActivities: ['only-storing'] }, '/address-activity'],
+      ['/business-contact', { businessActivities: [ONLY_STORING] }, '/address-activity'],
       ['/business-contact', {}, '/address-activity'],
       ['/who-applies', { whoApplies: 'self' }, '/ppp-sectors'],
       ['/who-applies', { whoApplies: 'contractor' }, '/contractor-address'],
@@ -71,8 +75,8 @@ describe('#journey', () => {
       ['/ppp-sectors', { professionalSectors: ['Vineyard management'] }, '/storing'],
       ['/address-activity', { addressActivities: ['use'] }, '/quantity'],
       ['/address-activity', { addressActivities: ['store'] }, '/check-answers'],
-      ['/quantity', { businessActivities: ['selling'] }, '/member-schemes'],
-      ['/quantity', { businessActivities: ['only-storing'] }, '/member-schemes'],
+      ['/quantity', { businessActivities: [SELLING] }, '/member-schemes'],
+      ['/quantity', { businessActivities: [ONLY_STORING] }, '/member-schemes'],
       ['/member-schemes', {}, '/additional-addresses']
     ])('Should go from %s to the right page for %o', (page, formSession, nextPage) => {
       expect(getNextPage(page, formSession)).toBe(nextPage)
@@ -97,7 +101,7 @@ describe('#journey', () => {
 
     test('Should go to the sell section after the business name when only selling', () => {
       expect(
-        findFirstMissingPage({ businessActivities: ['selling'], businessName: 'Pesticides Ltd' })
+        findFirstMissingPage({ businessActivities: [SELLING], businessName: 'Pesticides Ltd' })
       ).toBe('/sell')
     })
 
@@ -290,7 +294,7 @@ describe('#journey', () => {
     test('Should keep the professional answers whatever the business activities are', () => {
       const formSession = removeSkippedAnswers({
         ...usesAtAddress,
-        businessActivities: ['only-storing'],
+        businessActivities: [ONLY_STORING],
         additionalAddresses
       })
 
@@ -300,7 +304,7 @@ describe('#journey', () => {
     })
 
     test('Should keep the later answers when the route leaves for the sell section', () => {
-      const formSession = { ...storesProducts, businessActivities: ['selling'] }
+      const formSession = { ...storesProducts, businessActivities: [SELLING] }
 
       expect(removeSkippedAnswers(formSession)).toEqual(formSession)
     })

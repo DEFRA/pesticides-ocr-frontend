@@ -1,5 +1,5 @@
 import { additionalBusinessActivityItems } from '#/server/routes/pro-users/additional-business-activity/items.js'
-import { regionItems } from '#/server/common/helpers/regions.js'
+import { regionItems } from '#/server/common/constants/regions.js'
 
 export function toLines(...values) {
   return values.filter((value) => value !== undefined && value !== '')

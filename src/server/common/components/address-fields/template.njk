@@ -5,7 +5,7 @@
   params:
     values       - the address being shown (addressLine1 ... addressRegion)
     errors       - the page's errors, keyed by field name
-    regionItems  - the region radio items (regionItems in common/helpers/regions.js)
+    regionItems  - the region radio items (regionItems in common/constants/regions.js)
     fieldClasses - optional width classes for addressLine1, addressLine2,
                    addressTown and addressPostcode
 -#}
@@ -34,6 +34,7 @@
         id: "addressLine2",
         name: "addressLine2",
         value: values["addressLine2"] if values,
+        errorMessage: errors["addressLine2"] if errors["addressLine2"],
         autocomplete: "address-line2",
         classes: fieldClasses.addressLine2 or "govuk-!-width-two-thirds"
       }) }}
