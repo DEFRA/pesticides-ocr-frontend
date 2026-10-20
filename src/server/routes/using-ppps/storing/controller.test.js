@@ -66,7 +66,7 @@ describe('#storingController', () => {
     })
 
     test.each([
-      ['own', '/using-ppps/storage-sites'],
+      ['own', '/using-ppps/storage-location'],
       ['third-party', '/using-ppps/storage-provider'],
       ['no', '/using-ppps/quantity']
     ])('Should redirect %s to %s', async (storing, location) => {

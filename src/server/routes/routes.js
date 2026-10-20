@@ -13,6 +13,7 @@ import { whoApplies } from './using-ppps/who-applies/index.js'
 import { contractorAddress } from './using-ppps/contractor-address/index.js'
 import { pppSectors } from './using-ppps/ppp-sectors/index.js'
 import { storing } from './using-ppps/storing/index.js'
+import { storageLocation } from './using-ppps/storage-location/index.js'
 import { usingQuantity } from './using-ppps/quantity/index.js'
 import { addressActivity } from './qualifying-questions/address-activity/index.js'
 import { checkAnswers } from './check-confirm/check-answers/index.js'
@@ -41,6 +42,7 @@ export const routes = [
   contractorAddress,
   pppSectors,
   storing,
+  storageLocation,
   usingQuantity,
   addressActivity,
   checkAnswers,

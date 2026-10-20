@@ -9,7 +9,14 @@ import {
 // readability. The journey keeps them under formSession.usingPPPs, as the pages
 // save them, so these wrappers nest them on the way in and lift them back out
 // of removeSkippedAnswers. The '#using PPPs answers' tests use the real shape.
-const USING_PPPS_ANSWERS = new Set(['whoApplies', 'contractor', 'professionalSectors', 'storing', 'quantity'])
+const USING_PPPS_ANSWERS = new Set([
+  'whoApplies',
+  'contractor',
+  'professionalSectors',
+  'storing',
+  'storageLocation',
+  'quantity'
+])
 
 function nest(answers) {
   const entries = Object.entries(answers)
@@ -101,7 +108,9 @@ describe('#journey', () => {
       ['/using-ppps/ppp-sectors', { professionalSectors: ['business-premises'] }, '/using-ppps/storing'],
       ['/using-ppps/ppp-sectors', { professionalSectors: ['forestry', 'sports-clubs'] }, '/using-ppps/storing'],
       ['/using-ppps/ppp-sectors', { professionalSectors: ['Vineyard management'] }, '/using-ppps/storing'],
-      ['/using-ppps/storing', { storing: 'own' }, '/using-ppps/storage-sites'],
+      ['/using-ppps/storing', { storing: 'own' }, '/using-ppps/storage-location'],
+      ['/using-ppps/storage-location', { storageLocation: 'main-address' }, '/using-ppps/quantity'],
+      ['/using-ppps/storage-location', { storageLocation: 'main-and-other' }, '/using-ppps/own-storage-address'],
       ['/using-ppps/storing', { storing: 'third-party' }, '/using-ppps/storage-provider'],
       ['/using-ppps/storing', { storing: 'no' }, '/using-ppps/quantity'],
       ['/using-ppps/quantity', { quantity: '1-29' }, '/check-answers'],
@@ -192,10 +201,29 @@ describe('#journey', () => {
     })
 
     test.each([
-      ['own', '/using-ppps/storage-sites'],
+      ['own', '/using-ppps/storage-location'],
       ['third-party', '/using-ppps/storage-provider']
     ])('Should stop at the storage page that storing %s leads to', (storing, nextPage) => {
       expect(findFirstMissingPage({ ...usesPpps, storing })).toBe(nextPage)
+    })
+
+    test('Should go through where products are stored to the quantity when stored only at the main address', () => {
+      const { quantity, ...beforeQuantity } = usesPpps
+      const ownSites = { ...beforeQuantity, storing: 'own' }
+
+      expect(findFirstMissingPage(ownSites)).toBe('/using-ppps/storage-location')
+      expect(findFirstMissingPage({ ...ownSites, storageLocation: 'main-address' })).toBe(
+        '/using-ppps/quantity'
+      )
+      expect(
+        findFirstMissingPage({ ...ownSites, storageLocation: 'main-address', quantity })
+      ).toBe('/check-answers')
+    })
+
+    test('Should stop at the own storage address when stored at other locations too', () => {
+      expect(
+        findFirstMissingPage({ ...usesPpps, storing: 'own', storageLocation: 'main-and-other' })
+      ).toBe('/using-ppps/own-storage-address')
     })
 
     test('Should ask storing products for a contractor once the sectors are given', () => {
@@ -259,6 +287,16 @@ describe('#journey', () => {
 
       expect(getPreviousPage('/using-ppps/quantity', beforeQuantity)).toBe('/using-ppps/storing')
       expect(getPreviousPage('/using-ppps/quantity', usesPpps)).toBe('/using-ppps/storing')
+    })
+
+    test('Should return where products are stored before the quantity when stored at sites it owns', () => {
+      expect(
+        getPreviousPage('/using-ppps/quantity', {
+          ...usesPpps,
+          storing: 'own',
+          storageLocation: 'main-address'
+        })
+      ).toBe('/using-ppps/storage-location')
     })
 
     test('Should return nothing for the quantity when storing leads to a storage page', () => {
@@ -502,6 +540,18 @@ describe('#journey', () => {
 
     test('Should keep storing products and the quantity while the route reaches them', () => {
       expect(removeSkippedAnswers(usesPpps)).toEqual(usesPpps)
+    })
+
+    test('Should keep where products are stored while the route reaches it', () => {
+      const formSession = { ...usesPpps, storing: 'own', storageLocation: 'main-address' }
+
+      expect(removeSkippedAnswers(formSession)).toEqual(formSession)
+    })
+
+    test('Should remove where products are stored once storing products changes to no', () => {
+      const formSession = removeSkippedAnswers({ ...usesPpps, storageLocation: 'main-address' })
+
+      expect(formSession).toEqual(usesPpps)
     })
 
     test('Should keep storing products and the quantity for a contractor', () => {

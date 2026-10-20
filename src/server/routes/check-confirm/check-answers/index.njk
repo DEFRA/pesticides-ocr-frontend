@@ -82,6 +82,11 @@
             actions: { items: [{ href: "/using-ppps/storing?change=true", text: "Change", visuallyHiddenText: "storing products" }] }
           } if answers.storing,
           {
+            key: { text: "Where products are stored" },
+            value: { html: appAnswerList({ values: answers.storageLocation }) },
+            actions: { items: [{ href: "/using-ppps/storage-location?change=true", text: "Change", visuallyHiddenText: "where products are stored" }] }
+          } if answers.storageLocation,
+          {
             key: { text: "Quantity used in a typical year" },
             value: { html: appAnswerList({ values: answers.usingQuantity }) },
             actions: { items: [{ href: "/using-ppps/quantity?change=true", text: "Change", visuallyHiddenText: "quantity used in a typical year" }] }

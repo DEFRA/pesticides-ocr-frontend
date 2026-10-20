@@ -4,6 +4,7 @@ import { memberSchemesItems } from '../../../pro-users/member-schemes/items.js'
 import { whoAppliesItems } from '#/server/routes/using-ppps/who-applies/items.js'
 import { pppSectorsItems } from '#/server/routes/using-ppps/ppp-sectors/items.js'
 import { storingItems } from '#/server/routes/using-ppps/storing/items.js'
+import { storageLocationItems } from '#/server/routes/using-ppps/storage-location/items.js'
 import { usingQuantityText } from '#/server/routes/using-ppps/quantity/items.js'
 import { getUsingPPPsAnswers } from '#/server/common/helpers/using-ppps-answers.js'
 import {
@@ -50,6 +51,7 @@ export function buildAnswers(formData = {}) {
     contractorAddress: addressLines(usingPPPs.contractor?.address),
     professionalSectors: labelsFor(pppSectorsItems, usingPPPs['professionalSectors']),
     storing: labelsFor(storingItems, usingPPPs['storing']),
+    storageLocation: labelsFor(storageLocationItems, usingPPPs['storageLocation']),
     usingQuantity: toLines(usingQuantityText(usingPPPs['quantity'])),
     addressActivities: labelsFor(addressActivityItems, formData['addressActivities']),
     memberSchemes: memberSchemeLines(formData['memberSchemes']),

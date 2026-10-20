@@ -36,6 +36,17 @@ describe('#buildAnswers', () => {
     expect(buildAnswers({ usingPPPs: { storing } }).storing).toEqual([label])
   })
 
+  test.each([
+    ['main-address', 'Only at the main business address'],
+    ['main-and-other', 'At the main business address and other locations']
+  ])('Should map where products are stored %s to the label used on the question page', (storageLocation, label) => {
+    expect(buildAnswers({ usingPPPs: { storageLocation } }).storageLocation).toEqual([label])
+  })
+
+  test('Should leave out where products are stored when it was not given', () => {
+    expect(buildAnswers({ usingPPPs: { storing: 'no' } })).not.toHaveProperty('storageLocation')
+  })
+
   test('Should leave out storing products when it was not given', () => {
     expect(buildAnswers({ usingPPPs: { whoApplies: 'self' } })).not.toHaveProperty('storing')
   })

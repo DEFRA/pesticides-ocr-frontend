@@ -170,6 +170,28 @@ describe('#checkAnswersController', () => {
       )
     })
 
+    test('Should show where products are stored between storing products and the quantity', async () => {
+      const cookie = await getSessionCookie(server, '/using-ppps/storing')
+      const answer = answerAs(cookie)
+
+      await answer('/using-ppps/storing', { storing: 'own' })
+      await answer('/using-ppps/storage-location', { storageLocation: 'main-address' })
+      await answer('/using-ppps/quantity', { quantity: '1-29' })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const row = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Where products are stored'
+      )
+
+      expect(row.prev().find('dt').text().trim()).toBe('Storing products')
+      expect(row.next().find('dt').text().trim()).toBe('Quantity used in a typical year')
+      expect(row.find('.govuk-summary-list__value').text().trim()).toBe(
+        'Only at the main business address'
+      )
+      expect(row.find('a').attr('href')).toBe('/using-ppps/storage-location?change=true')
+      expect(row.find('.govuk-visually-hidden').text().trim()).toBe('where products are stored')
+    })
+
     test('Should reach check answers for an organisation that uses PPPs, with its rows in order', async () => {
       const { cookie, quantity } = await completeUsingJourney()
 

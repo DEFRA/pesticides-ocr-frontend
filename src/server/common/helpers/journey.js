@@ -33,9 +33,13 @@ export const HORTI_SUBSECTOR_PAGE = '/using-ppps/horti-subsector'
 // applies, after the PPP sectors (see routes/using-ppps/storing).
 export const STORING_PAGE = '/using-ppps/storing'
 
-// The storage pages aren't built yet, so these routes don't exist and the
-// journey stops here for anyone who stores the products they apply.
-export const STORAGE_SITES_PAGE = '/using-ppps/storage-sites'
+// Where an organisation that stores the products it applies at sites it owns
+// says where those sites are (see routes/using-ppps/storage-location).
+export const STORAGE_LOCATION_PAGE = '/using-ppps/storage-location'
+
+// The other storage pages aren't built yet, so these routes don't exist and the
+// journey stops here for anyone they apply to.
+export const OWN_STORAGE_ADDRESS_PAGE = '/using-ppps/own-storage-address'
 export const STORAGE_PROVIDER_PAGE = '/using-ppps/storage-provider'
 
 // Where an organisation that uses PPPs gives the quantity it uses in a typical
@@ -80,11 +84,17 @@ function pageAfterSectors(formSession) {
   return STORING_PAGE
 }
 
+function pageAfterStorageLocation(formSession) {
+  return getUsingPPPsAnswers(formSession)['storageLocation'] === 'main-address'
+    ? USING_QUANTITY_PAGE
+    : OWN_STORAGE_ADDRESS_PAGE
+}
+
 function pageAfterStoring(formSession) {
   const { storing } = getUsingPPPsAnswers(formSession)
 
   if (storing === 'own') {
-    return STORAGE_SITES_PAGE
+    return STORAGE_LOCATION_PAGE
   }
 
   if (storing === 'third-party') {
@@ -133,6 +143,11 @@ export const JOURNEY = {
     section: USING_PPPS_KEY,
     sessionKey: 'storing',
     next: pageAfterStoring
+  },
+  [STORAGE_LOCATION_PAGE]: {
+    section: USING_PPPS_KEY,
+    sessionKey: 'storageLocation',
+    next: pageAfterStorageLocation
   },
   [USING_QUANTITY_PAGE]: {
     section: USING_PPPS_KEY,
