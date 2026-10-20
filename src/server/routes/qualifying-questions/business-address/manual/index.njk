@@ -1,8 +1,7 @@
 {% extends 'layouts/page.njk' %}
-{% from "govuk/components/input/macro.njk" import govukInput %}
-{% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "address-fields/macro.njk" import appAddressFields %}
 
 {% block content %}
 
@@ -17,65 +16,10 @@
 
     <form method="post" action="{{ formAction }}" novalidate>
 
-      {{ govukInput({
-        label: {
-          text: "Address line 1"
-        },
-        id: "addressLine1",
-        name: "addressLine1",
-        value: values["addressLine1"] if values,
-        errorMessage: errors["addressLine1"] if errors["addressLine1"],
-        autocomplete: "address-line1",
-        classes: "govuk-!-width-two-thirds"
-      }) }}
-
-      {{ govukInput({
-        label: {
-          text: "Address line 2 (optional)"
-        },
-        id: "addressLine2",
-        name: "addressLine2",
-        value: values["addressLine2"] if values,
-        autocomplete: "address-line2",
-        classes: "govuk-!-width-two-thirds"
-      }) }}
-
-      {{ govukInput({
-        label: {
-          text: "Town or city"
-        },
-        id: "addressTown",
-        name: "addressTown",
-        value: values["addressTown"] if values,
-        errorMessage: errors["addressTown"] if errors["addressTown"],
-        autocomplete: "address-level2",
-        classes: "govuk-!-width-one-third"
-      }) }}
-
-      {{ govukInput({
-        label: {
-          text: "Postcode"
-        },
-        id: "addressPostcode",
-        name: "addressPostcode",
-        value: values["addressPostcode"] if values,
-        errorMessage: errors["addressPostcode"] if errors["addressPostcode"],
-        autocomplete: "postal-code",
-        classes: "govuk-input--width-10"
-      }) }}
-
-      {{ govukRadios({
-        idPrefix: "addressRegion",
-        name: "addressRegion",
-        fieldset: {
-          legend: {
-            text: "Country",
-            classes: "govuk-fieldset__legend--s"
-          }
-        },
-        items: items,
-        value: values["addressRegion"] if values,
-        errorMessage: errors["addressRegion"] if errors["addressRegion"]
+      {{ appAddressFields({
+        values: values,
+        errors: errors,
+        regionItems: items
       }) }}
 
       {{ govukButton({

@@ -1,9 +1,9 @@
 import { businessActivityItems } from '../../../qualifying-questions/business-activities/items.js'
 import { addressActivityItems } from '../../../qualifying-questions/address-activity/items.js'
 import { quantityTypeItems } from '../../../qualifying-questions/quantity/items.js'
-import { professionalSectorsItems } from '../../../pro-users/professional-sectors/items.js'
 import { memberSchemesItems } from '../../../pro-users/member-schemes/items.js'
 import { whoAppliesItems } from '#/server/routes/using-ppps/who-applies/items.js'
+import { pppSectorsItems } from '#/server/routes/using-ppps/ppp-sectors/items.js'
 import {
   additionalAddressLines,
   addressLines,
@@ -55,10 +55,12 @@ export function buildAnswers(formData = {}) {
     contactTelephone: toLines(contact['contactTelephone']),
     contactEmail: toLines(contact['contactEmail']),
     whoApplies: labelsFor(whoAppliesItems, formData['whoApplies']),
+    contractorName: toLines(formData.contractor?.['contractorName']),
+    contractorAddress: addressLines(formData.contractor?.address),
+    professionalSectors: labelsFor(pppSectorsItems, formData['professionalSectors']),
     addressActivities: labelsFor(addressActivityItems, formData['addressActivities']),
     quantity: quantityLines(formData.quantity),
     quantityType: formData.quantity?.['quantityType'],
-    professionalSectors: labelsFor(professionalSectorsItems, formData['professionalSectors']),
     memberSchemes: memberSchemeLines(formData['memberSchemes']),
     additionalAddresses: (formData['additionalAddresses'] ?? []).map((entry) => withValues(additionalAddressLines(entry)))
   })

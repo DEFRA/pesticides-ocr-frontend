@@ -6,10 +6,16 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
 {% block content %}
+{% set question = "Which sector are your PPP activities in?" %}
+
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-full">
 
     {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <h1 class="govuk-heading-l">{{ question }}</h1>
+
+    <p class="govuk-body">Include activities where PPPs are applied by another organisation on your behalf.</p>
 
     <form method="post" action="{{ formAction }}" novalidate>
 
@@ -18,13 +24,12 @@
         values: values["professionalSectors"] if values,
         fieldset: {
           legend: {
-            text: "What is the main sector of your work involving PPPs or adjuvants?",
-            isPageHeading: true,
-            classes: "govuk-fieldset__legend--l govuk-!-margin-bottom-6"
+            text: question,
+            classes: "govuk-visually-hidden"
           }
         },
         hint: {
-          text: "Select the sector that best describes the type of land or setting where the chemicals are applied.",
+          text: "Select all that apply.",
           classes: "govuk-!-margin-bottom-6"
         },
         errorMessage: errors["professionalSectors"] if errors["professionalSectors"],

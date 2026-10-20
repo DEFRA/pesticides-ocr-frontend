@@ -10,7 +10,7 @@
 import { businessActivityItems } from '#/server/routes/qualifying-questions/business-activities/items.js'
 import { addressActivityItems } from '#/server/routes/qualifying-questions/address-activity/items.js'
 import { quantityTypeItems } from '#/server/routes/qualifying-questions/quantity/items.js'
-import { regionItems } from '#/server/routes/qualifying-questions/business-address/manual/items.js'
+import { regionItems } from '#/server/common/helpers/regions.js'
 
 // --- POC mapping defaults --------------------------------------------------
 // Fields the Operator contract needs but the register journey does not (yet)

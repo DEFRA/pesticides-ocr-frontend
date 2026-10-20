@@ -10,12 +10,13 @@ import { businessAddressSelect } from './qualifying-questions/business-address/s
 import { businessAddressManual } from './qualifying-questions/business-address/manual/index.js'
 import { businessContact } from './qualifying-questions/business-contact/index.js'
 import { whoApplies } from './using-ppps/who-applies/index.js'
+import { contractorAddress } from './using-ppps/contractor-address/index.js'
+import { pppSectors } from './using-ppps/ppp-sectors/index.js'
 import { addressActivity } from './qualifying-questions/address-activity/index.js'
 import { quantity } from './qualifying-questions/quantity/index.js'
 import { checkAnswers } from './check-confirm/check-answers/index.js'
 import { confirmation } from './check-confirm/confirmation/index.js'
 import { notEligible } from './qualifying-questions/not-eligible/index.js'
-import { professionalSectors } from './pro-users/professional-sectors/index.js'
 import { memberSchemes } from './pro-users/member-schemes/index.js'
 import { additionalAddresses } from './pro-users/additional-addresses/index.js'
 import { additionalBusinessAddress } from './pro-users/additional-business-address/index.js'
@@ -36,12 +37,13 @@ export const routes = [
   businessAddressManual,
   businessContact,
   whoApplies,
+  contractorAddress,
+  pppSectors,
   addressActivity,
   quantity,
   checkAnswers,
   confirmation,
   notEligible,
-  professionalSectors,
   memberSchemes,
   additionalAddresses,
   additionalBusinessAddress,

@@ -131,6 +131,32 @@ describe('#buildAnswers', () => {
     expect(buildAnswers({})).not.toHaveProperty('whoApplies')
   })
 
+  test('Should give the contractor name and address, the address ending with its region', () => {
+    const answers = buildAnswers({
+      whoApplies: 'contractor',
+      contractor: {
+        contractorName: 'Spray Contractors Ltd',
+        address: {
+          addressLine1: '1 High Street',
+          addressLine2: '',
+          addressTown: 'York',
+          addressPostcode: 'YO1 7HH',
+          addressRegion: 'scotland'
+        }
+      }
+    })
+
+    expect(answers.contractorName).toEqual(['Spray Contractors Ltd'])
+    expect(answers.contractorAddress).toEqual(['1 High Street', 'York', 'YO1 7HH', 'Scotland'])
+  })
+
+  test('Should leave out the contractor when none was given', () => {
+    const answers = buildAnswers({ whoApplies: 'self' })
+
+    expect(answers).not.toHaveProperty('contractorName')
+    expect(answers).not.toHaveProperty('contractorAddress')
+  })
+
   test('Should show None when no member scheme was chosen', () => {
     expect(buildAnswers({ memberSchemes: [] }).memberSchemes).toEqual(['None'])
   })
@@ -139,16 +165,33 @@ describe('#buildAnswers', () => {
     expect(buildAnswers({ memberSchemes: [undefined] }).memberSchemes).toEqual(['None'])
   })
 
-  test('Should map the professional answers to the labels used on the question pages', () => {
+  test('Should map the PPP sectors to the labels used on the question page', () => {
     const answers = buildAnswers({
-      professionalSectors: ['agriculture-horticulture', 'forestry'],
-      memberSchemes: ['red-tractor', 'sqc']
+      professionalSectors: ['agriculture', 'business-premises', 'public-services']
     })
 
     expect(answers.professionalSectors).toEqual([
-      'Agriculture and horticulture',
-      'Forestry'
+      'Agriculture',
+      'Business premises',
+      'Public Services and Local Authorities'
     ])
+  })
+
+  test('Should give the Other text as the PPP sectors when no sector was chosen', () => {
+    expect(
+      buildAnswers({ professionalSectors: ['Vineyard management'] }).professionalSectors
+    ).toEqual(['Vineyard management'])
+  })
+
+  test('Should leave out the PPP sectors when they were not given', () => {
+    expect(buildAnswers({ whoApplies: 'self' })).not.toHaveProperty('professionalSectors')
+  })
+
+  test('Should map the member schemes to the labels used on the question page', () => {
+    const answers = buildAnswers({
+      memberSchemes: ['red-tractor', 'sqc']
+    })
+
     expect(answers.memberSchemes).toEqual([
       'Red Tractor',
       'Scottish Quality Crops (SQC)'

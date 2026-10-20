@@ -5,19 +5,52 @@ export const CHECK_ANSWERS_PAGE = '/check-answers'
 // journey stops here for anyone who only sells PPPs.
 export const SELL_SECTION_PAGE = '/sell'
 
-// The PPP sectors page isn't built yet, so this route doesn't exist and the
-// journey stops here for organisations that apply PPPs themselves.
+// Where an organisation that uses PPPs says which sectors its PPP activities
+// are in, after who applies them (and the contractor's details, if any). See
+// routes/using-ppps/ppp-sectors.
 export const PPP_SECTORS_PAGE = '/ppp-sectors'
 
-// The contractor address capture page isn't built yet, so this route doesn't
-// exist and the journey stops here for organisations that use a contractor.
-// The path is a placeholder: rename it once the page is designed.
+// Where an organisation that uses a contractor gives the contractor's name and
+// address (see routes/using-ppps/contractor-address).
 export const CONTRACTOR_ADDRESS_PAGE = '/contractor-address'
+
+// The pages after the PPP sectors aren't built yet, so these routes don't exist
+// and the journey stops at whichever one the sectors lead to.
+export const AGRI_SUBSECTORS_PAGE = '/agri-subsectors'
+export const AMENITY_SUBSECTOR_PAGE = '/amenity-subsector'
+export const HORTI_SUBSECTOR_PAGE = '/horti-subsector'
+export const STORING_PAGE = '/storing'
 
 const onlySellsProducts = ({ businessActivities = [] }) =>
   businessActivities.length === 1 && businessActivities[0] === 'selling'
 
 const usesProducts = ({ businessActivities = [] }) => businessActivities.includes('using')
+
+// professionalSectors holds the chosen sector values, or just the Other text.
+function worksIn(sector) {
+  return ({ professionalSectors = [] }) => professionalSectors.includes(sector)
+}
+
+const worksInAgriculture = worksIn('agriculture')
+const worksInAmenity = worksIn('amenity')
+const worksInHorticulture = worksIn('horticulture')
+
+// The first matching sector, in this order, decides the next page.
+function pageAfterSectors(formSession) {
+  if (worksInAgriculture(formSession)) {
+    return AGRI_SUBSECTORS_PAGE
+  }
+
+  if (worksInAmenity(formSession)) {
+    return AMENITY_SUBSECTOR_PAGE
+  }
+
+  if (worksInHorticulture(formSession)) {
+    return HORTI_SUBSECTOR_PAGE
+  }
+
+  return STORING_PAGE
+}
 
 export const JOURNEY = {
   '/business-activities': {
@@ -42,6 +75,14 @@ export const JOURNEY = {
     next: (formSession) =>
       formSession['whoApplies'] === 'contractor' ? CONTRACTOR_ADDRESS_PAGE : PPP_SECTORS_PAGE
   },
+  '/contractor-address': {
+    sessionKey: 'contractor',
+    next: () => PPP_SECTORS_PAGE
+  },
+  '/ppp-sectors': {
+    sessionKey: 'professionalSectors',
+    next: pageAfterSectors
+  },
   '/address-activity': {
     sessionKey: 'addressActivities',
     next: (formSession) =>
@@ -49,10 +90,6 @@ export const JOURNEY = {
   },
   '/quantity': {
     sessionKey: 'quantity',
-    next: () => '/professional-sectors'
-  },
-  '/professional-sectors': {
-    sessionKey: 'professionalSectors',
     next: () => '/member-schemes'
   },
   '/member-schemes': {

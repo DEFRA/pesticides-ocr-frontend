@@ -1,19 +1,19 @@
 import Joi from 'joi'
 import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
-import { professionalSectorsItems, professionalSectorsValues } from './items.js'
+import { pppSectorsItems, pppSectorsValues } from './items.js'
+
+const selectSectorOrOther = 'Select a sector or describe your main type of work'
+const otherTooLong = 'Please use 100 characters or fewer'
 
 export const app = {
-  pageTitle: 'Professional Sectors',
-  items: professionalSectorsItems
+  pageTitle: 'Which sector are your PPP activities in?',
+  items: pppSectorsItems
 }
-
-const selectSectorOrOther =
-  'Select a professional sector or describe your main type of work'
 
 export const validate = {
   payload: Joi.object({
     professionalSectors: Joi.array()
-      .items(Joi.string().valid(...professionalSectorsValues))
+      .items(Joi.string().valid(...pppSectorsValues))
       .single()
       .min(1)
       .when('professionalSectorsOther', {
@@ -28,13 +28,9 @@ export const validate = {
         'array.min': selectSectorOrOther,
         'array.base': selectSectorOrOther
       }),
-    professionalSectorsOther: Joi.string()
-      .trim()
-      .max(100)
-      .empty('')
-      .messages({
-        'string.max': 'Please use 100 characters or fewer'
-      })
+    professionalSectorsOther: Joi.string().trim().max(100).empty('').messages({
+      'string.max': otherTooLong
+    })
   }),
-  failAction: viewFailAction('pro-users/professional-sectors/index')
+  failAction: viewFailAction('using-ppps/ppp-sectors/index')
 }

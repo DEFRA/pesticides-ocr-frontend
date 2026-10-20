@@ -53,7 +53,7 @@ describe('#quantityController', () => {
       expect(statusCode).toBe(statusCodes.redirect)
     })
 
-    test('Should redirect to professional sectors page when an amount is given', async () => {
+    test('Should redirect to member schemes page when an amount is given', async () => {
       const { statusCode, headers } = await postQuantity({
         quantityType: 'amount',
         quantityAmount: '80000',
@@ -61,10 +61,10 @@ describe('#quantityController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/professional-sectors')
+      expect(headers.location).toBe('/member-schemes')
     })
 
-    test('Should redirect to professional sectors page when an area is given', async () => {
+    test('Should redirect to member schemes page when an area is given', async () => {
       const { statusCode, headers } = await postQuantity({
         quantityType: 'area',
         quantityAmount: '',
@@ -72,7 +72,7 @@ describe('#quantityController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/professional-sectors')
+      expect(headers.location).toBe('/member-schemes')
     })
 
     test('Should not validate the area when an amount is selected', async () => {
@@ -83,7 +83,7 @@ describe('#quantityController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/professional-sectors')
+      expect(headers.location).toBe('/member-schemes')
     })
 
     test('Should return view with error message when nothing is selected', async () => {

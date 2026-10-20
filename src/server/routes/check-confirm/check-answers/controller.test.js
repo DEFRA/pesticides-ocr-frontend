@@ -61,7 +61,6 @@ describe('#checkAnswersController', () => {
     })
     await answer('/address-activity', { addressActivities: ['use'] })
     await answer('/quantity', { quantityType: 'amount', quantityAmount: '80000' })
-    await answer('/professional-sectors', { professionalSectors: ['amenity'] })
     await answer('/member-schemes', { memberSchemes: ['leaf'] })
 
     return cookie
@@ -184,8 +183,12 @@ describe('#checkAnswersController', () => {
 
       const { result } = await loadAnswers(cookie)
 
+      const keys = load(result)('.govuk-summary-list__key')
+        .map((_index, key) => load(key).text().trim())
+        .get()
+
       expect(result).toEqual(expect.stringContaining('Business name'))
-      expect(result).not.toEqual(expect.stringContaining('Main sectors of work'))
+      expect(keys).not.toContain('Sectors')
       expect(result).not.toEqual(expect.stringContaining('Assurance schemes'))
       expect(result).not.toEqual(expect.stringContaining('Quantity of PPPs used'))
     })
@@ -240,6 +243,106 @@ describe('#checkAnswersController', () => {
       const { result } = await loadAnswers(cookie)
 
       expect(result).not.toEqual(expect.stringContaining('Who applies PPPs'))
+    })
+
+    describe('Contractor', () => {
+      const rowsFor = (page, key) =>
+        page('.govuk-summary-list__row').filter(
+          (_index, element) => page(element).find('dt').text().trim() === key
+        )
+
+      test('Should show the contractor name and address straight after who applies PPPs, with links to change them', async () => {
+        const cookie = await getSessionCookie(server, '/who-applies')
+        const answer = answerAs(cookie)
+
+        await answer('/who-applies', { whoApplies: 'contractor' })
+        await answer('/contractor-address', {
+          contractorName: 'Spray Contractors Ltd',
+          addressLine1: '1 High Street',
+          addressLine2: '',
+          addressTown: 'York',
+          addressPostcode: 'YO1 7HH',
+          addressRegion: 'wales'
+        })
+
+        const page = load((await loadAnswers(cookie)).result)
+        const name = rowsFor(page, 'Contractor name')
+        const address = rowsFor(page, 'Contractor address')
+
+        expect(
+          rowsFor(page, 'Who applies PPPs').next().find('dt').text().trim()
+        ).toBe('Contractor name')
+        expect(name.next().find('dt').text().trim()).toBe('Contractor address')
+
+        expect(name.find('.govuk-summary-list__value').text().trim()).toBe('Spray Contractors Ltd')
+        expect(name.find('a').attr('href')).toBe('/contractor-address?change=true')
+        expect(name.find('.govuk-visually-hidden').text().trim()).toBe('contractor name')
+
+        expect(address.find('.govuk-summary-list__value').html().trim()).toBe(
+          '1 High Street<br>York<br>YO1 7HH<br>Wales'
+        )
+        expect(address.find('a').attr('href')).toBe('/contractor-address?change=true')
+        expect(address.find('.govuk-visually-hidden').text().trim()).toBe('contractor address')
+      })
+
+      test('Should show the sectors straight after the contractor rows, with a link to change them', async () => {
+        const cookie = await getSessionCookie(server, '/who-applies')
+        const answer = answerAs(cookie)
+
+        await answer('/who-applies', { whoApplies: 'contractor' })
+        await answer('/contractor-address', {
+          contractorName: 'Spray Contractors Ltd',
+          addressLine1: '1 High Street',
+          addressLine2: '',
+          addressTown: 'York',
+          addressPostcode: 'YO1 7HH',
+          addressRegion: 'wales'
+        })
+        await answer('/ppp-sectors', {
+          professionalSectors: ['amenity', 'public-services'],
+          professionalSectorsOther: ''
+        })
+
+        const page = load((await loadAnswers(cookie)).result)
+        const sectors = rowsFor(page, 'Sectors')
+
+        expect(rowsFor(page, 'Contractor address').next().find('dt').text().trim()).toBe('Sectors')
+        expect(sectors.closest('.govuk-summary-list').prev('h2').text().trim()).toBe(
+          'PPP activity details'
+        )
+        expect(sectors.find('.govuk-summary-list__value').html().trim()).toBe(
+          'Amenity<br>Public Services and Local Authorities'
+        )
+        expect(sectors.find('a').attr('href')).toBe('/ppp-sectors?change=true')
+        expect(sectors.find('.govuk-visually-hidden').text().trim()).toBe('sectors')
+      })
+
+      test('Should show the Other text as the sectors when no sector was chosen', async () => {
+        const cookie = await getSessionCookie(server, '/who-applies')
+        const answer = answerAs(cookie)
+
+        await answer('/who-applies', { whoApplies: 'self' })
+        await answer('/ppp-sectors', { professionalSectorsOther: 'Vineyard management' })
+
+        const page = load((await loadAnswers(cookie)).result)
+        const sectors = rowsFor(page, 'Sectors')
+
+        expect(rowsFor(page, 'Who applies PPPs').next().find('dt').text().trim()).toBe('Sectors')
+        expect(sectors.find('.govuk-summary-list__value').text().trim()).toBe(
+          'Vineyard management'
+        )
+      })
+
+      test('Should not show the contractor rows before the contractor is given', async () => {
+        const cookie = await getSessionCookie(server, '/who-applies')
+
+        await answerAs(cookie)('/who-applies', { whoApplies: 'contractor' })
+
+        const { result } = await loadAnswers(cookie)
+
+        expect(result).not.toEqual(expect.stringContaining('Contractor name'))
+        expect(result).not.toEqual(expect.stringContaining('Contractor address'))
+      })
     })
 
     test('Should not show a job title or role row when it was left empty', async () => {
@@ -789,7 +892,7 @@ describe('#checkAnswersController', () => {
       })
 
       expect(activity.headers.location).toBe('/quantity?change=true')
-      expect(quantity.headers.location).toBe('/professional-sectors?change=true')
+      expect(quantity.headers.location).toBe('/member-schemes?change=true')
     })
 
     test('Should return to check answers once the business activities are changed', async () => {
