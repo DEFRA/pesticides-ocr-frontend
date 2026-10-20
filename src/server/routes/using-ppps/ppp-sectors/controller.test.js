@@ -27,7 +27,7 @@ describe('#pppSectorsController', () => {
     const textOf = (selector) => page(selector).text().trim()
 
     beforeAll(async () => {
-      const response = await server.inject({ method: 'GET', url: '/ppp-sectors' })
+      const response = await server.inject({ method: 'GET', url: '/using-ppps/ppp-sectors' })
 
       statusCode = response.statusCode
       page = load(response.result)
@@ -94,21 +94,21 @@ describe('#pppSectorsController', () => {
     const postSectors = (payload) =>
       injectWithSession(server, {
         method: 'POST',
-        url: '/ppp-sectors',
+        url: '/using-ppps/ppp-sectors',
         payload
       })
 
     test.each([
-      [['agriculture'], '/agri-subsectors'],
-      [['amenity'], '/amenity-subsector'],
-      [['horticulture'], '/horti-subsector'],
-      [['agriculture', 'horticulture'], '/agri-subsectors'],
-      [['agriculture', 'amenity', 'horticulture'], '/agri-subsectors'],
-      [['amenity', 'horticulture'], '/amenity-subsector'],
-      [['horticulture', 'forestry'], '/horti-subsector'],
-      [['business-premises'], '/storing'],
-      [['forestry'], '/storing'],
-      [['public-services', 'schools-universities', 'sports-clubs'], '/storing']
+      [['agriculture'], '/using-ppps/agri-subsectors'],
+      [['amenity'], '/using-ppps/amenity-subsector'],
+      [['horticulture'], '/using-ppps/horti-subsector'],
+      [['agriculture', 'horticulture'], '/using-ppps/agri-subsectors'],
+      [['agriculture', 'amenity', 'horticulture'], '/using-ppps/agri-subsectors'],
+      [['amenity', 'horticulture'], '/using-ppps/amenity-subsector'],
+      [['horticulture', 'forestry'], '/using-ppps/horti-subsector'],
+      [['business-premises'], '/using-ppps/storing'],
+      [['forestry'], '/using-ppps/storing'],
+      [['public-services', 'schools-universities', 'sports-clubs'], '/using-ppps/storing']
     ])('Should redirect %o to %s', async (professionalSectors, location) => {
       const { statusCode, headers } = await postSectors({
         professionalSectors,
@@ -125,7 +125,7 @@ describe('#pppSectorsController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/storing')
+      expect(headers.location).toBe('/using-ppps/storing')
     })
 
     test('Should show an error when neither a sector nor Other is given', async () => {
@@ -176,12 +176,12 @@ describe('#pppSectorsController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/storing')
+      expect(headers.location).toBe('/using-ppps/storing')
     })
   })
 
   describe('Pre-populating from the session', () => {
-    const url = '/ppp-sectors'
+    const url = '/using-ppps/ppp-sectors'
 
     test('Should check the sectors held in the session', async () => {
       const cookie = await answerStep(server, {

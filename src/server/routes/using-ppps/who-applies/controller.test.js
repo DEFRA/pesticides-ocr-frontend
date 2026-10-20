@@ -19,7 +19,7 @@ describe('#whoAppliesController', () => {
     test('Should return view', async () => {
       const { result, statusCode } = await server.inject({
         method: 'GET',
-        url: '/who-applies'
+        url: '/using-ppps/who-applies'
       })
 
       expect(result).toEqual(expect.stringContaining('Who applies PPPs for your organisation? |'))
@@ -27,7 +27,7 @@ describe('#whoAppliesController', () => {
     })
 
     test('Should show the question and both options', async () => {
-      const page = await revisitStep(server, { url: '/who-applies' })
+      const page = await revisitStep(server, { url: '/using-ppps/who-applies' })
       const labelFor = (value) => page(`input[value="${value}"]`).next('label').text().trim()
 
       expect(page('h1').text().trim()).toBe('Who applies PPPs for your organisation?')
@@ -38,12 +38,12 @@ describe('#whoAppliesController', () => {
 
   describe('POST /who-applies', () => {
     const postWhoApplies = (payload) =>
-      injectWithSession(server, { method: 'POST', url: '/who-applies', payload })
+      injectWithSession(server, { method: 'POST', url: '/using-ppps/who-applies', payload })
 
     test('Should not error when the session has expired', async () => {
       const { statusCode } = await server.inject({
         method: 'POST',
-        url: '/who-applies',
+        url: '/using-ppps/who-applies',
         payload: { whoApplies: 'self' }
       })
 
@@ -54,14 +54,14 @@ describe('#whoAppliesController', () => {
       const { statusCode, headers } = await postWhoApplies({ whoApplies: 'self' })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/ppp-sectors')
+      expect(headers.location).toBe('/using-ppps/ppp-sectors')
     })
 
     test('Should redirect to the contractor address page when another organisation applies PPPs', async () => {
       const { statusCode, headers } = await postWhoApplies({ whoApplies: 'contractor' })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/contractor-address')
+      expect(headers.location).toBe('/using-ppps/contractor-address')
     })
 
     test('Should return view with error message when nothing is selected', async () => {
@@ -84,7 +84,7 @@ describe('#whoAppliesController', () => {
   })
 
   describe('Pre-populating from the session', () => {
-    const url = '/who-applies'
+    const url = '/using-ppps/who-applies'
 
     test('Should check the option held in the session', async () => {
       const cookie = await answerStep(server, { url, payload: { whoApplies: 'contractor' } })

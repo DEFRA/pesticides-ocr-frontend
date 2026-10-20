@@ -1,0 +1,42 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <form method="post" action="{{ formAction }}" novalidate>
+
+      {{ govukRadios({
+        name: "quantity",
+        value: values["quantity"] if values,
+        fieldset: {
+          legend: {
+            text: "What quantity of PPPs or adjuvants do you use in a typical year?",
+            isPageHeading: true,
+            classes: "govuk-fieldset__legend--l"
+          }
+        },
+        hint: {
+          text: "Estimate the total amount of undiluted product used in a typical year. If you use both liquid and solid products, use 1 litre as roughly equivalent to 1 kilogram. Select the range that best matches the total amount in litres or kilograms.",
+          classes: "govuk-!-margin-bottom-6"
+        },
+        errorMessage: errors["quantity"] if errors["quantity"],
+        items: items
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        type: "submit"
+      }) }}
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}

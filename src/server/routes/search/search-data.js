@@ -18,7 +18,7 @@ import { toOperatorView } from './registration-mapper.js'
  * @property {{ line1: string, town: string, postcode: string, region: string }} address
  * @property {{ name: string, email: string, telephone: string }} contact
  * @property {string[]} addressActivities
- * @property {string} quantity
+ * @property {string} quantity           quantity used in a typical year (e.g. '60 to 149 litres or kilograms')
  * @property {string} registeredDate     ISO date (yyyy-mm-dd)
  * @property {string} status             'Registered' | 'Pending' | 'Suspended'
  */

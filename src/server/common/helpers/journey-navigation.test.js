@@ -50,7 +50,7 @@ describe('#journeyNavigation', () => {
 
     test('Should remove answers to pages the route now skips', () => {
       const store = {
-        formSession: { ...answeredJourney, quantity: { quantityType: 'amount', quantity: '80000' } }
+        formSession: { ...answeredJourney, memberSchemes: ['leaf'] }
       }
       const request = createRequest({ path: '/address-activity', store })
 
@@ -63,8 +63,8 @@ describe('#journeyNavigation', () => {
       const store = { formSession: { ...answeredJourney, addressActivities: ['use'] } }
       const request = createRequest({ path: '/address-activity', query: { change: 'true' }, store })
 
-      expect(redirectToNextPage(request, h, '/quantity')).toEqual({
-        location: '/quantity?change=true'
+      expect(redirectToNextPage(request, h, '/member-schemes')).toEqual({
+        location: '/member-schemes?change=true'
       })
     })
   })
@@ -88,7 +88,7 @@ describe('#journeyNavigation', () => {
     })
 
     test('Should return nothing for a page the answers skip', () => {
-      const request = createRequest({ path: '/quantity', store: { formSession: answeredJourney } })
+      const request = createRequest({ path: '/member-schemes', store: { formSession: answeredJourney } })
 
       expect(getBackLink(request)).toBeUndefined()
     })

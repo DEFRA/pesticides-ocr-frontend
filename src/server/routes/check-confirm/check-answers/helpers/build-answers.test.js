@@ -28,25 +28,30 @@ describe('#buildAnswers', () => {
     expect(answers.businessActivities).toEqual(['unknown'])
   })
 
-  test('Should read the quantity back in the unit it was given in', () => {
-    const area = buildAnswers({
-      quantity: { quantityType: 'area', quantity: '67' }
-    })
-    const amount = buildAnswers({
-      quantity: { quantityType: 'amount', quantity: '80000' }
-    })
-
-    expect(area.quantity).toEqual(['67 hectares'])
-    expect(amount.quantity).toEqual(['80000 litres or kilograms'])
+  test.each([
+    ['own', 'Yes, at sites we own'],
+    ['third-party', 'Yes, a third party stores them for us'],
+    ['no', 'No, we don’t store PPPs']
+  ])('Should map storing products %s to the label used on the question page', (storing, label) => {
+    expect(buildAnswers({ usingPPPs: { storing } }).storing).toEqual([label])
   })
 
-  test('Should pass the quantity type through for the page to title the row by', () => {
-    const area = buildAnswers({
-      quantity: { quantityType: 'area', quantity: '67' }
-    })
+  test('Should leave out storing products when it was not given', () => {
+    expect(buildAnswers({ usingPPPs: { whoApplies: 'self' } })).not.toHaveProperty('storing')
+  })
 
-    expect(area.quantityType).toBe('area')
-    expect(buildAnswers({}).quantityType).toBeUndefined()
+  test.each([
+    ['1-29', '1 to 29 litres or kilograms'],
+    ['30-59', '30 to 59 litres or kilograms'],
+    ['60-149', '60 to 149 litres or kilograms'],
+    ['150-399', '150 to 399 litres or kilograms'],
+    ['400-plus', '400 and over litres or kilograms']
+  ])('Should read the quantity band %s back with its unit', (quantity, line) => {
+    expect(buildAnswers({ usingPPPs: { quantity } }).usingQuantity).toEqual([line])
+  })
+
+  test('Should leave out the quantity when it was not given', () => {
+    expect(buildAnswers({ usingPPPs: { storing: 'no' } })).not.toHaveProperty('usingQuantity')
   })
 
   test('Should flatten an address into one line per part, skipping the optional ones', () => {
@@ -122,10 +127,10 @@ describe('#buildAnswers', () => {
   })
 
   test('Should map who applies PPPs to the label used on the question page', () => {
-    expect(buildAnswers({ whoApplies: 'self' }).whoApplies).toEqual([
+    expect(buildAnswers({ usingPPPs: { whoApplies: 'self' } }).whoApplies).toEqual([
       'We apply PPPs ourselves or on behalf of other organisations'
     ])
-    expect(buildAnswers({ whoApplies: 'contractor' }).whoApplies).toEqual([
+    expect(buildAnswers({ usingPPPs: { whoApplies: 'contractor' } }).whoApplies).toEqual([
       'Another organisation applies PPPs on our behalf'
     ])
     expect(buildAnswers({})).not.toHaveProperty('whoApplies')
@@ -133,15 +138,17 @@ describe('#buildAnswers', () => {
 
   test('Should give the contractor name and address, the address ending with its region', () => {
     const answers = buildAnswers({
-      whoApplies: 'contractor',
-      contractor: {
-        contractorName: 'Spray Contractors Ltd',
-        address: {
-          addressLine1: '1 High Street',
-          addressLine2: '',
-          addressTown: 'York',
-          addressPostcode: 'YO1 7HH',
-          addressRegion: 'scotland'
+      usingPPPs: {
+        whoApplies: 'contractor',
+        contractor: {
+          contractorName: 'Spray Contractors Ltd',
+          address: {
+            addressLine1: '1 High Street',
+            addressLine2: '',
+            addressTown: 'York',
+            addressPostcode: 'YO1 7HH',
+            addressRegion: 'scotland'
+          }
         }
       }
     })
@@ -151,7 +158,7 @@ describe('#buildAnswers', () => {
   })
 
   test('Should leave out the contractor when none was given', () => {
-    const answers = buildAnswers({ whoApplies: 'self' })
+    const answers = buildAnswers({ usingPPPs: { whoApplies: 'self' } })
 
     expect(answers).not.toHaveProperty('contractorName')
     expect(answers).not.toHaveProperty('contractorAddress')
@@ -167,7 +174,7 @@ describe('#buildAnswers', () => {
 
   test('Should map the PPP sectors to the labels used on the question page', () => {
     const answers = buildAnswers({
-      professionalSectors: ['agriculture', 'business-premises', 'public-services']
+      usingPPPs: { professionalSectors: ['agriculture', 'business-premises', 'public-services'] }
     })
 
     expect(answers.professionalSectors).toEqual([
@@ -179,12 +186,12 @@ describe('#buildAnswers', () => {
 
   test('Should give the Other text as the PPP sectors when no sector was chosen', () => {
     expect(
-      buildAnswers({ professionalSectors: ['Vineyard management'] }).professionalSectors
+      buildAnswers({ usingPPPs: { professionalSectors: ['Vineyard management'] } }).professionalSectors
     ).toEqual(['Vineyard management'])
   })
 
   test('Should leave out the PPP sectors when they were not given', () => {
-    expect(buildAnswers({ whoApplies: 'self' })).not.toHaveProperty('professionalSectors')
+    expect(buildAnswers({ usingPPPs: { whoApplies: 'self' } })).not.toHaveProperty('professionalSectors')
   })
 
   test('Should map the member schemes to the labels used on the question page', () => {

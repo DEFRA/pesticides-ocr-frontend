@@ -9,7 +9,7 @@
 
 import { businessActivityItems } from '#/server/routes/qualifying-questions/business-activities/items.js'
 import { addressActivityItems } from '#/server/routes/qualifying-questions/address-activity/items.js'
-import { quantityTypeItems } from '#/server/routes/qualifying-questions/quantity/items.js'
+import { usingQuantityText } from '#/server/routes/using-ppps/quantity/items.js'
 import { regionItems } from '#/server/common/constants/regions.js'
 
 // --- POC mapping defaults --------------------------------------------------
@@ -36,37 +36,13 @@ const BUSINESS_ACTIVITY_LABELS = labelsByValue(businessActivityItems)
 const ADDRESS_ACTIVITY_LABELS = labelsByValue(addressActivityItems)
 const REGION_LABELS = labelsByValue(regionItems)
 
-const QUANTITY_UNITS = Object.fromEntries(
-  quantityTypeItems.map(({ value, unit }) => [value, unit])
-)
-
 const labelFor = (map) => (code) => map[code] ?? code
 
-// A quantity may be stored as a number (the backend's /register validation
-// converts it) or as a numeric string (records written straight to the
-// database, such as the seed data). Strings must be plain decimals, so forms
-// Number() would otherwise accept, like '0x10' or '1e3', don't slip through.
-// Anything else is treated as absent.
-const DECIMAL_PATTERN = /^\s*\d+(\.\d+)?\s*$/
-
-function toQuantityNumber(value) {
-  const number =
-    typeof value === 'string' && DECIMAL_PATTERN.test(value)
-      ? Number(value)
-      : value
-  return typeof number === 'number' && Number.isFinite(number) ? number : null
-}
-
-// Format the structured stored quantity into its display string, using
-// the journey's unit for the quantity type (amount -> "litres or kilograms",
-// area -> "hectares"). An unrecognised type falls back to the amount unit.
+// The quantity used in a typical year is stored as a band code; show its label
+// with the unit, as check answers does. An unknown code falls back to the raw
+// value, like the other labels.
 function formatQuantity(quantity) {
-  const amount = toQuantityNumber(quantity?.quantity)
-  if (amount === null) {
-    return ''
-  }
-  const unit = QUANTITY_UNITS[quantity.quantityType] ?? QUANTITY_UNITS.amount
-  return `${amount.toLocaleString('en-GB')} ${unit}`
+  return usingQuantityText(quantity) ?? quantity ?? ''
 }
 
 // `submittedAt` (a Date, or its JSON string over the wire) -> yyyy-mm-dd,
@@ -119,7 +95,7 @@ export function toOperatorView(doc = {}) {
     addressActivities: (doc.addressActivities ?? []).map(
       labelFor(ADDRESS_ACTIVITY_LABELS)
     ),
-    quantity: formatQuantity(doc.quantity),
+    quantity: formatQuantity(doc.usingPPPs?.quantity),
     registeredDate: toIsoDate(doc.submittedAt),
     status: doc.status ?? DEFAULT_STATUS
   }

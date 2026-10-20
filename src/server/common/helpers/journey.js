@@ -1,5 +1,6 @@
 import { ADDRESS_SEARCH_PAGE } from '#/server/common/constants/address-pages.js'
 import { SELLING } from '#/server/routes/qualifying-questions/business-activities/items.js'
+import { USING_PPPS_KEY, getUsingPPPsAnswers } from './using-ppps-answers.js'
 
 const FIRST_PAGE = '/business-activities'
 export const CHECK_ANSWERS_PAGE = '/check-answers'
@@ -8,21 +9,38 @@ export const CHECK_ANSWERS_PAGE = '/check-answers'
 // journey stops here for anyone who only sells PPPs.
 export const SELL_SECTION_PAGE = '/sell'
 
+// Where an organisation that uses PPPs says who applies them, after the business
+// contact (see routes/using-ppps/who-applies). Every using PPPs page sits under
+// /using-ppps, and their answers under formSession.usingPPPs.
+export const WHO_APPLIES_PAGE = '/using-ppps/who-applies'
+
 // Where an organisation that uses PPPs says which sectors its PPP activities
 // are in, after who applies them (and the contractor's details, if any). See
 // routes/using-ppps/ppp-sectors.
-export const PPP_SECTORS_PAGE = '/ppp-sectors'
+export const PPP_SECTORS_PAGE = '/using-ppps/ppp-sectors'
 
 // Where an organisation that uses a contractor gives the contractor's name and
 // address (see routes/using-ppps/contractor-address).
-export const CONTRACTOR_ADDRESS_PAGE = '/contractor-address'
+export const CONTRACTOR_ADDRESS_PAGE = '/using-ppps/contractor-address'
 
-// The pages after the PPP sectors aren't built yet, so these routes don't exist
-// and the journey stops at whichever one the sectors lead to.
-export const AGRI_SUBSECTORS_PAGE = '/agri-subsectors'
-export const AMENITY_SUBSECTOR_PAGE = '/amenity-subsector'
-export const HORTI_SUBSECTOR_PAGE = '/horti-subsector'
-export const STORING_PAGE = '/storing'
+// The sector pages after the PPP sectors aren't built yet, so these routes
+// don't exist and the journey stops at whichever one the sectors lead to.
+export const AGRI_SUBSECTORS_PAGE = '/using-ppps/agri-subsectors'
+export const AMENITY_SUBSECTOR_PAGE = '/using-ppps/amenity-subsector'
+export const HORTI_SUBSECTOR_PAGE = '/using-ppps/horti-subsector'
+
+// Where an organisation that uses PPPs says whether it stores the products it
+// applies, after the PPP sectors (see routes/using-ppps/storing).
+export const STORING_PAGE = '/using-ppps/storing'
+
+// The storage pages aren't built yet, so these routes don't exist and the
+// journey stops here for anyone who stores the products they apply.
+export const STORAGE_SITES_PAGE = '/using-ppps/storage-sites'
+export const STORAGE_PROVIDER_PAGE = '/using-ppps/storage-provider'
+
+// Where an organisation that uses PPPs gives the quantity it uses in a typical
+// year (see routes/using-ppps/quantity).
+export const USING_QUANTITY_PAGE = '/using-ppps/quantity'
 
 const onlySellsProducts = ({ businessActivities = [] }) =>
   businessActivities.length === 1 && businessActivities[0] === SELLING
@@ -31,12 +49,19 @@ const usesProducts = ({ businessActivities = [] }) => businessActivities.include
 
 // professionalSectors holds the chosen sector values, or just the Other text.
 function worksIn(sector) {
-  return ({ professionalSectors = [] }) => professionalSectors.includes(sector)
+  return (formSession) =>
+    (getUsingPPPsAnswers(formSession)['professionalSectors'] ?? []).includes(sector)
 }
 
 const worksInAgriculture = worksIn('agriculture')
 const worksInAmenity = worksIn('amenity')
 const worksInHorticulture = worksIn('horticulture')
+
+function pageAfterWhoApplies(formSession) {
+  return getUsingPPPsAnswers(formSession)['whoApplies'] === 'contractor'
+    ? CONTRACTOR_ADDRESS_PAGE
+    : PPP_SECTORS_PAGE
+}
 
 // The first matching sector, in this order, decides the next page.
 function pageAfterSectors(formSession) {
@@ -55,6 +80,20 @@ function pageAfterSectors(formSession) {
   return STORING_PAGE
 }
 
+function pageAfterStoring(formSession) {
+  const { storing } = getUsingPPPsAnswers(formSession)
+
+  if (storing === 'own') {
+    return STORAGE_SITES_PAGE
+  }
+
+  if (storing === 'third-party') {
+    return STORAGE_PROVIDER_PAGE
+  }
+
+  return USING_QUANTITY_PAGE
+}
+
 export const JOURNEY = {
   '/business-activities': {
     sessionKey: 'businessActivities',
@@ -71,29 +110,39 @@ export const JOURNEY = {
   },
   '/business-contact': {
     sessionKey: 'primaryContact',
-    next: (formSession) => (usesProducts(formSession) ? '/who-applies' : '/address-activity')
+    next: (formSession) => (usesProducts(formSession) ? WHO_APPLIES_PAGE : '/address-activity')
   },
-  '/who-applies': {
+  // A page with a `section` keeps its answer under formSession[section] rather
+  // than at the top level.
+  [WHO_APPLIES_PAGE]: {
+    section: USING_PPPS_KEY,
     sessionKey: 'whoApplies',
-    next: (formSession) =>
-      formSession['whoApplies'] === 'contractor' ? CONTRACTOR_ADDRESS_PAGE : PPP_SECTORS_PAGE
+    next: pageAfterWhoApplies
   },
-  '/contractor-address': {
+  [CONTRACTOR_ADDRESS_PAGE]: {
+    section: USING_PPPS_KEY,
     sessionKey: 'contractor',
     next: () => PPP_SECTORS_PAGE
   },
-  '/ppp-sectors': {
+  [PPP_SECTORS_PAGE]: {
+    section: USING_PPPS_KEY,
     sessionKey: 'professionalSectors',
     next: pageAfterSectors
+  },
+  [STORING_PAGE]: {
+    section: USING_PPPS_KEY,
+    sessionKey: 'storing',
+    next: pageAfterStoring
+  },
+  [USING_QUANTITY_PAGE]: {
+    section: USING_PPPS_KEY,
+    sessionKey: 'quantity',
+    next: () => CHECK_ANSWERS_PAGE
   },
   '/address-activity': {
     sessionKey: 'addressActivities',
     next: (formSession) =>
-      formSession['addressActivities'].includes('use') ? '/quantity' : CHECK_ANSWERS_PAGE
-  },
-  '/quantity': {
-    sessionKey: 'quantity',
-    next: () => '/member-schemes'
+      formSession['addressActivities'].includes('use') ? '/member-schemes' : CHECK_ANSWERS_PAGE
   },
   '/member-schemes': {
     sessionKey: 'memberSchemes',
@@ -108,9 +157,15 @@ export const JOURNEY = {
 
 const JOURNEY_PAGES = Object.keys(JOURNEY)
 
+const answersFor = (page, formSession) => {
+  const { section } = JOURNEY[page]
+
+  return section ? (formSession[section] ?? {}) : formSession
+}
+
 const isAnswered = (page, formSession) =>
   page in JOURNEY &&
-  (JOURNEY[page].optional || formSession[JOURNEY[page].sessionKey] !== undefined)
+  (JOURNEY[page].optional || answersFor(page, formSession)[JOURNEY[page].sessionKey] !== undefined)
 
 export function getNextPage(page, formSession) {
   return JOURNEY[page].next(formSession)
@@ -156,17 +211,36 @@ function routeEnd(answeredPages, stoppedAt) {
     : JOURNEY_PAGES.indexOf(answeredPages.at(-1)) + 1
 }
 
+const withoutKeys = (answers, keys) =>
+  Object.fromEntries(Object.entries(answers).filter(([key]) => !keys.has(key)))
+
+const keysIn = (pages, section) =>
+  new Set(pages.filter((page) => JOURNEY[page].section === section).map((page) => JOURNEY[page].sessionKey))
+
+// Removes a section's skipped answers, and the section itself once it's empty.
+function withoutSectionKeys(formSession, section, keys) {
+  if (!formSession[section]) {
+    return formSession
+  }
+
+  const remaining = withoutKeys(formSession[section], keys)
+
+  return Object.keys(remaining).length
+    ? { ...formSession, [section]: remaining }
+    : withoutKeys(formSession, new Set([section]))
+}
+
 export function removeSkippedAnswers(formSession) {
   const { answeredPages, stoppedAt } = followRoute(formSession)
   const knownRouteEnd = routeEnd(answeredPages, stoppedAt)
 
-  const skippedKeys = new Set(
-    JOURNEY_PAGES.slice(0, knownRouteEnd)
-      .filter((page) => !answeredPages.includes(page))
-      .map((page) => JOURNEY[page].sessionKey)
+  const skippedPages = JOURNEY_PAGES.slice(0, knownRouteEnd).filter(
+    (page) => !answeredPages.includes(page)
   )
+  const sections = new Set(skippedPages.map((page) => JOURNEY[page].section).filter(Boolean))
 
-  return Object.fromEntries(
-    Object.entries(formSession).filter(([key]) => !skippedKeys.has(key))
+  return [...sections].reduce(
+    (answers, section) => withoutSectionKeys(answers, section, keysIn(skippedPages, section)),
+    withoutKeys(formSession, keysIn(skippedPages, undefined))
   )
 }

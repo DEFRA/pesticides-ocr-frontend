@@ -84,7 +84,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/who-applies')
+      expect(headers.location).toBe('/using-ppps/who-applies')
     })
 
     test('Should redirect to address activity page when the business does not use PPPs', async () => {

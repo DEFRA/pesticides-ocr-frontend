@@ -23,7 +23,7 @@ describe('#contractorAddressController', () => {
     await server.stop({ timeout: 0 })
   })
 
-  const url = '/contractor-address'
+  const url = '/using-ppps/contractor-address'
 
   const contractor = {
     contractorName: 'Spray Contractors Ltd',
@@ -52,7 +52,7 @@ describe('#contractorAddressController', () => {
       contactTelephone: '01234 567890',
       contactEmail: 'jo@example.com'
     })
-    await answer('/who-applies', { whoApplies: 'contractor' })
+    await answer('/using-ppps/who-applies', { whoApplies: 'contractor' })
 
     return cookie
   }
@@ -125,7 +125,7 @@ describe('#contractorAddressController', () => {
       const page = await revisitStep(server, { url, cookie })
 
       expect(page('.govuk-back-link')).toHaveLength(1)
-      expect(page('.govuk-back-link').attr('href')).toBe('/who-applies')
+      expect(page('.govuk-back-link').attr('href')).toBe('/using-ppps/who-applies')
     })
 
     test('Should link back to check answers in change mode', async () => {
@@ -152,18 +152,18 @@ describe('#contractorAddressController', () => {
       const { statusCode, headers } = await injectWithSession(server, { method: 'POST', url, payload })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/ppp-sectors')
+      expect(headers.location).toBe('/using-ppps/ppp-sectors')
     })
 
     test('Should save the name and keep the address in its own object, like the business address', () => {
       const { request, readSession } = createSessionRequest({
         payload: contractor,
-        formSession: { whoApplies: 'contractor' }
+        formSession: { usingPPPs: { whoApplies: 'contractor' } }
       })
 
       post.handler(request, sessionResponseToolkit)
 
-      expect(readSession().contractor).toEqual({
+      expect(readSession().usingPPPs.contractor).toEqual({
         contractorName: 'Spray Contractors Ltd',
         address: {
           addressLine1: '1 High Street',
@@ -203,7 +203,7 @@ describe('#contractorAddressController', () => {
         payload: contractor
       })
 
-      expect(headers.location).toBe('/ppp-sectors?change=true')
+      expect(headers.location).toBe('/using-ppps/ppp-sectors?change=true')
     })
 
     test.each([

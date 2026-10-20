@@ -2,6 +2,10 @@ import { getSession } from '#/server/common/helpers/get-session.js'
 import { splitOtherAnswer } from '#/server/common/helpers/split-other-answer.js'
 import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
 import { PPP_SECTORS_PAGE, getNextPage } from '#/server/common/helpers/journey.js'
+import {
+  getUsingPPPsAnswers,
+  setUsingPPPsAnswer
+} from '#/server/common/helpers/using-ppps-answers.js'
 import { pppSectorsValues } from './items.js'
 
 // The answer is either the chosen sector values or, when only Other is given,
@@ -11,7 +15,7 @@ export const get = {
     request.yar.set('formSession', getSession(request, 'formSession'))
 
     const { selected, other } = splitOtherAnswer(
-      getSession(request, 'formSession')['professionalSectors'],
+      getUsingPPPsAnswers(getSession(request, 'formSession'))['professionalSectors'],
       pppSectorsValues
     )
 
@@ -27,7 +31,7 @@ export const post = {
     const other = request.payload['professionalSectorsOther']
     const formSession = getSession(request, 'formSession')
 
-    formSession['professionalSectors'] = sectors ?? [other]
+    setUsingPPPsAnswer(formSession, 'professionalSectors', sectors ?? [other])
     request.yar.set('formSession', formSession)
 
     return redirectToNextPage(request, h, getNextPage(PPP_SECTORS_PAGE, formSession))

@@ -1,6 +1,7 @@
 import { get, post } from './controller.js'
 import { app, validate } from './options.js'
 import { NO_STORE_CACHE } from '#/server/common/constants/cache-control.js'
+import { PPP_SECTORS_PAGE } from '#/server/common/helpers/journey.js'
 
 export const pppSectors = {
   plugin: {
@@ -9,7 +10,7 @@ export const pppSectors = {
       server.route([
         {
           method: 'GET',
-          path: '/ppp-sectors',
+          path: PPP_SECTORS_PAGE,
           ...get,
           options: {
             cache: NO_STORE_CACHE,
@@ -18,7 +19,7 @@ export const pppSectors = {
         },
         {
           method: 'POST',
-          path: '/ppp-sectors',
+          path: PPP_SECTORS_PAGE,
           ...post,
           options: {
             cache: NO_STORE_CACHE,

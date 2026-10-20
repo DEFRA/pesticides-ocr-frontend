@@ -12,8 +12,9 @@ import { businessContact } from './qualifying-questions/business-contact/index.j
 import { whoApplies } from './using-ppps/who-applies/index.js'
 import { contractorAddress } from './using-ppps/contractor-address/index.js'
 import { pppSectors } from './using-ppps/ppp-sectors/index.js'
+import { storing } from './using-ppps/storing/index.js'
+import { usingQuantity } from './using-ppps/quantity/index.js'
 import { addressActivity } from './qualifying-questions/address-activity/index.js'
-import { quantity } from './qualifying-questions/quantity/index.js'
 import { checkAnswers } from './check-confirm/check-answers/index.js'
 import { confirmation } from './check-confirm/confirmation/index.js'
 import { notEligible } from './qualifying-questions/not-eligible/index.js'
@@ -39,8 +40,9 @@ export const routes = [
   whoApplies,
   contractorAddress,
   pppSectors,
+  storing,
+  usingQuantity,
   addressActivity,
-  quantity,
   checkAnswers,
   confirmation,
   notEligible,

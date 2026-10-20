@@ -1,6 +1,7 @@
 import { get, post } from './controller.js'
 import { app, validate } from './options.js'
 import { NO_STORE_CACHE } from '#/server/common/constants/cache-control.js'
+import { WHO_APPLIES_PAGE } from '#/server/common/helpers/journey.js'
 
 export const whoApplies = {
   plugin: {
@@ -9,7 +10,7 @@ export const whoApplies = {
       server.route([
         {
           method: 'GET',
-          path: '/who-applies',
+          path: WHO_APPLIES_PAGE,
           ...get,
           options: {
             cache: NO_STORE_CACHE,
@@ -18,7 +19,7 @@ export const whoApplies = {
         },
         {
           method: 'POST',
-          path: '/who-applies',
+          path: WHO_APPLIES_PAGE,
           ...post,
           options: {
             cache: NO_STORE_CACHE,
