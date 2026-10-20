@@ -5,8 +5,19 @@ export const CHECK_ANSWERS_PAGE = '/check-answers'
 // journey stops here for anyone who only sells PPPs.
 export const SELL_SECTION_PAGE = '/sell'
 
+// The PPP sectors page isn't built yet, so this route doesn't exist and the
+// journey stops here for organisations that apply PPPs themselves.
+export const PPP_SECTORS_PAGE = '/ppp-sectors'
+
+// The contractor address capture page isn't built yet, so this route doesn't
+// exist and the journey stops here for organisations that use a contractor.
+// The path is a placeholder: rename it once the page is designed.
+export const CONTRACTOR_ADDRESS_PAGE = '/contractor-address'
+
 const onlySellsProducts = ({ businessActivities = [] }) =>
   businessActivities.length === 1 && businessActivities[0] === 'selling'
+
+const usesProducts = ({ businessActivities = [] }) => businessActivities.includes('using')
 
 export const JOURNEY = {
   '/business-activities': {
@@ -24,7 +35,12 @@ export const JOURNEY = {
   },
   '/business-contact': {
     sessionKey: 'primaryContact',
-    next: () => '/address-activity'
+    next: (formSession) => (usesProducts(formSession) ? '/who-applies' : '/address-activity')
+  },
+  '/who-applies': {
+    sessionKey: 'whoApplies',
+    next: (formSession) =>
+      formSession['whoApplies'] === 'contractor' ? CONTRACTOR_ADDRESS_PAGE : PPP_SECTORS_PAGE
   },
   '/address-activity': {
     sessionKey: 'addressActivities',

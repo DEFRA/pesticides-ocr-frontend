@@ -58,6 +58,11 @@
       {{ govukSummaryList({
         rows: [
           {
+            key: { text: "Who applies PPPs" },
+            value: { html: appAnswerList({ values: answers.whoApplies }) },
+            actions: { items: [{ href: "/who-applies?change=true", text: "Change", visuallyHiddenText: "who applies PPPs" }] }
+          } if answers.whoApplies,
+          {
             key: { text: "PPP activities at the address" },
             value: { html: appAnswerList({ values: answers.addressActivities }) },
             actions: { items: [{ href: "/address-activity?change=true", text: "Change", visuallyHiddenText: "PPP activities at the address" }] }

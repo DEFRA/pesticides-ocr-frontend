@@ -3,6 +3,7 @@ import { addressActivityItems } from '../../../qualifying-questions/address-acti
 import { quantityTypeItems } from '../../../qualifying-questions/quantity/items.js'
 import { professionalSectorsItems } from '../../../pro-users/professional-sectors/items.js'
 import { memberSchemesItems } from '../../../pro-users/member-schemes/items.js'
+import { whoAppliesItems } from '#/server/routes/using-ppps/who-applies/items.js'
 import {
   additionalAddressLines,
   addressLines,
@@ -53,6 +54,7 @@ export function buildAnswers(formData = {}) {
     contactJobTitle: toLines(contact['contactJobTitle']),
     contactTelephone: toLines(contact['contactTelephone']),
     contactEmail: toLines(contact['contactEmail']),
+    whoApplies: labelsFor(whoAppliesItems, formData['whoApplies']),
     addressActivities: labelsFor(addressActivityItems, formData['addressActivities']),
     quantity: quantityLines(formData.quantity),
     quantityType: formData.quantity?.['quantityType'],

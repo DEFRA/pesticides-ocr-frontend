@@ -121,6 +121,16 @@ describe('#buildAnswers', () => {
     expect(answers).toEqual({ businessName: ['Pesticides Ltd'] })
   })
 
+  test('Should map who applies PPPs to the label used on the question page', () => {
+    expect(buildAnswers({ whoApplies: 'self' }).whoApplies).toEqual([
+      'We apply PPPs ourselves or on behalf of other organisations'
+    ])
+    expect(buildAnswers({ whoApplies: 'contractor' }).whoApplies).toEqual([
+      'Another organisation applies PPPs on our behalf'
+    ])
+    expect(buildAnswers({})).not.toHaveProperty('whoApplies')
+  })
+
   test('Should show None when no member scheme was chosen', () => {
     expect(buildAnswers({ memberSchemes: [] }).memberSchemes).toEqual(['None'])
   })

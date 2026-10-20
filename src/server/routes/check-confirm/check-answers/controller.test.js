@@ -50,7 +50,7 @@ describe('#checkAnswersController', () => {
     const cookie = await getSessionCookie(server, '/business-activities')
     const answer = answerAs(cookie)
 
-    await answer('/business-activities', { businessActivities: ['using'] })
+    await answer('/business-activities', { businessActivities: ['distributing'] })
     await answer('/business-name', { businessName: 'Pesticides Ltd' })
     await answer('/business-address', { addressPostcode: 'LS1 1AA', addressBuilding: 'Lower Meadow Barn' })
     await answer('/business-address/select', { address: '0' })
@@ -214,6 +214,32 @@ describe('#checkAnswersController', () => {
       expect(row.find('.govuk-summary-list__value').text().trim()).toBe('Farm manager')
       expect(row.find('a').attr('href')).toBe('/business-contact?change=true')
       expect(row.find('.govuk-visually-hidden').text().trim()).toBe('job title or role')
+    })
+
+    test('Should show who applies PPPs with a link to change it once answered', async () => {
+      const cookie = await getSessionCookie(server, '/who-applies')
+
+      await answerAs(cookie)('/who-applies', { whoApplies: 'contractor' })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const row = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Who applies PPPs'
+      )
+
+      expect(row).toHaveLength(1)
+      expect(row.find('.govuk-summary-list__value').text().trim()).toBe(
+        'Another organisation applies PPPs on our behalf'
+      )
+      expect(row.find('a').attr('href')).toBe('/who-applies?change=true')
+      expect(row.find('.govuk-visually-hidden').text().trim()).toBe('who applies PPPs')
+    })
+
+    test('Should not show a who applies PPPs row before it is answered', async () => {
+      const cookie = await completeJourney(server)
+
+      const { result } = await loadAnswers(cookie)
+
+      expect(result).not.toEqual(expect.stringContaining('Who applies PPPs'))
     })
 
     test('Should not show a job title or role row when it was left empty', async () => {
