@@ -4,7 +4,7 @@ import { getNextPage } from '#/server/common/helpers/journey.js'
 
 export const get = {
   handler(request, h) {
-    request.yar.set('formSession', request.yar.get('formSession') ?? {})
+    request.yar.set('formSession', getSession(request, 'formSession'))
 
     const { quantityType, quantity } = getSession(request, 'formSession')['quantity'] ?? {}
 
@@ -21,7 +21,7 @@ export const get = {
 export const post = {
   handler(request, h) {
     const payload = request.payload
-    const formSession = request.yar.get('formSession') ?? {}
+    const formSession = getSession(request, 'formSession')
     const quantity = payload['quantityType'] === 'amount' ? payload['quantityAmount'] : payload['quantityArea']
 
     formSession['quantity'] = { quantityType: payload['quantityType'], quantity }

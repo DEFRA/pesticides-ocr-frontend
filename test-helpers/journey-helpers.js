@@ -20,13 +20,10 @@ export async function completeJourney(server, cookie) {
   const answer = (url, payload) =>
     server.inject({ method: 'POST', url, headers: { cookie: sessionCookie }, payload })
 
-  await answer('/business-activities', { businessActivities: ['seller-amateur'] })
+  await answer('/business-activities', { businessActivities: ['distributing'] })
   await answer('/business-name', { businessName: 'Pesticides Ltd' })
-  await answer('/business-address', {
-    addressLine1: 'Lower Meadow Barn',
-    addressTown: 'Farm town',
-    addressPostcode: 'LS1 1AA'
-  })
+  await answer('/business-address', { addressPostcode: 'LS1 1AA', addressBuilding: 'Lower Meadow Barn' })
+  await answer('/business-address/select', { address: '0' })
   await answer('/business-contact', {
     contactName: 'Jo Bloggs',
     contactTelephone: '01234 567890',

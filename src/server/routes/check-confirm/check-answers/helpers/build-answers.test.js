@@ -3,25 +3,29 @@ import { buildAnswers } from './build-answers.js'
 describe('#buildAnswers', () => {
   test('Should map coded answers to the labels used on the question pages', () => {
     const answers = buildAnswers({
-      businessActivities: ['seller-amateur', 'manufacture'],
-      addressActivities: ['store'],
-      mainCustomer: 'both'
+      businessActivities: ['selling', 'manufacturing'],
+      addressActivities: ['store']
     })
 
     expect(answers.businessActivities).toEqual([
-      'Sell amateur PPPs',
-      'Manufacture, process or import'
+      'Selling PPPs',
+      'Manufacturing PPPs'
     ])
     expect(answers.addressActivities).toEqual([
       'Store plant protection products (PPPs) or adjuvants'
     ])
-    expect(answers.mainCustomer).toEqual(['Both professional and amateur users'])
+  })
+
+  test('Should label the exclusive only storing activity', () => {
+    expect(buildAnswers({ businessActivities: ['only-storing'] }).businessActivities).toEqual([
+      'Only storing PPPs for other businesses'
+    ])
   })
 
   test('Should fall back to the raw value when it is not a known option', () => {
-    const answers = buildAnswers({ mainCustomer: 'unknown' })
+    const answers = buildAnswers({ businessActivities: ['unknown'] })
 
-    expect(answers.mainCustomer).toEqual(['unknown'])
+    expect(answers.businessActivities).toEqual(['unknown'])
   })
 
   test('Should read the quantity back in the unit it was given in', () => {
@@ -59,6 +63,20 @@ describe('#buildAnswers', () => {
     expect(answers.address).toEqual(['Highfield Farm', 'Farm town', 'PH1 1FT'])
   })
 
+  test('Should end an address with its region', () => {
+    const answers = buildAnswers({
+      address: {
+        addressLine1: '1 High Street',
+        addressLine2: '',
+        addressTown: 'Edinburgh',
+        addressPostcode: 'EH1 1AA',
+        addressRegion: 'scotland'
+      }
+    })
+
+    expect(answers.address).toEqual(['1 High Street', 'Edinburgh', 'EH1 1AA', 'Scotland'])
+  })
+
   test('Should split the contact details into separate answers', () => {
     const answers = buildAnswers({
       primaryContact: {
@@ -71,6 +89,23 @@ describe('#buildAnswers', () => {
     expect(answers.contactName).toEqual(['John Smith'])
     expect(answers.contactTelephone).toEqual(['01234 567890'])
     expect(answers.contactEmail).toEqual(['john.smith@pesticides.co.uk'])
+  })
+
+  test('Should include the contact job title or role when one was given', () => {
+    const answers = buildAnswers({
+      primaryContact: { contactName: 'John Smith', contactJobTitle: 'Farm manager' }
+    })
+
+    expect(answers.contactJobTitle).toEqual(['Farm manager'])
+  })
+
+  test('Should leave out the contact job title or role when it was left empty or not given', () => {
+    expect(
+      buildAnswers({ primaryContact: { contactName: 'John Smith', contactJobTitle: '' } })
+    ).not.toHaveProperty('contactJobTitle')
+    expect(
+      buildAnswers({ primaryContact: { contactName: 'John Smith' } })
+    ).not.toHaveProperty('contactJobTitle')
   })
 
   test('Should leave out every unanswered question', () => {

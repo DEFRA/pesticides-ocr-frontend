@@ -5,7 +5,8 @@ import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie } from '#/test-helpers/session-helpers.js'
 import { config } from '#/config/config.js'
-import { completeJourney } from '#/test-helpers/journey-helpers.js'
+import { completeJourney, revisitStep } from '#/test-helpers/journey-helpers.js'
+import { ADDRESS_SEARCH_PAGE, ADDRESS_SELECT_PAGE } from '#/server/common/constants/address-pages.js'
 
 describe('#checkAnswersController', () => {
   let server
@@ -50,14 +51,10 @@ describe('#checkAnswersController', () => {
     const cookie = await getSessionCookie(server, '/business-activities')
     const answer = answerAs(cookie)
 
-    await answer('/business-activities', { businessActivities: ['use-professional'] })
-    await answer('/main-customer', { mainCustomer: 'professional' })
+    await answer('/business-activities', { businessActivities: ['using'] })
     await answer('/business-name', { businessName: 'Pesticides Ltd' })
-    await answer('/business-address', {
-      addressLine1: 'Lower Meadow Barn',
-      addressTown: 'Farm town',
-      addressPostcode: 'LS1 1AA'
-    })
+    await answer('/business-address', { addressPostcode: 'LS1 1AA', addressBuilding: 'Lower Meadow Barn' })
+    await answer('/business-address/select', { address: '0' })
     await answer('/business-contact', {
       contactName: 'Jo Bloggs',
       contactTelephone: '01234 567890',
@@ -103,7 +100,7 @@ describe('#checkAnswersController', () => {
         server.inject({ method: 'POST', url, headers: { cookie }, payload })
 
       await answer('/business-activities', {
-        businessActivities: ['manufacture', 'seller-amateur']
+        businessActivities: ['manufacturing', 'selling']
       })
       await answer('/address-activity', { addressActivities: ['store'] })
       await answer('/quantity', {
@@ -120,7 +117,7 @@ describe('#checkAnswersController', () => {
 
       expect(result).toEqual(
         expect.stringContaining(
-          'Manufacture, process or import<br>Sell amateur PPPs'
+          'Manufacturing PPPs<br>Selling PPPs'
         )
       )
       expect(result).toEqual(
@@ -194,23 +191,51 @@ describe('#checkAnswersController', () => {
       expect(result).not.toEqual(expect.stringContaining('Quantity of PPPs used'))
     })
 
-    test('Should omit the main customer row when that question was skipped', async () => {
-      const cookie = await getSessionCookie(server, '/business-activities')
+    test('Should show the contact job title or role with a link to change it when one was given', async () => {
+      const cookie = await completeJourney(server)
 
       await server.inject({
         method: 'POST',
-        url: '/business-activities',
+        url: '/business-contact?change=true',
         headers: { cookie },
-        payload: { businessActivities: ['seller-amateur'] }
+        payload: {
+          contactName: 'Jo Bloggs',
+          contactJobTitle: 'Farm manager',
+          contactTelephone: '01234 567890',
+          contactEmail: 'jo@example.com'
+        }
       })
 
-      const { result } = await server.inject({
-        method: 'GET',
-        url: '/check-answers',
-        headers: { cookie }
+      const page = load((await loadAnswers(cookie)).result)
+      const row = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Job title or role'
+      )
+
+      expect(row).toHaveLength(1)
+      expect(row.find('.govuk-summary-list__value').text().trim()).toBe('Farm manager')
+      expect(row.find('a').attr('href')).toBe('/business-contact?change=true')
+      expect(row.find('.govuk-visually-hidden').text().trim()).toBe('job title or role')
+    })
+
+    test('Should not show a job title or role row when it was left empty', async () => {
+      const cookie = await completeJourney(server)
+
+      await server.inject({
+        method: 'POST',
+        url: '/business-contact?change=true',
+        headers: { cookie },
+        payload: {
+          contactName: 'Jo Bloggs',
+          contactJobTitle: '',
+          contactTelephone: '01234 567890',
+          contactEmail: 'jo@example.com'
+        }
       })
 
-      expect(result).not.toEqual(expect.stringContaining('Main customer'))
+      const { result } = await loadAnswers(cookie)
+
+      expect(result).toEqual(expect.stringContaining('Jo Bloggs'))
+      expect(result).not.toEqual(expect.stringContaining('Job title or role'))
     })
 
     test('Should escape answers rather than trusting them as markup', async () => {
@@ -529,10 +554,21 @@ describe('#checkAnswersController', () => {
       expect(options.headers).toEqual({ 'Content-Type': 'application/json' })
       expect(JSON.parse(options.body)).toEqual(
         expect.objectContaining({
-          businessActivities: ['seller-amateur'],
+          businessActivities: ['distributing'],
           businessName: 'Pesticides Ltd'
         })
       )
+    })
+
+    test('Should not send the address search to the backend', async () => {
+      const fetchSpy = stubBackend(created())
+      const cookie = await completeJourney(server)
+
+      await submit(cookie)
+
+      const [, options] = fetchSpy.mock.lastCall
+
+      expect(JSON.parse(options.body)).not.toHaveProperty('addressSearch')
     })
 
     test('Should keep the reference the backend issued for the confirmation page', async () => {
@@ -584,7 +620,7 @@ describe('#checkAnswersController', () => {
       const fetchSpy = stubBackend(created())
       const cookie = await getSessionCookie(server, '/business-activities')
 
-      await answerAs(cookie)('/business-activities', { businessActivities: ['seller-amateur'] })
+      await answerAs(cookie)('/business-activities', { businessActivities: ['selling'] })
       const { statusCode, headers } = await submit(cookie)
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -619,6 +655,20 @@ describe('#checkAnswersController', () => {
       })
 
       expect(businessName.result).not.toEqual(expect.stringContaining('Pesticides Ltd'))
+    })
+
+    test('Should clear the address search once the registration is submitted', async () => {
+      stubBackend(created())
+      const cookie = await completeJourney(server)
+
+      await submit(cookie)
+      const search = await revisitStep(server, { url: ADDRESS_SEARCH_PAGE, cookie })
+      const select = await server.inject({ method: 'GET', url: ADDRESS_SELECT_PAGE, headers: { cookie } })
+
+      expect(search('#addressPostcode').val()).toBeFalsy()
+      expect(search('#addressBuilding').val()).toBeFalsy()
+      expect(select.statusCode).toBe(statusCodes.redirect)
+      expect(select.headers.location).toBe(ADDRESS_SEARCH_PAGE)
     })
 
     test('Should not submit the same registration twice', async () => {
@@ -728,17 +778,17 @@ describe('#checkAnswersController', () => {
       })
 
       expect(activity.headers.location).toBe('/quantity?change=true')
-      expect(quantity.headers.location).toBe('/check-answers')
+      expect(quantity.headers.location).toBe('/professional-sectors?change=true')
     })
 
-    test('Should ask for the main customer once amateur selling is replaced', async () => {
+    test('Should return to check answers once the business activities are changed', async () => {
       const cookie = await completeJourney(server)
 
       const { headers } = await submit('/business-activities?change=true', cookie, {
-        businessActivities: ['manufacture']
+        businessActivities: ['only-storing']
       })
 
-      expect(headers.location).toBe('/main-customer?change=true')
+      expect(headers.location).toBe('/check-answers')
     })
 
     test('Should remove answers an amended answer makes irrelevant', async () => {

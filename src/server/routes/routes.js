@@ -4,9 +4,10 @@ import { dashboard } from './dashboard/index.js'
 import { search } from './search/index.js'
 import { serviceMetrics } from './service-metrics/index.js'
 import { businessActivities } from './qualifying-questions/business-activities/index.js'
-import { mainCustomer } from './qualifying-questions/main-customer/index.js'
 import { businessName } from './qualifying-questions/business-name/index.js'
 import { businessAddress } from './qualifying-questions/business-address/index.js'
+import { businessAddressSelect } from './qualifying-questions/business-address/select/index.js'
+import { businessAddressManual } from './qualifying-questions/business-address/manual/index.js'
 import { businessContact } from './qualifying-questions/business-contact/index.js'
 import { addressActivity } from './qualifying-questions/address-activity/index.js'
 import { quantity } from './qualifying-questions/quantity/index.js'
@@ -28,9 +29,10 @@ export const routes = [
   search,
   serviceMetrics,
   businessActivities,
-  mainCustomer,
   businessName,
   businessAddress,
+  businessAddressSelect,
+  businessAddressManual,
   businessContact,
   addressActivity,
   quantity,

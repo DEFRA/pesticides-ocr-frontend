@@ -1,15 +1,16 @@
 import { get, post } from './controller.js'
 import { app, validate } from './options.js'
+import { ADDRESS_SELECT_PAGE } from '#/server/common/constants/address-pages.js'
 import { NO_STORE_CACHE } from '#/server/common/constants/cache-control.js'
 
-export const mainCustomer = {
+export const businessAddressSelect = {
   plugin: {
-    name: 'mainCustomer',
+    name: 'businessAddressSelect',
     register(server) {
       server.route([
         {
           method: 'GET',
-          path: '/main-customer',
+          path: ADDRESS_SELECT_PAGE,
           ...get,
           options: {
             cache: NO_STORE_CACHE,
@@ -18,7 +19,7 @@ export const mainCustomer = {
         },
         {
           method: 'POST',
-          path: '/main-customer',
+          path: ADDRESS_SELECT_PAGE,
           ...post,
           options: {
             cache: NO_STORE_CACHE,

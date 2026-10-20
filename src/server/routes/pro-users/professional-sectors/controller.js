@@ -6,7 +6,7 @@ import { getNextPage } from '#/server/common/helpers/journey.js'
 
 export const get = {
   handler(request, h) {
-    request.yar.set('formSession', request.yar.get('formSession') ?? {})
+    request.yar.set('formSession', getSession(request, 'formSession'))
 
     const { selected, other } = splitOtherAnswer(
       getSession(request, 'formSession')['professionalSectors'],
@@ -23,7 +23,7 @@ export const post = {
   handler(request, h) {
     const sectors = request.payload['professionalSectors']
     const other = request.payload['professionalSectorsOther']
-    const formSession = request.yar.get('formSession') ?? {}
+    const formSession = getSession(request, 'formSession')
 
     formSession['professionalSectors'] = sectors ?? [other]
     request.yar.set('formSession', formSession)

@@ -9,8 +9,8 @@
 
 import { businessActivityItems } from '#/server/routes/qualifying-questions/business-activities/items.js'
 import { addressActivityItems } from '#/server/routes/qualifying-questions/address-activity/items.js'
-import { mainCustomerItems } from '#/server/routes/qualifying-questions/main-customer/items.js'
 import { quantityTypeItems } from '#/server/routes/qualifying-questions/quantity/items.js'
+import { regionItems } from '#/server/common/constants/regions.js'
 
 // --- POC mapping defaults --------------------------------------------------
 // Fields the Operator contract needs but the register journey does not (yet)
@@ -18,13 +18,10 @@ import { quantityTypeItems } from '#/server/routes/qualifying-questions/quantity
 // with HSE/Yankui before production. Isolated here so a decision changes one
 // place.
 //   - status:       no approval/status workflow exists; treated as Registered.
-//   - country:      the register journey captures postcode/county but not a
-//                   country; left blank until the field is added.
-//   - mainCustomer: the backend now requires and stores this, so the fallback
-//                   only covers records written before the field was added.
+//   - region:       registrations made before the journey captured a region
+//                   (England, Scotland or Wales) have none; left blank.
 const DEFAULT_STATUS = 'Registered'
-const DEFAULT_COUNTRY = ''
-const DEFAULT_MAIN_CUSTOMER = 'N/A'
+const DEFAULT_REGION = ''
 
 const ISO_DATE_LENGTH = 10
 
@@ -37,7 +34,7 @@ const labelsByValue = (items) =>
 
 const BUSINESS_ACTIVITY_LABELS = labelsByValue(businessActivityItems)
 const ADDRESS_ACTIVITY_LABELS = labelsByValue(addressActivityItems)
-const MAIN_CUSTOMER_LABELS = labelsByValue(mainCustomerItems)
+const REGION_LABELS = labelsByValue(regionItems)
 
 const QUANTITY_UNITS = Object.fromEntries(
   quantityTypeItems.map(({ value, unit }) => [value, unit])
@@ -81,14 +78,14 @@ function toIsoDate(value) {
     : ''
 }
 
-// The Operator contract carries only line1/town/postcode/country; the stored
+// The Operator contract carries only line1/town/postcode/region; the stored
 // address.line2/county are intentionally dropped (not shown in the results).
 function mapAddress(address = {}) {
   return {
     line1: address.addressLine1 ?? '',
     town: address.addressTown ?? '',
     postcode: address.addressPostcode ?? '',
-    country: address.addressCountry ?? DEFAULT_COUNTRY
+    region: labelFor(REGION_LABELS)(address.addressRegion ?? DEFAULT_REGION)
   }
 }
 
@@ -117,9 +114,6 @@ export function toOperatorView(doc = {}) {
     activities: (doc.businessActivities ?? []).map(
       labelFor(BUSINESS_ACTIVITY_LABELS)
     ),
-    mainCustomer: doc.mainCustomer
-      ? labelFor(MAIN_CUSTOMER_LABELS)(doc.mainCustomer)
-      : DEFAULT_MAIN_CUSTOMER,
     address: mapAddress(doc.address),
     contact: mapContact(doc.primaryContact),
     addressActivities: (doc.addressActivities ?? []).map(

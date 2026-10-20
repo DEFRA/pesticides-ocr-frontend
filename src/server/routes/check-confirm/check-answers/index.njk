@@ -21,11 +21,6 @@
             actions: { items: [{ href: "/business-activities?change=true", text: "Change", visuallyHiddenText: "business PPP activities" }] }
           } if answers.businessActivities,
           {
-            key: { text: "Main customer" },
-            value: { html: appAnswerList({ values: answers.mainCustomer }) },
-            actions: { items: [{ href: "/main-customer?change=true", text: "Change", visuallyHiddenText: "main customer" }] }
-          } if answers.mainCustomer,
-          {
             key: { text: "Business name" },
             value: { html: appAnswerList({ values: answers.businessName }) },
             actions: { items: [{ href: "/business-name?change=true", text: "Change", visuallyHiddenText: "business name" }] }
@@ -40,6 +35,11 @@
             value: { html: appAnswerList({ values: answers.contactName }) },
             actions: { items: [{ href: "/business-contact?change=true", text: "Change", visuallyHiddenText: "name" }] }
           } if answers.contactName,
+          {
+            key: { text: "Job title or role" },
+            value: { html: appAnswerList({ values: answers.contactJobTitle }) },
+            actions: { items: [{ href: "/business-contact?change=true", text: "Change", visuallyHiddenText: "job title or role" }] }
+          } if answers.contactJobTitle,
           {
             key: { text: "Email" },
             value: { html: appAnswerList({ values: answers.contactEmail }) },

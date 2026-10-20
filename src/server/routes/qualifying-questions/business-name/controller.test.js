@@ -25,6 +25,15 @@ describe('#businessNameController', () => {
       expect(result).toEqual(expect.stringContaining('Business Name |'))
       expect(statusCode).toBe(statusCodes.ok)
     })
+
+    test('Should ask for the business or organisation name', async () => {
+      const page = await revisitStep(server, { url: '/business-name' })
+
+      expect(page('h1').text()).toBe('What is your business or organisation name?')
+      expect(page('label[for="businessName"]').text().trim()).toBe(
+        'Enter your business or organisation name'
+      )
+    })
   })
 
   describe('POST /business-name', () => {
@@ -33,6 +42,40 @@ describe('#businessNameController', () => {
         method: 'POST',
         url: '/business-name',
         payload: { businessName: 'Pesticides Ltd' }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/business-address')
+    })
+
+    test('Should redirect to the sell section when only selling PPPs', async () => {
+      const cookie = await answerStep(server, {
+        url: '/business-activities',
+        payload: { businessActivities: ['selling'] }
+      })
+
+      const { statusCode, headers } = await server.inject({
+        method: 'POST',
+        url: '/business-name',
+        payload: { businessName: 'Pesticides Ltd' },
+        headers: { cookie }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/sell')
+    })
+
+    test('Should redirect to business address when selling alongside other activities', async () => {
+      const cookie = await answerStep(server, {
+        url: '/business-activities',
+        payload: { businessActivities: ['selling', 'distributing'] }
+      })
+
+      const { statusCode, headers } = await server.inject({
+        method: 'POST',
+        url: '/business-name',
+        payload: { businessName: 'Pesticides Ltd' },
+        headers: { cookie }
       })
 
       expect(statusCode).toBe(statusCodes.redirect)

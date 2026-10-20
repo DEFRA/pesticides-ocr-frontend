@@ -26,6 +26,28 @@ describe('#businessContactController', () => {
       expect(result).toEqual(expect.stringContaining('Business Contact |'))
       expect(statusCode).toBe(statusCodes.ok)
     })
+
+    test('Should show the question, the guidance and the inset text', async () => {
+      const page = await revisitStep(server, { url: '/business-contact' })
+
+      expect(page('h1').text().trim()).toBe('Who should we contact about your PPP activities?')
+      expect(page('main p.govuk-body').first().text().trim()).toBe(
+        "We may need to contact someone about your organisation's PPP activities. This should be a person with knowledge of these activities."
+      )
+      expect(page('.govuk-inset-text').text().trim()).toBe(
+        'If these contact details change in the future they must be updated'
+      )
+    })
+
+    test('Should label each field', async () => {
+      const page = await revisitStep(server, { url: '/business-contact' })
+      const labelFor = (field) => page(`label[for="${field}"]`).text().trim()
+
+      expect(labelFor('contactName')).toBe('Contact name')
+      expect(labelFor('contactJobTitle')).toBe('Job title or role (optional)')
+      expect(labelFor('contactTelephone')).toBe('Telephone number')
+      expect(labelFor('contactEmail')).toBe('Email address')
+    })
   })
 
   describe('POST /business-contact', () => {
@@ -56,7 +78,92 @@ describe('#businessContactController', () => {
       })
 
       expect(result).toEqual(expect.stringContaining('Enter a contact name'))
+      expect(result).toEqual(expect.stringContaining('Enter a telephone number'))
+      expect(result).toEqual(expect.stringContaining('Enter an email address'))
       expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should show an error for a telephone number with invalid characters', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/business-contact',
+        payload: {
+          contactName: 'John Smith',
+          contactTelephone: 'not-a-number',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+
+      expect(result).toEqual(expect.stringContaining('Enter a valid telephone number'))
+      expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should accept a job title or role and continue to address activity', async () => {
+      const { statusCode, headers } = await injectWithSession(server, {
+        method: 'POST',
+        url: '/business-contact',
+        payload: {
+          contactName: 'John Smith',
+          contactJobTitle: 'Farm manager',
+          contactTelephone: '01234 567890',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/address-activity')
+    })
+
+    test('Should continue when the job title or role is left empty', async () => {
+      const { statusCode, headers } = await injectWithSession(server, {
+        method: 'POST',
+        url: '/business-contact',
+        payload: {
+          contactName: 'John Smith',
+          contactJobTitle: '',
+          contactTelephone: '01234 567890',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/address-activity')
+    })
+
+    test('Should show an error when the job title or role is over 100 characters', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/business-contact',
+        payload: {
+          contactName: 'John Smith',
+          contactJobTitle: 'a'.repeat(101),
+          contactTelephone: '01234 567890',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+      const page = load(result)
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(result).toEqual(
+        expect.stringContaining('Job title or role must be 100 characters or less')
+      )
+      expect(page('#contactJobTitle').val()).toBe('a'.repeat(101))
+    })
+
+    test('Should accept a job title or role of exactly 100 characters', async () => {
+      const { statusCode, headers } = await injectWithSession(server, {
+        method: 'POST',
+        url: '/business-contact',
+        payload: {
+          contactName: 'John Smith',
+          contactJobTitle: 'a'.repeat(100),
+          contactTelephone: '01234 567890',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/address-activity')
     })
   })
 
@@ -65,6 +172,7 @@ describe('#businessContactController', () => {
 
     const contact = {
       contactName: 'Jo Bloggs',
+      contactJobTitle: 'Farm manager',
       contactTelephone: '01234 567890',
       contactEmail: 'jo@example.com'
     }
@@ -85,6 +193,16 @@ describe('#businessContactController', () => {
       Object.keys(contact).forEach((field) => {
         expect(page(`#${field}`).val()).toBeFalsy()
       })
+    })
+
+    test('Should save the contact without a job title or role when none is given', async () => {
+      const { contactJobTitle, ...withoutJobTitle } = contact
+      const cookie = await answerStep(server, { url, payload: withoutJobTitle })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(page('#contactName').val()).toBe(contact.contactName)
+      expect(page('#contactJobTitle').val()).toBeFalsy()
     })
 
     test('Should validate an amended value and show it rather than the session value', async () => {

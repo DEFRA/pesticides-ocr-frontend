@@ -5,10 +5,11 @@ import { config } from '#/config/config.js'
 import { getSession } from '#/server/common/helpers/get-session.js'
 import { CHECK_ANSWERS_PAGE, findFirstMissingPage, isOnRoute } from '#/server/common/helpers/journey.js'
 import { removeUnfinishedAddresses } from '#/server/common/helpers/additional-addresses.js'
+import { ADDRESS_SEARCH_KEY } from '#/server/common/constants/session-keys.js'
 
 export const get = {
   handler(request, h) {
-    const formData = removeUnfinishedAddresses(request.yar.get('formSession') ?? {})
+    const formData = removeUnfinishedAddresses(getSession(request, 'formSession'))
     request.yar.set('formSession', formData)
 
     return h.view('check-confirm/check-answers/index', {
@@ -38,7 +39,7 @@ export const deleteAdditionalAddress = {
 
 export const post = {
   async handler(request, h) {
-    const formSession = removeUnfinishedAddresses(request.yar.get('formSession') ?? {})
+    const formSession = removeUnfinishedAddresses(getSession(request, 'formSession'))
     const missingPage = findFirstMissingPage(formSession)
 
     if (missingPage !== CHECK_ANSWERS_PAGE) {
@@ -69,6 +70,7 @@ export const post = {
 
     const responseData = await response.json()
     request.yar.set('formSession', {})
+    request.yar.clear(ADDRESS_SEARCH_KEY)
     request.yar.set('confirmationReference', responseData.reference)
 
     return h.redirect('/confirmation')

@@ -1,7 +1,10 @@
+import { load } from 'cheerio'
+
 import { createServer } from '#/server/server.js'
 import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { injectWithSession } from '#/test-helpers/session-helpers.js'
+import { ONLY_STORING, SELLING } from './items.js'
 
 describe('#businessActivitiesController', () => {
   let server
@@ -23,10 +26,41 @@ describe('#businessActivitiesController', () => {
       })
 
       expect(result).toEqual(expect.stringContaining('Business Activities |'))
-      expect(result).toEqual(
-        expect.stringContaining('Manufacture, process or import')
-      )
+      expect(result).toEqual(expect.stringContaining('Manufacturing PPPs'))
       expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should ask the question as the page heading, with the extra content before the checkboxes', async () => {
+      const { result } = await server.inject({ method: 'GET', url: '/business-activities' })
+      const page = load(result)
+
+      expect(page('h1').text().trim()).toBe('Which activities does your organisation carry out?')
+      expect(page('legend').text().trim()).toBe('Which activities does your organisation carry out?')
+      expect(page('legend').hasClass('govuk-visually-hidden')).toBe(true)
+      expect(result).toEqual(
+        expect.stringContaining(
+          'These activities must be carried out in Great Britain (England, Scotland or Wales).'
+        )
+      )
+    })
+
+    test('Should offer only storing as an exclusive option after an "or" divider', async () => {
+      const { result } = await server.inject({ method: 'GET', url: '/business-activities' })
+      const page = load(result)
+      const onlyStoring = page(`input[value="${ONLY_STORING}"]`)
+
+      expect(page('.govuk-checkboxes__divider').text().trim()).toBe('or')
+      expect(onlyStoring.attr('data-behaviour')).toBe('exclusive')
+      expect(page('input[name="businessActivities"]').last().val()).toBe(ONLY_STORING)
+    })
+
+    test('Should link to the not eligible page for home and garden users', async () => {
+      const { result } = await server.inject({ method: 'GET', url: '/business-activities' })
+      const link = load(result)('a[href="/not-eligible"]')
+
+      expect(link.text()).toBe(
+        'I only use plant protection products (PPPs) in my own home or garden'
+      )
     })
   })
 
@@ -37,7 +71,7 @@ describe('#businessActivitiesController', () => {
       method: 'POST',
       url: '/business-activities',
       headers: { cookie },
-      payload: { businessActivities: ['market', 'use-professional'] }
+      payload: { businessActivities: ['importing', SELLING] }
     })
 
     const { result } = await server.inject({
@@ -49,38 +83,22 @@ describe('#businessActivitiesController', () => {
     const checked = [...result.matchAll(/value="([^"]+)" checked/g)].map(
       ([, value]) => value
     )
-    expect(checked).toEqual(['market', 'use-professional'])
+    expect(checked).toEqual(['importing', SELLING])
   })
 
   describe('POST /business-activities', () => {
-    test('Should redirect to main customer page', async () => {
+    test.each([
+      [['manufacturing']],
+      [['using', SELLING, 'distributing']],
+      [[ONLY_STORING]]
+    ])('Should redirect to the business name page for %o', async (businessActivities) => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-activities',
-        payload: { businessActivities: ['manufacture'] }
+        payload: { businessActivities }
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/main-customer')
-    })
-
-    test('Should skip the main customer page when only amateur PPPs are sold', async () => {
-      const { headers } = await injectWithSession(server, {
-        method: 'POST',
-        url: '/business-activities',
-        payload: { businessActivities: ['seller-amateur'] }
-      })
-
-      expect(headers.location).toBe('/business-name')
-    })
-
-    test('Should skip the main customer page when amateur PPPs are sold alongside other activities', async () => {
-      const { headers } = await injectWithSession(server, {
-        method: 'POST',
-        url: '/business-activities',
-        payload: { businessActivities: ['seller-amateur', 'seller-professional'] }
-      })
-
       expect(headers.location).toBe('/business-name')
     })
 
@@ -94,6 +112,48 @@ describe('#businessActivitiesController', () => {
       expect(result).toEqual(expect.stringContaining('Select at least one business activity'))
       expect(statusCode).toBe(statusCodes.ok)
     })
+
+    test('Should reject an old activity code', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/business-activities',
+        payload: { businessActivities: ['seller-amateur'] }
+      })
+
+      expect(result).toEqual(expect.stringContaining('Select at least one business activity'))
+      expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should not accept only storing alongside other activities', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/business-activities',
+        payload: { businessActivities: [SELLING, ONLY_STORING] }
+      })
+
+      expect(result).toEqual(
+        expect.stringContaining(
+          'Select either your activities or &#39;Only storing PPPs for other businesses&#39;'
+        )
+      )
+      expect(checkedValues(load(result), 'businessActivities')).toEqual([
+        SELLING,
+        ONLY_STORING
+      ])
+      expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should not tick an activity whose value is part of a single rejected value', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/business-activities',
+        payload: { businessActivities: 'manufacturing-x' }
+      })
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(result).toEqual(expect.stringContaining('Select at least one business activity'))
+      expect(checkedValues(load(result), 'businessActivities')).toEqual([])
+    })
   })
 
   describe('Pre-populating from the session', () => {
@@ -102,12 +162,12 @@ describe('#businessActivitiesController', () => {
     test('Should check the activities held in the session', async () => {
       const cookie = await answerStep(server, {
         url,
-        payload: { businessActivities: ['manufacture', 'seller-amateur'] }
+        payload: { businessActivities: ['manufacturing', 'processing'] }
       })
 
       const page = await revisitStep(server, { url, cookie })
 
-      expect(checkedValues(page, 'businessActivities')).toEqual(['manufacture', 'seller-amateur'])
+      expect(checkedValues(page, 'businessActivities')).toEqual(['manufacturing', 'processing'])
     })
 
     test('Should check nothing when no activities are held in the session', async () => {
