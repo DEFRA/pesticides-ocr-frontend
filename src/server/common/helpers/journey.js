@@ -1,3 +1,6 @@
+import { ADDRESS_SEARCH_PAGE } from '#/server/common/constants/address-pages.js'
+import { SELLING } from '#/server/routes/qualifying-questions/business-activities/items.js'
+
 const FIRST_PAGE = '/business-activities'
 export const CHECK_ANSWERS_PAGE = '/check-answers'
 
@@ -6,7 +9,7 @@ export const CHECK_ANSWERS_PAGE = '/check-answers'
 export const SELL_SECTION_PAGE = '/sell'
 
 const onlySellsProducts = ({ businessActivities = [] }) =>
-  businessActivities.length === 1 && businessActivities[0] === 'selling'
+  businessActivities.length === 1 && businessActivities[0] === SELLING
 
 export const JOURNEY = {
   '/business-activities': {
@@ -16,9 +19,9 @@ export const JOURNEY = {
   '/business-name': {
     sessionKey: 'businessName',
     next: (formSession) =>
-      onlySellsProducts(formSession) ? SELL_SECTION_PAGE : '/business-address'
+      onlySellsProducts(formSession) ? SELL_SECTION_PAGE : ADDRESS_SEARCH_PAGE
   },
-  '/business-address': {
+  [ADDRESS_SEARCH_PAGE]: {
     sessionKey: 'address',
     next: () => '/business-contact'
   },

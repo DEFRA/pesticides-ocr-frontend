@@ -4,6 +4,7 @@ import { createServer } from '#/server/server.js'
 import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { injectWithSession } from '#/test-helpers/session-helpers.js'
+import { ONLY_STORING, SELLING } from './items.js'
 
 describe('#businessActivitiesController', () => {
   let server
@@ -46,11 +47,11 @@ describe('#businessActivitiesController', () => {
     test('Should offer only storing as an exclusive option after an "or" divider', async () => {
       const { result } = await server.inject({ method: 'GET', url: '/business-activities' })
       const page = load(result)
-      const onlyStoring = page('input[value="only-storing"]')
+      const onlyStoring = page(`input[value="${ONLY_STORING}"]`)
 
       expect(page('.govuk-checkboxes__divider').text().trim()).toBe('or')
       expect(onlyStoring.attr('data-behaviour')).toBe('exclusive')
-      expect(page('input[name="businessActivities"]').last().val()).toBe('only-storing')
+      expect(page('input[name="businessActivities"]').last().val()).toBe(ONLY_STORING)
     })
 
     test('Should link to the not eligible page for home and garden users', async () => {
@@ -70,7 +71,7 @@ describe('#businessActivitiesController', () => {
       method: 'POST',
       url: '/business-activities',
       headers: { cookie },
-      payload: { businessActivities: ['importing', 'selling'] }
+      payload: { businessActivities: ['importing', SELLING] }
     })
 
     const { result } = await server.inject({
@@ -82,14 +83,14 @@ describe('#businessActivitiesController', () => {
     const checked = [...result.matchAll(/value="([^"]+)" checked/g)].map(
       ([, value]) => value
     )
-    expect(checked).toEqual(['importing', 'selling'])
+    expect(checked).toEqual(['importing', SELLING])
   })
 
   describe('POST /business-activities', () => {
     test.each([
       [['manufacturing']],
-      [['using', 'selling', 'distributing']],
-      [['only-storing']]
+      [['using', SELLING, 'distributing']],
+      [[ONLY_STORING]]
     ])('Should redirect to the business name page for %o', async (businessActivities) => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
@@ -127,7 +128,7 @@ describe('#businessActivitiesController', () => {
       const { result, statusCode } = await server.inject({
         method: 'POST',
         url: '/business-activities',
-        payload: { businessActivities: ['selling', 'only-storing'] }
+        payload: { businessActivities: [SELLING, ONLY_STORING] }
       })
 
       expect(result).toEqual(
@@ -136,10 +137,22 @@ describe('#businessActivitiesController', () => {
         )
       )
       expect(checkedValues(load(result), 'businessActivities')).toEqual([
-        'selling',
-        'only-storing'
+        SELLING,
+        ONLY_STORING
       ])
       expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should not tick an activity whose value is part of a single rejected value', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/business-activities',
+        payload: { businessActivities: 'manufacturing-x' }
+      })
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(result).toEqual(expect.stringContaining('Select at least one business activity'))
+      expect(checkedValues(load(result), 'businessActivities')).toEqual([])
     })
   })
 

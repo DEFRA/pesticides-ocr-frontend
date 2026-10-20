@@ -1,23 +1,13 @@
 import { formatPostcode } from './postcode.js'
 
-// STUB: there is no address lookup service yet (OS Places or similar). Replace
-// this module with a real lookup, keeping the interface:
+// STUB: replace with a real address lookup (OS Places or similar), keeping the interface:
 //
 //   findAddresses({ postcode, building }) -> Promise<Array<{
 //     addressLine1, addressLine2?, addressTown, addressCounty?, addressPostcode,
 //     addressRegion
 //   }>>
 //
-// `addressRegion` is where in Great Britain the address is: 'england',
-// 'scotland' or 'wales' (the values in manual/items.js). The view calls it the
-// country.
-//
-// The results must come back in the same order for the same search, because
-// the select page identifies the chosen address by its position in the list.
-//
-// Until then, every postcode "finds" the same made-up addresses, and a building
-// name or number narrows them down. A building that matches none of them (for
-// example "Nowhere") shows the no-results page.
+// Results must come back in the same order for the same search, because the select page uses positions.
 const STUB_ADDRESSES = [
   {
     addressLine1: 'Lower Meadow Barn',

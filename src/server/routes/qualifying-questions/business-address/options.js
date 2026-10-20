@@ -5,6 +5,9 @@ import { searchPageContext } from './controller.js'
 const ENTER_POSTCODE_MESSAGE = 'Enter a postcode'
 const ENTER_REAL_POSTCODE_MESSAGE = 'Enter a real postcode'
 
+const BUILDING_MAX_LENGTH = 100
+const BUILDING_TOO_LONG_MESSAGE = 'Building name or number must be 100 characters or less'
+
 // A full UK postcode, with or without the space, in any case.
 const UK_POSTCODE = /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i
 
@@ -22,7 +25,9 @@ export const app = {
 export const validate = {
   payload: Joi.object({
     addressPostcode: ukPostcode,
-    addressBuilding: Joi.string().trim().allow('')
+    addressBuilding: Joi.string().trim().allow('').max(BUILDING_MAX_LENGTH).messages({
+      'string.max': BUILDING_TOO_LONG_MESSAGE
+    })
   }),
   failAction: viewFailAction('qualifying-questions/business-address/index', searchPageContext)
 }

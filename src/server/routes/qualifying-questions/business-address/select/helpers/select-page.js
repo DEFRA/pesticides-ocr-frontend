@@ -1,14 +1,9 @@
 import { findAddresses } from '#/server/common/helpers/address-lookup.js'
 import { addressLines } from '#/server/common/helpers/answer-lines.js'
 import { buildErrorSummary } from '#/server/common/helpers/build-error-summary.js'
-import { getSession } from '#/server/common/helpers/get-session.js'
-import { isChangeMode } from '#/server/common/helpers/journey-navigation.js'
-import { CHECK_ANSWERS_PAGE, getPreviousPage } from '#/server/common/helpers/journey.js'
 import { formatPostcode } from '#/server/common/helpers/postcode.js'
-import { ADDRESS_SEARCH_KEY } from '../../controller.js'
-import { manualPageFor } from '../../controller.js'
-
-export const ADDRESS_SEARCH_PAGE = '/business-address'
+import { ADDRESS_SEARCH_KEY } from '#/server/common/constants/session-keys.js'
+import { ADDRESS_MANUAL_PAGE, ADDRESS_SEARCH_PAGE } from '#/server/common/constants/address-pages.js'
 
 const NO_RESULTS_TITLE = 'No Address Found'
 const CONFIRM_TITLE = 'Confirm Address'
@@ -22,8 +17,9 @@ const ADDRESS_FIELDS = [
   'addressRegion'
 ]
 
-// Keeps `?change=true`, so a search started from check answers stays in change mode.
+// Keep `?change=true`, so an address started from check answers stays in change mode.
 const searchPageFor = (request) => `${ADDRESS_SEARCH_PAGE}${request.url.search}`
+const manualPageFor = (request) => `${ADDRESS_MANUAL_PAGE}${request.url.search}`
 
 export const getAddressSearch = (request) => request.yar.get(ADDRESS_SEARCH_KEY)
 
@@ -43,19 +39,13 @@ export const isSameAddress = (address, other = {}) =>
   ADDRESS_FIELDS.every((field) => (address[field] ?? '') === (other[field] ?? ''))
 
 // With one address there is nothing to choose, so the page only asks to confirm
-// it and goes back to the page before the search, as the search page itself does.
-const journeyBackLink = (request) =>
-  isChangeMode(request)
-    ? CHECK_ANSWERS_PAGE
-    : getPreviousPage(ADDRESS_SEARCH_PAGE, getSession(request, 'formSession'))
-
+// it. Its back link goes to the search, like the other states.
 function confirmState(request, addresses) {
   return addresses.length === 1
     ? {
         pageTitle: CONFIRM_TITLE,
         foundAddressLines: addressLines(addresses[0]),
-        manualAddressPage: manualPageFor(request),
-        backLink: journeyBackLink(request)
+        manualAddressPage: manualPageFor(request)
       }
     : {}
 }

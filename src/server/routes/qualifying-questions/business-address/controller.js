@@ -1,15 +1,6 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
-
-// Shows the addresses found for the search and saves the chosen one as
-// `address` (see ./select). The lookup behind it is still a stub.
-export const ADDRESS_SELECT_PAGE = '/business-address/select'
-
-// The postcode and building searched for. It's only needed to run the lookup,
-// so it's kept out of `formSession`, which is sent to the backend as the answers.
-export const ADDRESS_SEARCH_KEY = 'addressSearch'
-
-// Lets someone type the address in instead of using the lookup (see ./manual).
-export const ADDRESS_MANUAL_PAGE = '/business-address/manual'
+import { ADDRESS_SEARCH_KEY } from '#/server/common/constants/session-keys.js'
+import { ADDRESS_MANUAL_PAGE, ADDRESS_SELECT_PAGE } from '#/server/common/constants/address-pages.js'
 
 // Keeps `?change=true`, so an address entered from check answers stays in change mode.
 export const manualPageFor = (request) => `${ADDRESS_MANUAL_PAGE}${request.url.search}`

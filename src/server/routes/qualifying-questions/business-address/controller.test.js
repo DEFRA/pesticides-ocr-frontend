@@ -104,6 +104,22 @@ describe('#businessAddressController', () => {
       expect(statusCode).toBe(statusCodes.ok)
     })
 
+    test('Should show an error for a building name or number over 100 characters', async () => {
+      const message = 'Building name or number must be 100 characters or less'
+
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/business-address',
+        payload: { addressPostcode: 'AA3 1AB', addressBuilding: 'a'.repeat(101) }
+      })
+      const page = load(result)
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(page('.govuk-error-summary a').text().trim()).toBe(message)
+      expect(page('.govuk-error-summary a').attr('href')).toBe('#addressBuilding')
+      expect(page('#addressBuilding-error').text()).toEqual(expect.stringContaining(message))
+    })
+
     test('Should still offer manual entry, keeping change mode, when the postcode is not valid', async () => {
       const { result } = await server.inject({
         method: 'POST',

@@ -190,7 +190,8 @@ describe('#businessAddressSelectController', () => {
       expect(headers.location).toBe('/check-answers')
     })
 
-    test.each([[''], ['abc'], ['-1']])('Should show an error for the value %o', async (address) => {
+    // ' 1' and '0x1' are both read as 1 by Number(), so only the pattern rejects them.
+    test.each([[''], ['abc'], ['-1'], [' 1'], ['0x1']])('Should show an error for the value %o', async (address) => {
       const cookie = await searchFor({ addressPostcode: 'AA3 1AB' })
 
       const { result, statusCode } = await choose(cookie, address)
@@ -361,23 +362,23 @@ describe('#businessAddressSelectController', () => {
       )
     })
 
-    test('Should link back to the page before the search', async () => {
+    test('Should link back to the search', async () => {
       const cookie = await completeJourney(server)
       await searchFor(oneAddress, cookie)
 
       const page = await revisitStep(server, { url, cookie })
 
-      expect(page('.govuk-back-link').attr('href')).toBe('/business-name')
+      expect(page('.govuk-back-link').attr('href')).toBe('/business-address')
     })
 
-    test('Should link back to check answers in change mode', async () => {
+    test('Should link back to the search in change mode', async () => {
       const cookie = await completeJourney(server)
       await searchFor(oneAddress, cookie)
 
       const page = await revisitStep(server, { url: `${url}?change=true`, cookie })
 
       expect(page('.govuk-back-link')).toHaveLength(1)
-      expect(page('.govuk-back-link').attr('href')).toBe('/check-answers')
+      expect(page('.govuk-back-link').attr('href')).toBe('/business-address?change=true')
     })
 
     test('Should escape the building that was searched for', async () => {
@@ -439,6 +440,17 @@ describe('#businessAddressSelectController', () => {
         expect(insetLines(page)[0]).toBe('Lower Meadow Barn')
       }
     )
+
+    test('Should link the error summary to an element on the page', async () => {
+      const cookie = await searchFor(oneAddress)
+
+      const { result } = await choose(cookie, '1')
+      const page = load(result)
+      const target = page('.govuk-error-summary a').attr('href')
+
+      expect(target).toBe('#address')
+      expect(page(target)).toHaveLength(1)
+    })
   })
 
   describe('Pre-populating from the session', () => {
@@ -453,6 +465,20 @@ describe('#businessAddressSelectController', () => {
 
     test('Should select nothing when no address has been chosen', async () => {
       const cookie = await searchFor({ addressPostcode: 'AA3 1AB' })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(selectedAddress(page)).toBe('')
+    })
+
+    test('Should select nothing when an address found differs only by region', async () => {
+      const cookie = await searchFor({ addressPostcode: 'AA3 1AB' })
+      await choose(cookie, '0')
+      const [first, ...others] = await findAddresses({ postcode: 'AA3 1AB' })
+      vi.mocked(findAddresses).mockResolvedValueOnce([
+        { ...first, addressRegion: 'wales' },
+        ...others
+      ])
 
       const page = await revisitStep(server, { url, cookie })
 
