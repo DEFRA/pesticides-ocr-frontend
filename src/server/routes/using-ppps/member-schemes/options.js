@@ -3,7 +3,7 @@ import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 import { memberSchemesItems } from './items.js'
 
 export const app = {
-  pageTitle: 'Member Schemes',
+  pageTitle: 'Are you a member of any assurance schemes? (optional)',
   items: memberSchemesItems
 }
 
@@ -29,5 +29,5 @@ export const validate = {
         'string.max': 'Please use 100 characters or fewer'
       })
   }),
-  failAction: viewFailAction('pro-users/member-schemes/index')
+  failAction: viewFailAction('using-ppps/member-schemes/index')
 }

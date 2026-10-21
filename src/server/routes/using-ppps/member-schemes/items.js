@@ -8,9 +8,9 @@ export const memberSchemesItems = [
   },
   {
     value: 'leaf',
-    text: 'Leaf Marque',
+    text: 'LEAF Marque',
     hint: {
-      text: 'Linking Environment and Farming'
+      text: 'Linking Environment And Farming certification.'
     }
   },
   {
@@ -26,7 +26,7 @@ export const memberSchemesItems = [
     hint: {
       text: 'For businesses operating under Scottish quality crop assurance guidelines.'
     }
-  },
+  }
 ]
 
 export const memberSchemesValues = memberSchemesItems.map((item) => item.value)

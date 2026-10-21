@@ -61,7 +61,6 @@ describe('#checkAnswersController', () => {
       contactEmail: 'jo@example.com'
     })
     await answer('/address-activity', { addressActivities: ['use'] })
-    await answer('/member-schemes', { memberSchemes: ['leaf'] })
 
     return cookie
   }
@@ -1084,18 +1083,16 @@ describe('#checkAnswersController', () => {
       expect(valid.headers.location).toBe('/check-answers')
     })
 
-    test('Should ask the questions an amended answer makes relevant before returning', async () => {
+    test('Should return to check answers and offer additional addresses once products are used at the address', async () => {
       const cookie = await completeJourney(server)
 
       const activity = await submit('/address-activity?change=true', cookie, {
         addressActivities: ['use']
       })
-      const schemes = await submit('/member-schemes?change=true', cookie, {
-        memberSchemes: ['leaf']
-      })
+      const { result } = await loadAnswers(cookie)
 
-      expect(activity.headers.location).toBe('/member-schemes?change=true')
-      expect(schemes.headers.location).toBe('/check-answers')
+      expect(activity.headers.location).toBe('/check-answers')
+      expect(result).toEqual(expect.stringContaining('Add another address'))
     })
 
     test('Should ask the PPP questions in turn once using PPPs is ticked', async () => {
@@ -1132,13 +1129,26 @@ describe('#checkAnswersController', () => {
     })
 
     test('Should remove answers an amended answer makes irrelevant', async () => {
-      const cookie = await completeJourney(server)
+      const { cookie } = await completeUsingJourney()
 
-      await submit('/address-activity?change=true', cookie, { addressActivities: ['use'] })
-      await submit('/member-schemes?change=true', cookie, { memberSchemes: ['leaf'] })
+      await submit('/using-ppps/ppp-sectors?change=true', cookie, {
+        professionalSectors: ['horticulture'],
+        professionalSectorsOther: ''
+      })
+      await submit('/using-ppps/horti-subsector?change=true', cookie, {
+        hortiSubsectors: ['ornamentals'],
+        hortiSubsectorsOther: ''
+      })
+      await submit('/using-ppps/member-schemes?change=true', cookie, {
+        memberSchemes: ['leaf'],
+        memberSchemesOther: ''
+      })
       const withSchemes = await loadAnswers(cookie)
 
-      await submit('/address-activity?change=true', cookie, { addressActivities: ['store'] })
+      await submit('/using-ppps/ppp-sectors?change=true', cookie, {
+        professionalSectors: ['forestry'],
+        professionalSectorsOther: ''
+      })
       const withoutSchemes = await loadAnswers(cookie)
 
       expect(withSchemes.result).toEqual(expect.stringContaining('Assurance schemes'))

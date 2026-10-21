@@ -18,13 +18,13 @@
         values: values["memberSchemes"] if values,
         fieldset: {
           legend: {
-            text: "Are you a member of any official assurance schemes at this address? (optional)",
+            text: "Are you a member of any assurance schemes? (optional)",
             isPageHeading: true,
             classes: "govuk-fieldset__legend--l govuk-!-margin-bottom-6"
           }
         },
         hint: {
-          text: "Select all that apply",
+          text: "Select all that apply.",
           classes: "govuk-!-margin-bottom-6"
         },
         errorMessage: errors["memberSchemes"] if errors["memberSchemes"],
@@ -42,7 +42,7 @@
           classes: "govuk-!-margin-bottom-3"
         },
         hint: {
-          text: "Enter the name of the assurance schemes you are a member of if not shown"
+          text: "Enter the names of any assurance schemes not listed."
         },
         errorMessage: errors["memberSchemesOther"] if errors["memberSchemesOther"]
       }) }}

@@ -15,70 +15,98 @@ describe('#memberSchemesController', () => {
     await server.stop({ timeout: 0 })
   })
 
-  describe('GET /member-schemes', () => {
+  describe('GET /using-ppps/member-schemes', () => {
     test('Should return view', async () => {
       const { result, statusCode } = await server.inject({
         method: 'GET',
-        url: '/member-schemes'
+        url: '/using-ppps/member-schemes'
       })
 
-      expect(result).toEqual(expect.stringContaining('Member Schemes |'))
+      expect(result).toEqual(
+        expect.stringContaining('Are you a member of any assurance schemes? (optional) |')
+      )
       expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should show the question, the schemes with their hints, and Other', async () => {
+      const page = await revisitStep(server, { url: '/using-ppps/member-schemes' })
+      const textsOf = (selector) =>
+        page(selector)
+          .map((_index, element) => page(element).text().trim())
+          .get()
+
+      expect(page('h1').text().trim()).toBe('Are you a member of any assurance schemes? (optional)')
+      expect(page('#memberSchemes-hint').text().trim()).toBe('Select all that apply.')
+      expect(textsOf('.govuk-checkboxes__label')).toEqual([
+        'Red Tractor',
+        'LEAF Marque',
+        'Soil Association Organic',
+        'Scottish Quality Crops (SQC)'
+      ])
+      expect(textsOf('.govuk-checkboxes__hint')).toEqual([
+        'This includes Red Tractor Assurance for crops, fresh produce, sugar beet or salads.',
+        'Linking Environment And Farming certification.',
+        'This includes certified organic farming, growing or processing schemes.',
+        'For businesses operating under Scottish quality crop assurance guidelines.'
+      ])
+      expect(page('#memberSchemesOther-hint').text().trim()).toBe(
+        'Enter the names of any assurance schemes not listed.'
+      )
     })
   })
 
-  describe('POST /member-schemes', () => {
+  describe('POST /using-ppps/member-schemes', () => {
     const selectSchemeOrOther =
       'Select a member scheme or describe your main type of work'
 
     const postSchemes = (payload) =>
       injectWithSession(server, {
         method: 'POST',
-        url: '/member-schemes',
+        url: '/using-ppps/member-schemes',
         payload
       })
 
-    test('Should redirect to additional-addresses page when one scheme is selected', async () => {
+    test('Should redirect to storing products when one scheme is selected', async () => {
       const { statusCode, headers } = await postSchemes({
         memberSchemes: 'red-tractor',
         memberSchemesOther: ''
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/additional-addresses')
+      expect(headers.location).toBe('/using-ppps/storing')
     })
 
-    test('Should redirect to additional-addresses page when several schemes are selected', async () => {
+    test('Should redirect to storing products when several schemes are selected', async () => {
       const { statusCode, headers } = await postSchemes({
         memberSchemes: ['leaf', 'sqc'],
         memberSchemesOther: ''
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/additional-addresses')
+      expect(headers.location).toBe('/using-ppps/storing')
     })
 
-    test('Should redirect to additional-addresses page when only Other is given', async () => {
+    test('Should redirect to storing products when only Other is given', async () => {
       const { statusCode, headers } = await postSchemes({
         memberSchemesOther: 'Vineyard assurance'
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/additional-addresses')
+      expect(headers.location).toBe('/using-ppps/storing')
     })
 
-    test('Should redirect to additional-addresses page when neither is given, as the question is optional', async () => {
+    test('Should redirect to storing products when neither is given, as the question is optional', async () => {
       const { statusCode, headers } = await postSchemes({
         memberSchemesOther: ''
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/additional-addresses')
+      expect(headers.location).toBe('/using-ppps/storing')
     })
 
     test('Should save no schemes as an empty list when neither is given', async () => {
       const cookie = await answerStep(server, {
-        url: '/member-schemes',
+        url: '/using-ppps/member-schemes',
         payload: { memberSchemesOther: '' }
       })
 
@@ -124,7 +152,7 @@ describe('#memberSchemesController', () => {
   })
 
   describe('Pre-populating from the session', () => {
-    const url = '/member-schemes'
+    const url = '/using-ppps/member-schemes'
 
     test('Should check the options held in the session', async () => {
       const cookie = await answerStep(server, { url, payload: { memberSchemes: ['leaf'] } })

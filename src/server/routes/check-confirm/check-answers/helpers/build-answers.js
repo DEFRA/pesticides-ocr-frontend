@@ -1,6 +1,6 @@
 import { businessActivityItems } from '../../../qualifying-questions/business-activities/items.js'
 import { addressActivityItems } from '../../../qualifying-questions/address-activity/items.js'
-import { memberSchemesItems } from '../../../pro-users/member-schemes/items.js'
+import { memberSchemesItems } from '#/server/routes/using-ppps/member-schemes/items.js'
 import { whoAppliesItems } from '#/server/routes/using-ppps/who-applies/items.js'
 import { pppSectorsItems } from '#/server/routes/using-ppps/ppp-sectors/items.js'
 import { agriSubsectorsItems } from '#/server/routes/using-ppps/agri-subsectors/items.js'
@@ -56,6 +56,7 @@ export function buildAnswers(formData = {}) {
     agriSubsectors: labelsFor(agriSubsectorsItems, usingPPPs['agriSubsectors']),
     amenitySubsectors: labelsFor(amenitySubsectorsItems, usingPPPs['amenitySubsectors']),
     hortiSubsectors: labelsFor(hortiSubsectorsItems, usingPPPs['hortiSubsectors']),
+    memberSchemes: memberSchemeLines(usingPPPs['memberSchemes']),
     storing: labelsFor(storingItems, usingPPPs['storing']),
     storageLocation: labelsFor(storageLocationItems, usingPPPs['storageLocation']),
     ownStorageAddress: addressLines(usingPPPs['ownStorageAddress']),
@@ -66,7 +67,6 @@ export function buildAnswers(formData = {}) {
     storageContactEmail: toLines(usingPPPs.storageContact?.['contactEmail']),
     usingQuantity: toLines(usingQuantityText(usingPPPs['quantity'])),
     addressActivities: labelsFor(addressActivityItems, formData['addressActivities']),
-    memberSchemes: memberSchemeLines(formData['memberSchemes']),
     additionalAddresses: (formData['additionalAddresses'] ?? []).map((entry) => withValues(additionalAddressLines(entry)))
   })
 }

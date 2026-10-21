@@ -15,6 +15,7 @@ import { pppSectors } from './using-ppps/ppp-sectors/index.js'
 import { agriSubsectors } from './using-ppps/agri-subsectors/index.js'
 import { amenitySubsectors } from './using-ppps/amenity-subsector/index.js'
 import { hortiSubsectors } from './using-ppps/horti-subsector/index.js'
+import { memberSchemes } from './using-ppps/member-schemes/index.js'
 import { storing } from './using-ppps/storing/index.js'
 import { storageLocation } from './using-ppps/storage-location/index.js'
 import { ownStorageAddress } from './using-ppps/own-storage-address/index.js'
@@ -26,7 +27,6 @@ import { addressActivity } from './qualifying-questions/address-activity/index.j
 import { checkAnswers } from './check-confirm/check-answers/index.js'
 import { confirmation } from './check-confirm/confirmation/index.js'
 import { notEligible } from './qualifying-questions/not-eligible/index.js'
-import { memberSchemes } from './pro-users/member-schemes/index.js'
 import { additionalAddresses } from './pro-users/additional-addresses/index.js'
 import { additionalBusinessAddress } from './pro-users/additional-business-address/index.js'
 import { additionalBusinessContact } from './pro-users/additional-business-contact/index.js'
@@ -51,6 +51,7 @@ export const routes = [
   agriSubsectors,
   amenitySubsectors,
   hortiSubsectors,
+  memberSchemes,
   storing,
   storageLocation,
   ownStorageAddress,
@@ -62,7 +63,6 @@ export const routes = [
   checkAnswers,
   confirmation,
   notEligible,
-  memberSchemes,
   additionalAddresses,
   additionalBusinessAddress,
   additionalBusinessContact,

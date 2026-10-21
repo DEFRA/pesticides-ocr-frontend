@@ -92,6 +92,11 @@
             actions: { items: [{ href: "/using-ppps/horti-subsector?change=true", text: "Change", visuallyHiddenText: "horticultural sectors" }] }
           } if answers.hortiSubsectors,
           {
+            key: { text: "Assurance schemes" },
+            value: { html: appAnswerList({ values: answers.memberSchemes }) },
+            actions: { items: [{ href: "/using-ppps/member-schemes?change=true", text: "Change", visuallyHiddenText: "assurance schemes" }] }
+          } if answers.memberSchemes,
+          {
             key: { text: "Storing products" },
             value: { html: appAnswerList({ values: answers.storing }) },
             actions: { items: [{ href: "/using-ppps/storing?change=true", text: "Change", visuallyHiddenText: "storing products" }] }
@@ -141,11 +146,6 @@
             value: { html: appAnswerList({ values: answers.addressActivities }) },
             actions: { items: [{ href: "/address-activity?change=true", text: "Change", visuallyHiddenText: "PPP activities at the address" }] }
           } if answers.addressActivities,
-          {
-            key: { text: "Assurance schemes" },
-            value: { html: appAnswerList({ values: answers.memberSchemes }) },
-            actions: { items: [{ href: "/member-schemes?change=true", text: "Change", visuallyHiddenText: "assurance schemes" }] }
-          } if answers.memberSchemes,
           {
             key: { text: "Additional addresses" },
             value: { text: answers.additionalAddresses.length }

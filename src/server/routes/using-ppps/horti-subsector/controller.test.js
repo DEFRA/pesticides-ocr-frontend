@@ -104,9 +104,9 @@ describe('#hortiSubsectorsController', () => {
     }
 
     test.each([
-      [['horticulture'], '/using-ppps/storing'],
-      [['agriculture', 'amenity', 'horticulture'], '/using-ppps/storing'],
-      [['horticulture', 'forestry'], '/using-ppps/storing']
+      [['horticulture'], '/using-ppps/member-schemes'],
+      [['agriculture', 'amenity', 'horticulture'], '/using-ppps/member-schemes'],
+      [['horticulture', 'forestry'], '/using-ppps/member-schemes']
     ])('Should go on from the sectors %o to %s', async (professionalSectors, location) => {
       const { statusCode, headers } = await afterSectors(professionalSectors, {
         hortiSubsectors: ['ornamentals'],
@@ -123,7 +123,7 @@ describe('#hortiSubsectorsController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/using-ppps/storing')
+      expect(headers.location).toBe('/using-ppps/member-schemes')
     })
 
     test.each([

@@ -30,8 +30,8 @@ export const AGRI_SUBSECTORS_PAGE = '/using-ppps/agri-subsectors'
 export const AMENITY_SUBSECTOR_PAGE = '/using-ppps/amenity-subsector'
 export const HORTI_SUBSECTOR_PAGE = '/using-ppps/horti-subsector'
 
-// The using PPPs member schemes page isn't built yet, so this route doesn't
-// exist and the journey stops here after the last sub-sector page.
+// Where an organisation says which assurance schemes it's a member of, after
+// the last sub-sector page it's asked (see routes/using-ppps/member-schemes).
 export const USING_MEMBER_SCHEMES_PAGE = '/using-ppps/member-schemes'
 
 // Where an organisation that uses PPPs says whether it stores the products it
@@ -181,6 +181,11 @@ export const JOURNEY = {
   [HORTI_SUBSECTOR_PAGE]: {
     section: USING_PPPS_KEY,
     sessionKey: 'hortiSubsectors',
+    next: () => USING_MEMBER_SCHEMES_PAGE
+  },
+  [USING_MEMBER_SCHEMES_PAGE]: {
+    section: USING_PPPS_KEY,
+    sessionKey: 'memberSchemes',
     next: () => STORING_PAGE
   },
   [STORING_PAGE]: {
@@ -211,11 +216,7 @@ export const JOURNEY = {
   '/address-activity': {
     sessionKey: 'addressActivities',
     next: (formSession) =>
-      formSession['addressActivities'].includes('use') ? '/member-schemes' : CHECK_ANSWERS_PAGE
-  },
-  '/member-schemes': {
-    sessionKey: 'memberSchemes',
-    next: () => '/additional-addresses'
+      formSession['addressActivities'].includes('use') ? '/additional-addresses' : CHECK_ANSWERS_PAGE
   },
   '/additional-addresses': {
     sessionKey: 'additionalAddresses',

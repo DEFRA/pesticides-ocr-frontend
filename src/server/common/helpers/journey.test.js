@@ -16,6 +16,7 @@ const USING_PPPS_ANSWERS = new Set([
   'agriSubsectors',
   'amenitySubsectors',
   'hortiSubsectors',
+  'memberSchemes',
   'storing',
   'storageLocation',
   'ownStorageAddress',
@@ -50,13 +51,12 @@ describe('#journey', () => {
     addressActivities: ['store']
   }
 
-  // Uses products at the address, which leads through the professional pages.
-  // The business activities stay as distributing: "using" would branch off to
-  // who applies PPPs instead.
+  // Uses products at the address, which leads on to the optional additional
+  // addresses. The business activities stay as distributing: "using" would
+  // branch off to who applies PPPs instead.
   const usesAtAddress = {
     ...storesProducts,
-    addressActivities: ['use'],
-    memberSchemes: ['leaf']
+    addressActivities: ['use']
   }
 
   const contractor = {
@@ -140,7 +140,7 @@ describe('#journey', () => {
         '/using-ppps/horti-subsector'
       ],
       ['/using-ppps/amenity-subsector', { professionalSectors: ['amenity'] }, '/using-ppps/member-schemes'],
-      ['/using-ppps/horti-subsector', { professionalSectors: ['horticulture'] }, '/using-ppps/storing'],
+      ['/using-ppps/horti-subsector', { professionalSectors: ['horticulture'] }, '/using-ppps/member-schemes'],
       ['/using-ppps/storing', { storing: 'own' }, '/using-ppps/storage-location'],
       ['/using-ppps/storage-location', { storageLocation: 'main-address' }, '/using-ppps/quantity'],
       ['/using-ppps/storage-location', { storageLocation: 'main-and-other' }, '/using-ppps/own-storage-address'],
@@ -150,10 +150,10 @@ describe('#journey', () => {
       ['/using-ppps/storing', { storing: 'no' }, '/using-ppps/quantity'],
       ['/using-ppps/quantity', { quantity: '1-29' }, '/check-answers'],
       ['/using-ppps/quantity', { quantity: '400-plus' }, '/check-answers'],
-      ['/address-activity', { addressActivities: ['use'] }, '/member-schemes'],
-      ['/address-activity', { addressActivities: ['use', 'store'] }, '/member-schemes'],
+      ['/address-activity', { addressActivities: ['use'] }, '/additional-addresses'],
+      ['/address-activity', { addressActivities: ['use', 'store'] }, '/additional-addresses'],
       ['/address-activity', { addressActivities: ['store'] }, '/check-answers'],
-      ['/member-schemes', {}, '/additional-addresses']
+      ['/using-ppps/member-schemes', {}, '/using-ppps/storing']
     ])('Should go from %s to the right page for %o', (page, formSession, nextPage) => {
       expect(getNextPage(page, formSession)).toBe(nextPage)
     })
@@ -374,15 +374,18 @@ describe('#journey', () => {
       ).toBe(previous)
     })
 
-    test('Should go on to storing products after the horticultural sectors', () => {
-      expect(
-        findFirstMissingPage({
-          ...appliesProducts,
-          whoApplies: 'self',
-          professionalSectors: ['horticulture'],
-          hortiSubsectors: ['ornamentals']
-        })
-      ).toBe('/using-ppps/storing')
+    test('Should go on to the member schemes, then storing products, after the horticultural sectors', () => {
+      const afterHorticulture = {
+        ...appliesProducts,
+        whoApplies: 'self',
+        professionalSectors: ['horticulture'],
+        hortiSubsectors: ['ornamentals']
+      }
+
+      expect(findFirstMissingPage(afterHorticulture)).toBe('/using-ppps/member-schemes')
+      expect(findFirstMissingPage({ ...afterHorticulture, memberSchemes: ['leaf'] })).toBe(
+        '/using-ppps/storing'
+      )
     })
 
     test('Should return the PPP sectors before the agricultural sectors', () => {
@@ -410,24 +413,22 @@ describe('#journey', () => {
       expect(findFirstMissingPage({ ...storesProducts, whoApplies: 'self' })).toBe('/check-answers')
     })
 
-    test('Should ask for the member schemes once using products at the address makes them relevant', () => {
-      expect(
-        findFirstMissingPage({ ...storesProducts, addressActivities: ['use'] })
-      ).toBe('/member-schemes')
-    })
-
-    test('Should ignore pages the answers no longer lead to', () => {
-      const { memberSchemes, ...withoutSchemes } = usesAtAddress
-
-      expect(
-        findFirstMissingPage({ ...withoutSchemes, addressActivities: ['store'] })
-      ).toBe('/check-answers')
+    test('Should go to check answers when products are used at the address, as additional addresses are optional', () => {
+      expect(findFirstMissingPage({ ...storesProducts, addressActivities: ['use'] })).toBe(
+        '/check-answers'
+      )
     })
 
     test('Should treat a member scheme answer with nothing selected as answered', () => {
       expect(
-        findFirstMissingPage({ ...usesAtAddress, memberSchemes: [] })
-      ).toBe('/check-answers')
+        findFirstMissingPage({
+          ...appliesProducts,
+          whoApplies: 'self',
+          professionalSectors: ['horticulture'],
+          hortiSubsectors: ['ornamentals'],
+          memberSchemes: []
+        })
+      ).toBe('/using-ppps/storing')
     })
   })
 
@@ -435,13 +436,18 @@ describe('#journey', () => {
     test('Should return the page before on the route the answers take', () => {
       expect(getPreviousPage('/business-name', usesAtAddress)).toBe('/business-activities')
       expect(getPreviousPage('/business-name', storesProducts)).toBe('/business-activities')
-      expect(getPreviousPage('/member-schemes', usesAtAddress)).toBe('/address-activity')
+      expect(getPreviousPage('/additional-addresses', usesAtAddress)).toBe('/address-activity')
     })
 
     test('Should return the last answered page for the first unanswered page', () => {
       expect(
-        getPreviousPage('/member-schemes', { ...storesProducts, addressActivities: ['use'] })
-      ).toBe('/address-activity')
+        getPreviousPage('/using-ppps/member-schemes', {
+          ...appliesProducts,
+          whoApplies: 'self',
+          professionalSectors: ['horticulture'],
+          hortiSubsectors: ['ornamentals']
+        })
+      ).toBe('/using-ppps/horti-subsector')
     })
 
     test('Should return the PPP sectors before storing products', () => {
@@ -528,7 +534,7 @@ describe('#journey', () => {
     })
 
     test('Should return nothing for a page the answers skip', () => {
-      expect(getPreviousPage('/member-schemes', storesProducts)).toBeUndefined()
+      expect(getPreviousPage('/using-ppps/member-schemes', storesProducts)).toBeUndefined()
       expect(getPreviousPage('/using-ppps/storing', storesProducts)).toBeUndefined()
     })
   })
@@ -552,7 +558,7 @@ describe('#journey', () => {
       expect(removeSkippedAnswers(formSession)).toEqual(formSession)
     })
 
-    test('Should remove the member schemes and additional addresses once products are no longer used at the address', () => {
+    test('Should remove the additional addresses once products are no longer used at the address', () => {
       const formSession = removeSkippedAnswers({
         ...usesAtAddress,
         addressActivities: ['store'],
@@ -575,7 +581,6 @@ describe('#journey', () => {
         additionalAddresses
       })
 
-      expect(formSession).toHaveProperty('memberSchemes')
       expect(formSession).toHaveProperty('additionalAddresses')
     })
 
@@ -599,7 +604,6 @@ describe('#journey', () => {
       })
 
       expect(formSession).not.toHaveProperty('whoApplies')
-      expect(formSession).toHaveProperty('memberSchemes')
       expect(formSession).toHaveProperty('additionalAddresses')
     })
 
@@ -637,7 +641,7 @@ describe('#journey', () => {
 
       expect(formSession).not.toHaveProperty('whoApplies')
       expect(formSession).not.toHaveProperty('professionalSectors')
-      expect(formSession).toHaveProperty('memberSchemes')
+      expect(formSession).toHaveProperty('additionalAddresses')
     })
 
     test('Should keep the contractor and the PPP sectors while another organisation applies PPPs', () => {
@@ -701,8 +705,7 @@ describe('#journey', () => {
     })
 
     test('Should keep answers beyond the first unanswered page', () => {
-      const { memberSchemes, ...withoutSchemes } = usesAtAddress
-      const formSession = { ...withoutSchemes, additionalAddresses }
+      const formSession = { ...appliesProducts, storing: 'no', quantity: '1-29' }
 
       expect(removeSkippedAnswers(formSession)).toEqual(formSession)
     })
@@ -767,7 +770,7 @@ describe('#journey', () => {
     test.each([
       ['distributing', { addressActivities: ['store'] }],
       ['distributing', {}],
-      [ONLY_STORING, { addressActivities: ['use'], memberSchemes: ['leaf'] }]
+      [ONLY_STORING, { addressActivities: ['use'] }]
     ])(
       'Should remove storing products and the quantity once using PPPs is no longer ticked (%s, %o)',
       (businessActivity, answers) => {
@@ -784,8 +787,8 @@ describe('#journey', () => {
       }
     )
 
-    // Like the sell section, the sector and storage pages aren't built yet, so
-    // there's no view of where they lead and the later answers are kept.
+    // Answers beyond the first unanswered page are kept, as there's no view yet
+    // of whether the route will reach them.
     test.each([
       [{ professionalSectors: ['agriculture'] }],
       [{ professionalSectors: ['amenity', 'forestry'] }],
@@ -793,7 +796,7 @@ describe('#journey', () => {
       [{ storing: 'own' }],
       [{ storing: 'third-party' }]
     ])(
-      'Should keep storing products and the quantity when the route leaves the map at a placeholder, given %o',
+      'Should keep storing products and the quantity while an earlier page is unanswered, given %o',
       (answers) => {
         const formSession = { ...usesPpps, ...answers }
 
@@ -805,7 +808,6 @@ describe('#journey', () => {
       const formSession = removeSkippedAnswers({
         ...usesPpps,
         addressActivities: ['use'],
-        memberSchemes: ['leaf'],
         additionalAddresses
       })
 

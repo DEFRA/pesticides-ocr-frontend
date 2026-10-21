@@ -60,7 +60,7 @@ describe('#addressActivityController', () => {
   })
 
   describe('POST /address-activity', () => {
-    test('Should redirect to the member schemes page when products are used at the address', async () => {
+    test('Should redirect to the additional addresses page when products are used at the address', async () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/address-activity',
@@ -68,7 +68,7 @@ describe('#addressActivityController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/member-schemes')
+      expect(headers.location).toBe('/additional-addresses')
     })
 
     test('Should return view with error message', async () => {

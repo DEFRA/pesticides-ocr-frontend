@@ -211,11 +211,11 @@ describe('#buildAnswers', () => {
   })
 
   test('Should show None when no member scheme was chosen', () => {
-    expect(buildAnswers({ memberSchemes: [] }).memberSchemes).toEqual(['None'])
+    expect(buildAnswers({ usingPPPs: { memberSchemes: [] } }).memberSchemes).toEqual(['None'])
   })
 
   test('Should show None for an older session that saved an empty scheme', () => {
-    expect(buildAnswers({ memberSchemes: [undefined] }).memberSchemes).toEqual(['None'])
+    expect(buildAnswers({ usingPPPs: { memberSchemes: [undefined] } }).memberSchemes).toEqual(['None'])
   })
 
   test('Should map the PPP sectors to the labels used on the question page', () => {
@@ -271,7 +271,7 @@ describe('#buildAnswers', () => {
 
   test('Should map the member schemes to the labels used on the question page', () => {
     const answers = buildAnswers({
-      memberSchemes: ['red-tractor', 'sqc']
+      usingPPPs: { memberSchemes: ['red-tractor', 'sqc'] }
     })
 
     expect(answers.memberSchemes).toEqual([
