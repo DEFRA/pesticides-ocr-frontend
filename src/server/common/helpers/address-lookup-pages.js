@@ -4,7 +4,8 @@
 // storage address) passes its own `lookup`:
 //
 //   searchPage, selectPage, manualPage  the three page paths
-//   searchKey     the yar key the search is kept under, out of formSession
+//   searchKey     the yar key the search is kept under, out of formSession,
+//                 until an address is chosen or entered by hand
 //   heading       the question both pages ask
 //   titles        { search, select, confirm, noResults } page titles
 //   views         { search, select } view paths
@@ -209,6 +210,8 @@ export function addressSelectPage(lookup) {
 
         lookup.saveAddress(formSession, address)
         request.yar.set('formSession', formSession)
+        // The search was only needed to find the address, so it isn't kept.
+        request.yar.clear(lookup.searchKey)
 
         return redirectToNextPage(request, h, getNextPage(lookup.searchPage, formSession))
       }

@@ -1,3 +1,4 @@
+import { OWN_STORAGE_ADDRESS_SEARCH_KEY } from '#/server/common/constants/session-keys.js'
 import { getSession } from '#/server/common/helpers/get-session.js'
 import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
 import { getNextPage, OWN_STORAGE_ADDRESS_PAGE } from '#/server/common/helpers/journey.js'
@@ -34,6 +35,7 @@ export const post = {
 
     saveOwnStorageAddress(formSession, request.payload)
     request.yar.set('formSession', formSession)
+    request.yar.clear(OWN_STORAGE_ADDRESS_SEARCH_KEY)
 
     return redirectToNextPage(request, h, getNextPage(OWN_STORAGE_ADDRESS_PAGE, formSession))
   }

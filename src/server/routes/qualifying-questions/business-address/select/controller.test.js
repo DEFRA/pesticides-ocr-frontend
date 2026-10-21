@@ -190,6 +190,18 @@ describe('#businessAddressSelectController', () => {
       expect(headers.location).toBe('/check-answers')
     })
 
+    test('Should not keep the search once an address is chosen', async () => {
+      const cookie = await searchFor({ addressPostcode: 'AA3 1AB', addressBuilding: 'Highfield' })
+
+      await choose(cookie, '0')
+      const { headers } = await server.inject({ method: 'GET', url, headers: { cookie } })
+      const searchPage = await revisitStep(server, { url: '/business-address', cookie })
+
+      expect(headers.location).toBe('/business-address')
+      expect(searchPage('input[name="addressPostcode"]').val()).toBeFalsy()
+      expect(searchPage('input[name="addressBuilding"]').val()).toBeFalsy()
+    })
+
     // ' 1' and '0x1' are both read as 1 by Number(), so only the pattern rejects them.
     test.each([[''], ['abc'], ['-1'], [' 1'], ['0x1']])('Should show an error for the value %o', async (address) => {
       const cookie = await searchFor({ addressPostcode: 'AA3 1AB' })
@@ -454,9 +466,10 @@ describe('#businessAddressSelectController', () => {
   })
 
   describe('Pre-populating from the session', () => {
-    test('Should select the address already chosen', async () => {
+    test('Should select the address already chosen when searching again', async () => {
       const cookie = await searchFor({ addressPostcode: 'AA3 1AB' })
       await choose(cookie, '2')
+      await searchFor({ addressPostcode: 'AA3 1AB' }, cookie)
 
       const page = await revisitStep(server, { url, cookie })
 
@@ -474,6 +487,7 @@ describe('#businessAddressSelectController', () => {
     test('Should select nothing when an address found differs only by region', async () => {
       const cookie = await searchFor({ addressPostcode: 'AA3 1AB' })
       await choose(cookie, '0')
+      await searchFor({ addressPostcode: 'AA3 1AB' }, cookie)
       const [first, ...others] = await findAddresses({ postcode: 'AA3 1AB' })
       vi.mocked(findAddresses).mockResolvedValueOnce([
         { ...first, addressRegion: 'wales' },

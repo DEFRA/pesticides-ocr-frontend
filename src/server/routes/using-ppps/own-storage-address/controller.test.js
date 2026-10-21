@@ -138,9 +138,19 @@ describe('#ownStorageAddress', () => {
       expect(await checkAnswersText(cookie)).toEqual(expect.stringContaining('Highfield Farm'))
     })
 
-    test('Should select the address already chosen when coming back', async () => {
+    test('Should not keep the search once an address is chosen', async () => {
       const cookie = await search({ addressPostcode: 'AA3 1AB' })
       await post(selectUrl, { address: '2' }, cookie)
+
+      const { headers } = await server.inject({ method: 'GET', url: selectUrl, headers: { cookie } })
+
+      expect(headers.location).toBe(searchUrl)
+    })
+
+    test('Should select the address already chosen when searching again', async () => {
+      const cookie = await search({ addressPostcode: 'AA3 1AB' })
+      await post(selectUrl, { address: '2' }, cookie)
+      await post(searchUrl, { addressPostcode: 'AA3 1AB' }, cookie)
 
       const page = await revisitStep(server, { url: selectUrl, cookie })
 
@@ -185,6 +195,15 @@ describe('#ownStorageAddress', () => {
       expect(headers.location).toBe('/using-ppps/quantity')
       expect(page('#addressLine1').val()).toBe('1 Barn Lane')
       expect(page('input[name="addressRegion"]:checked').val()).toBe('england')
+    })
+
+    test('Should not keep a search once the address is entered by hand', async () => {
+      const cookie = await search({ addressPostcode: 'AA3 1AB' })
+
+      await post(manualUrl, address, cookie)
+      const { headers } = await server.inject({ method: 'GET', url: selectUrl, headers: { cookie } })
+
+      expect(headers.location).toBe(searchUrl)
     })
 
     test('Should show the GOV.UK message for a missing first line', async () => {

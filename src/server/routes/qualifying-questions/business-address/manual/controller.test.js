@@ -131,6 +131,22 @@ describe('#businessAddressManualController', () => {
       expect(headers.location).toBe('/check-answers')
     })
 
+    test('Should not keep a search once the address is entered by hand', async () => {
+      const cookie = await answerStep(server, {
+        url: '/business-address',
+        payload: { addressPostcode: 'AA3 1AB' }
+      })
+
+      await server.inject({ method: 'POST', url, headers: { cookie }, payload: address })
+      const { headers } = await server.inject({
+        method: 'GET',
+        url: '/business-address/select',
+        headers: { cookie }
+      })
+
+      expect(headers.location).toBe('/business-address')
+    })
+
     test('Should show the address on check answers, ending with the region', async () => {
       const cookie = await completeJourney(server)
       await answerStep(server, { url, cookie, payload: { ...address, addressLine2: '' } })
