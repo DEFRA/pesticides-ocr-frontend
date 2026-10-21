@@ -170,6 +170,32 @@ describe('#checkAnswersController', () => {
       )
     })
 
+    test('Should show the agricultural sectors straight after the sectors', async () => {
+      const cookie = await getSessionCookie(server, '/using-ppps/ppp-sectors')
+      const answer = answerAs(cookie)
+
+      await answer('/using-ppps/ppp-sectors', {
+        professionalSectors: ['agriculture'],
+        professionalSectorsOther: ''
+      })
+      await answer('/using-ppps/agri-subsectors', {
+        agriSubsectors: ['arable', 'outdoor-vegetables'],
+        agriSubsectorsOther: ''
+      })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const row = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Agricultural sectors'
+      )
+
+      expect(row.prev().find('dt').text().trim()).toBe('Sectors')
+      expect(row.find('.govuk-summary-list__value').html()).toEqual(
+        expect.stringMatching(/Arable\s*<br>\s*Outdoor vegetables/)
+      )
+      expect(row.find('a').attr('href')).toBe('/using-ppps/agri-subsectors?change=true')
+      expect(row.find('.govuk-visually-hidden').text().trim()).toBe('agricultural sectors')
+    })
+
     test('Should show where products are stored between storing products and the quantity', async () => {
       const cookie = await getSessionCookie(server, '/using-ppps/storing')
       const answer = answerAs(cookie)

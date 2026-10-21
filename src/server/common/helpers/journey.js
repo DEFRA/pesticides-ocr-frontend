@@ -23,11 +23,17 @@ export const PPP_SECTORS_PAGE = '/using-ppps/ppp-sectors'
 // address (see routes/using-ppps/contractor-address).
 export const CONTRACTOR_ADDRESS_PAGE = '/using-ppps/contractor-address'
 
-// The sector pages after the PPP sectors aren't built yet, so these routes
-// don't exist and the journey stops at whichever one the sectors lead to.
+// Each sector with sub-sectors (agriculture, amenity, horticulture) has its own
+// page after the PPP sectors, asked in that order for the sectors ticked.
+// Only the agricultural one is built (see routes/using-ppps/agri-subsectors);
+// the others don't exist yet, so the journey stops there.
 export const AGRI_SUBSECTORS_PAGE = '/using-ppps/agri-subsectors'
 export const AMENITY_SUBSECTOR_PAGE = '/using-ppps/amenity-subsector'
 export const HORTI_SUBSECTOR_PAGE = '/using-ppps/horti-subsector'
+
+// The using PPPs member schemes page isn't built yet, so this route doesn't
+// exist and the journey stops here after the last sub-sector page.
+export const USING_MEMBER_SCHEMES_PAGE = '/using-ppps/member-schemes'
 
 // Where an organisation that uses PPPs says whether it stores the products it
 // applies, after the PPP sectors (see routes/using-ppps/storing).
@@ -60,6 +66,19 @@ function worksIn(sector) {
 const worksInAgriculture = worksIn('agriculture')
 const worksInAmenity = worksIn('amenity')
 const worksInHorticulture = worksIn('horticulture')
+
+// After the agricultural sectors, the next ticked sector's page, if any.
+function pageAfterAgriSubsectors(formSession) {
+  if (worksInAmenity(formSession)) {
+    return AMENITY_SUBSECTOR_PAGE
+  }
+
+  if (worksInHorticulture(formSession)) {
+    return HORTI_SUBSECTOR_PAGE
+  }
+
+  return USING_MEMBER_SCHEMES_PAGE
+}
 
 function pageAfterWhoApplies(formSession) {
   return getUsingPPPsAnswers(formSession)['whoApplies'] === 'contractor'
@@ -138,6 +157,11 @@ export const JOURNEY = {
     section: USING_PPPS_KEY,
     sessionKey: 'professionalSectors',
     next: pageAfterSectors
+  },
+  [AGRI_SUBSECTORS_PAGE]: {
+    section: USING_PPPS_KEY,
+    sessionKey: 'agriSubsectors',
+    next: pageAfterAgriSubsectors
   },
   [STORING_PAGE]: {
     section: USING_PPPS_KEY,

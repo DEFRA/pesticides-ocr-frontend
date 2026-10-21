@@ -13,6 +13,7 @@ const USING_PPPS_ANSWERS = new Set([
   'whoApplies',
   'contractor',
   'professionalSectors',
+  'agriSubsectors',
   'storing',
   'storageLocation',
   'quantity'
@@ -108,6 +109,27 @@ describe('#journey', () => {
       ['/using-ppps/ppp-sectors', { professionalSectors: ['business-premises'] }, '/using-ppps/storing'],
       ['/using-ppps/ppp-sectors', { professionalSectors: ['forestry', 'sports-clubs'] }, '/using-ppps/storing'],
       ['/using-ppps/ppp-sectors', { professionalSectors: ['Vineyard management'] }, '/using-ppps/storing'],
+      [
+        '/using-ppps/agri-subsectors',
+        { professionalSectors: ['agriculture', 'amenity'] },
+        '/using-ppps/amenity-subsector'
+      ],
+      [
+        '/using-ppps/agri-subsectors',
+        { professionalSectors: ['agriculture', 'horticulture'] },
+        '/using-ppps/horti-subsector'
+      ],
+      [
+        '/using-ppps/agri-subsectors',
+        { professionalSectors: ['agriculture', 'amenity', 'horticulture'] },
+        '/using-ppps/amenity-subsector'
+      ],
+      ['/using-ppps/agri-subsectors', { professionalSectors: ['agriculture'] }, '/using-ppps/member-schemes'],
+      [
+        '/using-ppps/agri-subsectors',
+        { professionalSectors: ['agriculture', 'forestry'] },
+        '/using-ppps/member-schemes'
+      ],
       ['/using-ppps/storing', { storing: 'own' }, '/using-ppps/storage-location'],
       ['/using-ppps/storage-location', { storageLocation: 'main-address' }, '/using-ppps/quantity'],
       ['/using-ppps/storage-location', { storageLocation: 'main-and-other' }, '/using-ppps/own-storage-address'],
@@ -224,6 +246,34 @@ describe('#journey', () => {
       expect(
         findFirstMissingPage({ ...usesPpps, storing: 'own', storageLocation: 'main-and-other' })
       ).toBe('/using-ppps/own-storage-address')
+    })
+
+    test.each([
+      [['agriculture'], '/using-ppps/member-schemes'],
+      [['agriculture', 'amenity'], '/using-ppps/amenity-subsector'],
+      [['agriculture', 'horticulture'], '/using-ppps/horti-subsector']
+    ])(
+      'Should go on from the agricultural sectors, with the sectors %o, to %s',
+      (professionalSectors, nextPage) => {
+        expect(
+          findFirstMissingPage({
+            ...appliesProducts,
+            whoApplies: 'self',
+            professionalSectors,
+            agriSubsectors: ['arable']
+          })
+        ).toBe(nextPage)
+      }
+    )
+
+    test('Should return the PPP sectors before the agricultural sectors', () => {
+      expect(
+        getPreviousPage('/using-ppps/agri-subsectors', {
+          ...appliesProducts,
+          whoApplies: 'self',
+          professionalSectors: ['agriculture']
+        })
+      ).toBe('/using-ppps/ppp-sectors')
     })
 
     test('Should ask storing products for a contractor once the sectors are given', () => {
@@ -540,6 +590,23 @@ describe('#journey', () => {
 
     test('Should keep storing products and the quantity while the route reaches them', () => {
       expect(removeSkippedAnswers(usesPpps)).toEqual(usesPpps)
+    })
+
+    test('Should keep the agricultural sectors while agriculture is ticked', () => {
+      const formSession = {
+        ...appliesProducts,
+        whoApplies: 'self',
+        professionalSectors: ['agriculture'],
+        agriSubsectors: ['arable']
+      }
+
+      expect(removeSkippedAnswers(formSession)).toEqual(formSession)
+    })
+
+    test('Should remove the agricultural sectors once agriculture is no longer ticked', () => {
+      const formSession = removeSkippedAnswers({ ...usesPpps, agriSubsectors: ['arable'] })
+
+      expect(formSession).toEqual(usesPpps)
     })
 
     test('Should keep where products are stored while the route reaches it', () => {

@@ -201,6 +201,22 @@ describe('#buildAnswers', () => {
     ).toEqual(['Vineyard management'])
   })
 
+  test('Should map the agricultural sectors to the labels used on the question page', () => {
+    expect(
+      buildAnswers({ usingPPPs: { agriSubsectors: ['arable', 'grasslands-fodder'] } }).agriSubsectors
+    ).toEqual(['Arable', 'Grasslands and fodder crops'])
+  })
+
+  test('Should give the Other text as the agricultural sectors when none was chosen', () => {
+    expect(buildAnswers({ usingPPPs: { agriSubsectors: ['Hops'] } }).agriSubsectors).toEqual([
+      'Hops'
+    ])
+  })
+
+  test('Should leave out the agricultural sectors when they were not given', () => {
+    expect(buildAnswers({ usingPPPs: { whoApplies: 'self' } })).not.toHaveProperty('agriSubsectors')
+  })
+
   test('Should leave out the PPP sectors when they were not given', () => {
     expect(buildAnswers({ usingPPPs: { whoApplies: 'self' } })).not.toHaveProperty('professionalSectors')
   })

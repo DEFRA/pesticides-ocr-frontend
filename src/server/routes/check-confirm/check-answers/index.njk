@@ -77,6 +77,11 @@
             actions: { items: [{ href: "/using-ppps/ppp-sectors?change=true", text: "Change", visuallyHiddenText: "sectors" }] }
           } if answers.professionalSectors,
           {
+            key: { text: "Agricultural sectors" },
+            value: { html: appAnswerList({ values: answers.agriSubsectors }) },
+            actions: { items: [{ href: "/using-ppps/agri-subsectors?change=true", text: "Change", visuallyHiddenText: "agricultural sectors" }] }
+          } if answers.agriSubsectors,
+          {
             key: { text: "Storing products" },
             value: { html: appAnswerList({ values: answers.storing }) },
             actions: { items: [{ href: "/using-ppps/storing?change=true", text: "Change", visuallyHiddenText: "storing products" }] }
