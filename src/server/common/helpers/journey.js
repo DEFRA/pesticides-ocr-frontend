@@ -49,9 +49,9 @@ export const OWN_STORAGE_ADDRESS_PAGE = '/using-ppps/own-storage-address'
 export const OWN_STORAGE_ADDRESS_SELECT_PAGE = '/using-ppps/own-storage-address/select'
 export const OWN_STORAGE_ADDRESS_MANUAL_PAGE = '/using-ppps/own-storage-address/manual'
 
-// The third-party storage page isn't built yet, so this route doesn't exist and
-// the journey stops here for anyone it applies to.
-export const STORAGE_PROVIDER_PAGE = '/using-ppps/storage-provider'
+// Where an organisation whose products a third party stores gives that third
+// party's contact (see routes/using-ppps/third-party-storage-contact).
+export const STORAGE_CONTACT_PAGE = '/using-ppps/third-party-storage-contact'
 
 // Where an organisation that uses PPPs gives the quantity it uses in a typical
 // year (see routes/using-ppps/quantity).
@@ -127,7 +127,7 @@ function pageAfterStoring(formSession) {
   }
 
   if (storing === 'third-party') {
-    return STORAGE_PROVIDER_PAGE
+    return STORAGE_CONTACT_PAGE
   }
 
   return USING_QUANTITY_PAGE
@@ -196,6 +196,11 @@ export const JOURNEY = {
   [OWN_STORAGE_ADDRESS_PAGE]: {
     section: USING_PPPS_KEY,
     sessionKey: 'ownStorageAddress',
+    next: () => USING_QUANTITY_PAGE
+  },
+  [STORAGE_CONTACT_PAGE]: {
+    section: USING_PPPS_KEY,
+    sessionKey: 'storageContact',
     next: () => USING_QUANTITY_PAGE
   },
   [USING_QUANTITY_PAGE]: {

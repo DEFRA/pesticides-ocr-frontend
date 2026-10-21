@@ -58,6 +58,26 @@ describe('#buildAnswers', () => {
     ).toEqual(['1 Barn Lane', 'York', 'YO1 7HH', 'Wales'])
   })
 
+  test('Should give each of the storage contact details, leaving out an empty job title', () => {
+    const answers = buildAnswers({
+      usingPPPs: {
+        storageContact: {
+          contactName: 'Sam Store',
+          businessName: 'Safe Storage Ltd',
+          contactJobTitle: '',
+          contactTelephone: '01234 567890',
+          contactEmail: 'sam@example.com'
+        }
+      }
+    })
+
+    expect(answers.storageContactName).toEqual(['Sam Store'])
+    expect(answers.storageBusinessName).toEqual(['Safe Storage Ltd'])
+    expect(answers).not.toHaveProperty('storageContactJobTitle')
+    expect(answers.storageContactTelephone).toEqual(['01234 567890'])
+    expect(answers.storageContactEmail).toEqual(['sam@example.com'])
+  })
+
   test('Should leave out where products are stored when it was not given', () => {
     expect(buildAnswers({ usingPPPs: { storing: 'no' } })).not.toHaveProperty('storageLocation')
   })

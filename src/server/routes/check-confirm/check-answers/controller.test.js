@@ -267,6 +267,41 @@ describe('#checkAnswersController', () => {
       expect(row.find('.govuk-visually-hidden').text().trim()).toBe('other storage address')
     })
 
+    test('Should show the storage contact straight after storing products', async () => {
+      const cookie = await getSessionCookie(server, '/using-ppps/storing')
+      const answer = answerAs(cookie)
+
+      await answer('/using-ppps/storing', { storing: 'third-party' })
+      await answer('/using-ppps/third-party-storage-contact', {
+        contactName: 'Sam Store',
+        businessName: 'Safe Storage Ltd',
+        contactJobTitle: 'Warehouse manager',
+        contactTelephone: '01234 567890',
+        contactEmail: 'sam@example.com'
+      })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const storing = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Storing products'
+      )
+      const rows = storing.nextAll().slice(0, 5)
+
+      expect(rows.map((_index, row) => page(row).find('dt').text().trim()).get()).toEqual([
+        'Storage contact name',
+        'Storage business name',
+        'Storage contact job title',
+        'Storage contact telephone',
+        'Storage contact email'
+      ])
+      expect(
+        rows.map((_index, row) => page(row).find('.govuk-summary-list__value').text().trim()).get()
+      ).toEqual(['Sam Store', 'Safe Storage Ltd', 'Warehouse manager', '01234 567890', 'sam@example.com'])
+      rows.each((_index, row) => {
+        expect(page(row).find('a').attr('href')).toBe('/using-ppps/third-party-storage-contact?change=true')
+      })
+      expect(rows.first().find('.govuk-visually-hidden').text().trim()).toBe('storage contact name')
+    })
+
     test('Should show where products are stored between storing products and the quantity', async () => {
       const cookie = await getSessionCookie(server, '/using-ppps/storing')
       const answer = answerAs(cookie)

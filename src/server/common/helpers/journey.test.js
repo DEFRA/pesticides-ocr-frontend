@@ -19,6 +19,7 @@ const USING_PPPS_ANSWERS = new Set([
   'storing',
   'storageLocation',
   'ownStorageAddress',
+  'storageContact',
   'quantity'
 ])
 
@@ -144,7 +145,8 @@ describe('#journey', () => {
       ['/using-ppps/storage-location', { storageLocation: 'main-address' }, '/using-ppps/quantity'],
       ['/using-ppps/storage-location', { storageLocation: 'main-and-other' }, '/using-ppps/own-storage-address'],
       ['/using-ppps/own-storage-address', {}, '/using-ppps/quantity'],
-      ['/using-ppps/storing', { storing: 'third-party' }, '/using-ppps/storage-provider'],
+      ['/using-ppps/third-party-storage-contact', {}, '/using-ppps/quantity'],
+      ['/using-ppps/storing', { storing: 'third-party' }, '/using-ppps/third-party-storage-contact'],
       ['/using-ppps/storing', { storing: 'no' }, '/using-ppps/quantity'],
       ['/using-ppps/quantity', { quantity: '1-29' }, '/check-answers'],
       ['/using-ppps/quantity', { quantity: '400-plus' }, '/check-answers'],
@@ -235,7 +237,7 @@ describe('#journey', () => {
 
     test.each([
       ['own', '/using-ppps/storage-location'],
-      ['third-party', '/using-ppps/storage-provider']
+      ['third-party', '/using-ppps/third-party-storage-contact']
     ])('Should stop at the storage page that storing %s leads to', (storing, nextPage) => {
       expect(findFirstMissingPage({ ...usesPpps, storing })).toBe(nextPage)
     })
@@ -266,6 +268,25 @@ describe('#journey', () => {
       expect(
         getPreviousPage('/using-ppps/quantity', { ...otherLocations, ownStorageAddress })
       ).toBe('/using-ppps/own-storage-address')
+    })
+
+    test('Should ask for the storage contact when a third party stores the products', () => {
+      const thirdParty = { ...usesPpps, storing: 'third-party' }
+      const { quantity, ...beforeQuantity } = thirdParty
+      const storageContact = { contactName: 'Sam Store', businessName: 'Safe Storage Ltd' }
+
+      expect(findFirstMissingPage(beforeQuantity)).toBe('/using-ppps/third-party-storage-contact')
+      expect(findFirstMissingPage({ ...beforeQuantity, storageContact })).toBe('/using-ppps/quantity')
+      expect(findFirstMissingPage({ ...thirdParty, storageContact })).toBe('/check-answers')
+      expect(getPreviousPage('/using-ppps/quantity', { ...thirdParty, storageContact })).toBe(
+        '/using-ppps/third-party-storage-contact'
+      )
+    })
+
+    test('Should remove the storage contact once a third party no longer stores the products', () => {
+      expect(
+        removeSkippedAnswers({ ...usesPpps, storageContact: { contactName: 'Sam Store' } })
+      ).toEqual(usesPpps)
     })
 
     test('Should remove the own storage address once it is only stored at the main address', () => {

@@ -67,7 +67,7 @@ describe('#storingController', () => {
 
     test.each([
       ['own', '/using-ppps/storage-location'],
-      ['third-party', '/using-ppps/storage-provider'],
+      ['third-party', '/using-ppps/third-party-storage-contact'],
       ['no', '/using-ppps/quantity']
     ])('Should redirect %s to %s', async (storing, location) => {
       const { statusCode, headers } = await postStoring({ storing })

@@ -97,6 +97,31 @@
             actions: { items: [{ href: "/using-ppps/storing?change=true", text: "Change", visuallyHiddenText: "storing products" }] }
           } if answers.storing,
           {
+            key: { text: "Storage contact name" },
+            value: { html: appAnswerList({ values: answers.storageContactName }) },
+            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact name" }] }
+          } if answers.storageContactName,
+          {
+            key: { text: "Storage business name" },
+            value: { html: appAnswerList({ values: answers.storageBusinessName }) },
+            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage business name" }] }
+          } if answers.storageBusinessName,
+          {
+            key: { text: "Storage contact job title" },
+            value: { html: appAnswerList({ values: answers.storageContactJobTitle }) },
+            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact job title" }] }
+          } if answers.storageContactJobTitle,
+          {
+            key: { text: "Storage contact telephone" },
+            value: { html: appAnswerList({ values: answers.storageContactTelephone }) },
+            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact telephone" }] }
+          } if answers.storageContactTelephone,
+          {
+            key: { text: "Storage contact email" },
+            value: { html: appAnswerList({ values: answers.storageContactEmail }) },
+            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact email" }] }
+          } if answers.storageContactEmail,
+          {
             key: { text: "Where products are stored" },
             value: { html: appAnswerList({ values: answers.storageLocation }) },
             actions: { items: [{ href: "/using-ppps/storage-location?change=true", text: "Change", visuallyHiddenText: "where products are stored" }] }
