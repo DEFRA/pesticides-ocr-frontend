@@ -95,43 +95,61 @@ export function addressSearchPage(lookup) {
   }
 }
 
-export function addressSelectPage(lookup) {
-  const redirectToSearch = (request, h) => h.redirect(withQuery(lookup.searchPage, request))
+const redirectToSearch = (lookup, request, h) => h.redirect(withQuery(lookup.searchPage, request))
 
-  function render(request, h, { addressSearch, addresses, selected, errorSummary }) {
-    const searchPage = withQuery(lookup.searchPage, request)
-    const titles = {
-      0: lookup.titles.noResults,
-      1: lookup.titles.confirm
-    }
-
-    return h.view(lookup.views.select, {
-      ...errorSummary,
-      pageTitle: titles[addresses.length] ?? lookup.titles.select,
-      heading: lookup.heading,
-      addressCount: addresses.length,
-      // The first option only says how many were found. Its empty value fails
-      // validation, so it can't be submitted as an answer.
-      addressItems: [
-        { value: '', text: addressesFound(addresses.length) },
-        ...addresses.map((address, index) => ({
-          value: String(index),
-          text: addressLines(address).join(', '),
-          selected: String(index) === selected
-        }))
-      ],
-      // With one address there's nothing to choose, so the page only asks to confirm it.
-      foundAddressLines: addresses.length === 1 ? addressLines(addresses[0]) : [],
-      postcode: formatPostcode(addressSearch['addressPostcode']),
-      building: addressSearch['addressBuilding'],
-      searchPage,
-      manualAddressPage: withQuery(lookup.manualPage, request),
-      // The journey's back link goes to check answers in change mode; this page
-      // goes back to the search instead, which keeps change mode itself.
-      backLink: searchPage
-    })
+function renderSelectPage(lookup, request, h, { addressSearch, addresses, selected, errorSummary }) {
+  const searchPage = withQuery(lookup.searchPage, request)
+  const titles = {
+    0: lookup.titles.noResults,
+    1: lookup.titles.confirm
   }
 
+  return h.view(lookup.views.select, {
+    ...errorSummary,
+    pageTitle: titles[addresses.length] ?? lookup.titles.select,
+    heading: lookup.heading,
+    addressCount: addresses.length,
+    // The first option only says how many were found. Its empty value fails
+    // validation, so it can't be submitted as an answer.
+    addressItems: [
+      { value: '', text: addressesFound(addresses.length) },
+      ...addresses.map((address, index) => ({
+        value: String(index),
+        text: addressLines(address).join(', '),
+        selected: String(index) === selected
+      }))
+    ],
+    // With one address there's nothing to choose, so the page only asks to confirm it.
+    foundAddressLines: addresses.length === 1 ? addressLines(addresses[0]) : [],
+    postcode: formatPostcode(addressSearch['addressPostcode']),
+    building: addressSearch['addressBuilding'],
+    searchPage,
+    manualAddressPage: withQuery(lookup.manualPage, request),
+    // The journey's back link goes to check answers in change mode; this page
+    // goes back to the search instead, which keeps change mode itself.
+    backLink: searchPage
+  })
+}
+
+function selectFailAction(lookup) {
+  return async (request, h, error) => {
+    const addressSearch = request.yar.get(lookup.searchKey)
+
+    if (!addressSearch) {
+      return redirectToSearch(lookup, request, h).takeover()
+    }
+
+    const addresses = await lookUpAddresses(addressSearch)
+
+    return renderSelectPage(lookup, request, h, {
+      addressSearch,
+      addresses,
+      errorSummary: buildErrorSummary(error)
+    }).takeover()
+  }
+}
+
+export function addressSelectPage(lookup) {
   return {
     app: { pageTitle: lookup.titles.select },
 
@@ -147,21 +165,7 @@ export function addressSelectPage(lookup) {
             'string.pattern.base': SELECT_ADDRESS_MESSAGE
           })
       }),
-      async failAction(request, h, error) {
-        const addressSearch = request.yar.get(lookup.searchKey)
-
-        if (!addressSearch) {
-          return redirectToSearch(request, h).takeover()
-        }
-
-        const addresses = await lookUpAddresses(addressSearch)
-
-        return render(request, h, {
-          addressSearch,
-          addresses,
-          errorSummary: buildErrorSummary(error)
-        }).takeover()
-      }
+      failAction: selectFailAction(lookup)
     },
 
     get: {
@@ -172,7 +176,7 @@ export function addressSelectPage(lookup) {
         const addressSearch = request.yar.get(lookup.searchKey)
 
         if (!addressSearch) {
-          return redirectToSearch(request, h)
+          return redirectToSearch(lookup, request, h)
         }
 
         const addresses = await lookUpAddresses(addressSearch)
@@ -180,7 +184,7 @@ export function addressSelectPage(lookup) {
           isSameAddress(address, lookup.readAddress(formSession))
         )
 
-        return render(request, h, {
+        return renderSelectPage(lookup, request, h, {
           addressSearch,
           addresses,
           selected: savedIndex === -1 ? undefined : String(savedIndex)
@@ -194,14 +198,14 @@ export function addressSelectPage(lookup) {
         const addressSearch = request.yar.get(lookup.searchKey)
 
         if (!addressSearch) {
-          return redirectToSearch(request, h)
+          return redirectToSearch(lookup, request, h)
         }
 
         const addresses = await lookUpAddresses(addressSearch)
         const address = addresses[Number(request.payload['address'])]
 
         if (!address) {
-          return render(request, h, {
+          return renderSelectPage(lookup, request, h, {
             addressSearch,
             addresses,
             errorSummary: buildErrorSummary([{ path: ['address'], message: SELECT_ADDRESS_MESSAGE }])
