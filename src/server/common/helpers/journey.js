@@ -25,8 +25,8 @@ export const CONTRACTOR_ADDRESS_PAGE = '/using-ppps/contractor-address'
 
 // Each sector with sub-sectors (agriculture, amenity, horticulture) has its own
 // page after the PPP sectors, asked in that order for the sectors ticked.
-// Only the agricultural one is built (see routes/using-ppps/agri-subsectors);
-// the others don't exist yet, so the journey stops there.
+// The agricultural and amenity ones are built (see routes/using-ppps); the
+// horticultural one doesn't exist yet, so the journey stops there.
 export const AGRI_SUBSECTORS_PAGE = '/using-ppps/agri-subsectors'
 export const AMENITY_SUBSECTOR_PAGE = '/using-ppps/amenity-subsector'
 export const HORTI_SUBSECTOR_PAGE = '/using-ppps/horti-subsector'
@@ -78,6 +78,11 @@ function pageAfterAgriSubsectors(formSession) {
   }
 
   return USING_MEMBER_SCHEMES_PAGE
+}
+
+// After the amenity sectors, the horticultural sectors if ticked.
+function pageAfterAmenitySubsectors(formSession) {
+  return worksInHorticulture(formSession) ? HORTI_SUBSECTOR_PAGE : USING_MEMBER_SCHEMES_PAGE
 }
 
 function pageAfterWhoApplies(formSession) {
@@ -162,6 +167,11 @@ export const JOURNEY = {
     section: USING_PPPS_KEY,
     sessionKey: 'agriSubsectors',
     next: pageAfterAgriSubsectors
+  },
+  [AMENITY_SUBSECTOR_PAGE]: {
+    section: USING_PPPS_KEY,
+    sessionKey: 'amenitySubsectors',
+    next: pageAfterAmenitySubsectors
   },
   [STORING_PAGE]: {
     section: USING_PPPS_KEY,

@@ -196,6 +196,27 @@ describe('#checkAnswersController', () => {
       expect(row.find('.govuk-visually-hidden').text().trim()).toBe('agricultural sectors')
     })
 
+    test('Should show the amenity sectors straight after the agricultural sectors', async () => {
+      const cookie = await getSessionCookie(server, '/using-ppps/ppp-sectors')
+      const answer = answerAs(cookie)
+
+      await answer('/using-ppps/agri-subsectors', { agriSubsectors: ['arable'], agriSubsectorsOther: '' })
+      await answer('/using-ppps/amenity-subsector', {
+        amenitySubsectors: ['parks'],
+        amenitySubsectorsOther: ''
+      })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const row = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Amenity sectors'
+      )
+
+      expect(row.prev().find('dt').text().trim()).toBe('Agricultural sectors')
+      expect(row.find('.govuk-summary-list__value').text().trim()).toBe('Parks')
+      expect(row.find('a').attr('href')).toBe('/using-ppps/amenity-subsector?change=true')
+      expect(row.find('.govuk-visually-hidden').text().trim()).toBe('amenity sectors')
+    })
+
     test('Should show where products are stored between storing products and the quantity', async () => {
       const cookie = await getSessionCookie(server, '/using-ppps/storing')
       const answer = answerAs(cookie)

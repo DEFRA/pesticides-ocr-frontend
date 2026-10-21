@@ -213,6 +213,12 @@ describe('#buildAnswers', () => {
     ])
   })
 
+  test('Should map the amenity sectors to the labels used on the question page', () => {
+    expect(
+      buildAnswers({ usingPPPs: { amenitySubsectors: ['parks', 'utilities'] } }).amenitySubsectors
+    ).toEqual(['Parks', 'Utilities, such as transport and water companies'])
+  })
+
   test('Should leave out the agricultural sectors when they were not given', () => {
     expect(buildAnswers({ usingPPPs: { whoApplies: 'self' } })).not.toHaveProperty('agriSubsectors')
   })
