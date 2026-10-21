@@ -5,7 +5,10 @@ import { config } from '#/config/config.js'
 import { getSession } from '#/server/common/helpers/get-session.js'
 import { CHECK_ANSWERS_PAGE, findFirstMissingPage, isOnRoute } from '#/server/common/helpers/journey.js'
 import { removeUnfinishedAddresses } from '#/server/common/helpers/additional-addresses.js'
-import { ADDRESS_SEARCH_KEY } from '#/server/common/constants/session-keys.js'
+import {
+  ADDRESS_SEARCH_KEY,
+  OWN_STORAGE_ADDRESS_SEARCH_KEY
+} from '#/server/common/constants/session-keys.js'
 
 export const get = {
   handler(request, h) {
@@ -71,6 +74,7 @@ export const post = {
     const responseData = await response.json()
     request.yar.set('formSession', {})
     request.yar.clear(ADDRESS_SEARCH_KEY)
+    request.yar.clear(OWN_STORAGE_ADDRESS_SEARCH_KEY)
     request.yar.set('confirmationReference', responseData.reference)
 
     return h.redirect('/confirmation')

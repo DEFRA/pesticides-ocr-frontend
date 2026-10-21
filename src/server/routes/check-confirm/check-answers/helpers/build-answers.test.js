@@ -43,6 +43,21 @@ describe('#buildAnswers', () => {
     expect(buildAnswers({ usingPPPs: { storageLocation } }).storageLocation).toEqual([label])
   })
 
+  test('Should give the own storage address one line per address line', () => {
+    expect(
+      buildAnswers({
+        usingPPPs: {
+          ownStorageAddress: {
+            addressLine1: '1 Barn Lane',
+            addressTown: 'York',
+            addressPostcode: 'YO1 7HH',
+            addressRegion: 'wales'
+          }
+        }
+      }).ownStorageAddress
+    ).toEqual(['1 Barn Lane', 'York', 'YO1 7HH', 'Wales'])
+  })
+
   test('Should leave out where products are stored when it was not given', () => {
     expect(buildAnswers({ usingPPPs: { storing: 'no' } })).not.toHaveProperty('storageLocation')
   })

@@ -42,9 +42,15 @@ export const STORING_PAGE = '/using-ppps/storing'
 // says where those sites are (see routes/using-ppps/storage-location).
 export const STORAGE_LOCATION_PAGE = '/using-ppps/storage-location'
 
-// The other storage pages aren't built yet, so these routes don't exist and the
-// journey stops here for anyone they apply to.
+// Where an organisation that stores products at other locations too finds the
+// address of that location, with a lookup like the business address's (see
+// routes/using-ppps/own-storage-address).
 export const OWN_STORAGE_ADDRESS_PAGE = '/using-ppps/own-storage-address'
+export const OWN_STORAGE_ADDRESS_SELECT_PAGE = '/using-ppps/own-storage-address/select'
+export const OWN_STORAGE_ADDRESS_MANUAL_PAGE = '/using-ppps/own-storage-address/manual'
+
+// The third-party storage page isn't built yet, so this route doesn't exist and
+// the journey stops here for anyone it applies to.
 export const STORAGE_PROVIDER_PAGE = '/using-ppps/storage-provider'
 
 // Where an organisation that uses PPPs gives the quantity it uses in a typical
@@ -186,6 +192,11 @@ export const JOURNEY = {
     section: USING_PPPS_KEY,
     sessionKey: 'storageLocation',
     next: pageAfterStorageLocation
+  },
+  [OWN_STORAGE_ADDRESS_PAGE]: {
+    section: USING_PPPS_KEY,
+    sessionKey: 'ownStorageAddress',
+    next: () => USING_QUANTITY_PAGE
   },
   [USING_QUANTITY_PAGE]: {
     section: USING_PPPS_KEY,

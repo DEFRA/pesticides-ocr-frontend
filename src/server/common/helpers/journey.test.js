@@ -18,6 +18,7 @@ const USING_PPPS_ANSWERS = new Set([
   'hortiSubsectors',
   'storing',
   'storageLocation',
+  'ownStorageAddress',
   'quantity'
 ])
 
@@ -142,6 +143,7 @@ describe('#journey', () => {
       ['/using-ppps/storing', { storing: 'own' }, '/using-ppps/storage-location'],
       ['/using-ppps/storage-location', { storageLocation: 'main-address' }, '/using-ppps/quantity'],
       ['/using-ppps/storage-location', { storageLocation: 'main-and-other' }, '/using-ppps/own-storage-address'],
+      ['/using-ppps/own-storage-address', {}, '/using-ppps/quantity'],
       ['/using-ppps/storing', { storing: 'third-party' }, '/using-ppps/storage-provider'],
       ['/using-ppps/storing', { storing: 'no' }, '/using-ppps/quantity'],
       ['/using-ppps/quantity', { quantity: '1-29' }, '/check-answers'],
@@ -251,10 +253,31 @@ describe('#journey', () => {
       ).toBe('/check-answers')
     })
 
-    test('Should stop at the own storage address when stored at other locations too', () => {
+    test('Should ask for the own storage address when stored at other locations too', () => {
+      const otherLocations = { ...usesPpps, storing: 'own', storageLocation: 'main-and-other' }
+      const { quantity, ...beforeQuantity } = otherLocations
+      const ownStorageAddress = { addressLine1: '1 Barn Lane', addressPostcode: 'YO1 7HH' }
+
+      expect(findFirstMissingPage(beforeQuantity)).toBe('/using-ppps/own-storage-address')
+      expect(findFirstMissingPage({ ...beforeQuantity, ownStorageAddress })).toBe(
+        '/using-ppps/quantity'
+      )
+      expect(findFirstMissingPage({ ...otherLocations, ownStorageAddress })).toBe('/check-answers')
       expect(
-        findFirstMissingPage({ ...usesPpps, storing: 'own', storageLocation: 'main-and-other' })
+        getPreviousPage('/using-ppps/quantity', { ...otherLocations, ownStorageAddress })
       ).toBe('/using-ppps/own-storage-address')
+    })
+
+    test('Should remove the own storage address once it is only stored at the main address', () => {
+      const formSession = {
+        ...usesPpps,
+        storing: 'own',
+        storageLocation: 'main-address'
+      }
+
+      expect(
+        removeSkippedAnswers({ ...formSession, ownStorageAddress: { addressLine1: '1 Barn Lane' } })
+      ).toEqual(formSession)
     })
 
     test.each([

@@ -58,6 +58,7 @@ export function buildAnswers(formData = {}) {
     hortiSubsectors: labelsFor(hortiSubsectorsItems, usingPPPs['hortiSubsectors']),
     storing: labelsFor(storingItems, usingPPPs['storing']),
     storageLocation: labelsFor(storageLocationItems, usingPPPs['storageLocation']),
+    ownStorageAddress: addressLines(usingPPPs['ownStorageAddress']),
     usingQuantity: toLines(usingQuantityText(usingPPPs['quantity'])),
     addressActivities: labelsFor(addressActivityItems, formData['addressActivities']),
     memberSchemes: memberSchemeLines(formData['memberSchemes']),

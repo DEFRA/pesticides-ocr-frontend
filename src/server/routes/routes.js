@@ -17,6 +17,9 @@ import { amenitySubsectors } from './using-ppps/amenity-subsector/index.js'
 import { hortiSubsectors } from './using-ppps/horti-subsector/index.js'
 import { storing } from './using-ppps/storing/index.js'
 import { storageLocation } from './using-ppps/storage-location/index.js'
+import { ownStorageAddress } from './using-ppps/own-storage-address/index.js'
+import { ownStorageAddressSelect } from './using-ppps/own-storage-address/select/index.js'
+import { ownStorageAddressManual } from './using-ppps/own-storage-address/manual/index.js'
 import { usingQuantity } from './using-ppps/quantity/index.js'
 import { addressActivity } from './qualifying-questions/address-activity/index.js'
 import { checkAnswers } from './check-confirm/check-answers/index.js'
@@ -49,6 +52,9 @@ export const routes = [
   hortiSubsectors,
   storing,
   storageLocation,
+  ownStorageAddress,
+  ownStorageAddressSelect,
+  ownStorageAddressManual,
   usingQuantity,
   addressActivity,
   checkAnswers,

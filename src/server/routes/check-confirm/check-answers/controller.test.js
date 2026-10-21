@@ -241,6 +241,32 @@ describe('#checkAnswersController', () => {
       expect(row.find('.govuk-visually-hidden').text().trim()).toBe('horticultural sectors')
     })
 
+    test('Should show the other storage address straight after where products are stored', async () => {
+      const cookie = await getSessionCookie(server, '/using-ppps/storing')
+      const answer = answerAs(cookie)
+
+      await answer('/using-ppps/storage-location', { storageLocation: 'main-and-other' })
+      await answer('/using-ppps/own-storage-address/manual', {
+        addressLine1: '1 Barn Lane',
+        addressLine2: '',
+        addressTown: 'York',
+        addressPostcode: 'YO1 7HH',
+        addressRegion: 'england'
+      })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const row = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Other storage address'
+      )
+
+      expect(row.prev().find('dt').text().trim()).toBe('Where products are stored')
+      expect(row.find('.govuk-summary-list__value').html()).toEqual(
+        expect.stringMatching(/1 Barn Lane\s*<br>\s*York\s*<br>\s*YO1 7HH\s*<br>\s*England/)
+      )
+      expect(row.find('a').attr('href')).toBe('/using-ppps/own-storage-address?change=true')
+      expect(row.find('.govuk-visually-hidden').text().trim()).toBe('other storage address')
+    })
+
     test('Should show where products are stored between storing products and the quantity', async () => {
       const cookie = await getSessionCookie(server, '/using-ppps/storing')
       const answer = answerAs(cookie)

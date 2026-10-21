@@ -102,6 +102,11 @@
             actions: { items: [{ href: "/using-ppps/storage-location?change=true", text: "Change", visuallyHiddenText: "where products are stored" }] }
           } if answers.storageLocation,
           {
+            key: { text: "Other storage address" },
+            value: { html: appAnswerList({ values: answers.ownStorageAddress }) },
+            actions: { items: [{ href: "/using-ppps/own-storage-address?change=true", text: "Change", visuallyHiddenText: "other storage address" }] }
+          } if answers.ownStorageAddress,
+          {
             key: { text: "Quantity used in a typical year" },
             value: { html: appAnswerList({ values: answers.usingQuantity }) },
             actions: { items: [{ href: "/using-ppps/quantity?change=true", text: "Change", visuallyHiddenText: "quantity used in a typical year" }] }
