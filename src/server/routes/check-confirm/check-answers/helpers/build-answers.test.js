@@ -219,6 +219,13 @@ describe('#buildAnswers', () => {
     ).toEqual(['Parks', 'Utilities, such as transport and water companies'])
   })
 
+  test('Should map the horticultural sectors to the labels used on the question page', () => {
+    expect(
+      buildAnswers({ usingPPPs: { hortiSubsectors: ['edible-protected', 'ornamentals'] } })
+        .hortiSubsectors
+    ).toEqual(['Edible protected crops', 'Ornamentals'])
+  })
+
   test('Should leave out the agricultural sectors when they were not given', () => {
     expect(buildAnswers({ usingPPPs: { whoApplies: 'self' } })).not.toHaveProperty('agriSubsectors')
   })

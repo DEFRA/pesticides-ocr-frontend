@@ -87,6 +87,11 @@
             actions: { items: [{ href: "/using-ppps/amenity-subsector?change=true", text: "Change", visuallyHiddenText: "amenity sectors" }] }
           } if answers.amenitySubsectors,
           {
+            key: { text: "Horticultural sectors" },
+            value: { html: appAnswerList({ values: answers.hortiSubsectors }) },
+            actions: { items: [{ href: "/using-ppps/horti-subsector?change=true", text: "Change", visuallyHiddenText: "horticultural sectors" }] }
+          } if answers.hortiSubsectors,
+          {
             key: { text: "Storing products" },
             value: { html: appAnswerList({ values: answers.storing }) },
             actions: { items: [{ href: "/using-ppps/storing?change=true", text: "Change", visuallyHiddenText: "storing products" }] }

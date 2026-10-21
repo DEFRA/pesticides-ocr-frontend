@@ -14,6 +14,7 @@ import { contractorAddress } from './using-ppps/contractor-address/index.js'
 import { pppSectors } from './using-ppps/ppp-sectors/index.js'
 import { agriSubsectors } from './using-ppps/agri-subsectors/index.js'
 import { amenitySubsectors } from './using-ppps/amenity-subsector/index.js'
+import { hortiSubsectors } from './using-ppps/horti-subsector/index.js'
 import { storing } from './using-ppps/storing/index.js'
 import { storageLocation } from './using-ppps/storage-location/index.js'
 import { usingQuantity } from './using-ppps/quantity/index.js'
@@ -45,6 +46,7 @@ export const routes = [
   pppSectors,
   agriSubsectors,
   amenitySubsectors,
+  hortiSubsectors,
   storing,
   storageLocation,
   usingQuantity,

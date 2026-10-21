@@ -15,6 +15,7 @@ const USING_PPPS_ANSWERS = new Set([
   'professionalSectors',
   'agriSubsectors',
   'amenitySubsectors',
+  'hortiSubsectors',
   'storing',
   'storageLocation',
   'quantity'
@@ -137,6 +138,7 @@ describe('#journey', () => {
         '/using-ppps/horti-subsector'
       ],
       ['/using-ppps/amenity-subsector', { professionalSectors: ['amenity'] }, '/using-ppps/member-schemes'],
+      ['/using-ppps/horti-subsector', { professionalSectors: ['horticulture'] }, '/using-ppps/storing'],
       ['/using-ppps/storing', { storing: 'own' }, '/using-ppps/storage-location'],
       ['/using-ppps/storage-location', { storageLocation: 'main-address' }, '/using-ppps/quantity'],
       ['/using-ppps/storage-location', { storageLocation: 'main-and-other' }, '/using-ppps/own-storage-address'],
@@ -309,6 +311,34 @@ describe('#journey', () => {
           agriSubsectors: ['arable']
         })
       ).toBe('/using-ppps/agri-subsectors')
+    })
+
+    test.each([
+      [['horticulture'], '/using-ppps/ppp-sectors'],
+      [['agriculture', 'horticulture'], '/using-ppps/agri-subsectors'],
+      [['amenity', 'horticulture'], '/using-ppps/amenity-subsector'],
+      [['agriculture', 'amenity', 'horticulture'], '/using-ppps/amenity-subsector']
+    ])('Should return the page before the horticultural sectors for %o', (professionalSectors, previous) => {
+      expect(
+        getPreviousPage('/using-ppps/horti-subsector', {
+          ...appliesProducts,
+          whoApplies: 'self',
+          professionalSectors,
+          agriSubsectors: ['arable'],
+          amenitySubsectors: ['parks']
+        })
+      ).toBe(previous)
+    })
+
+    test('Should go on to storing products after the horticultural sectors', () => {
+      expect(
+        findFirstMissingPage({
+          ...appliesProducts,
+          whoApplies: 'self',
+          professionalSectors: ['horticulture'],
+          hortiSubsectors: ['ornamentals']
+        })
+      ).toBe('/using-ppps/storing')
     })
 
     test('Should return the PPP sectors before the agricultural sectors', () => {
@@ -656,6 +686,12 @@ describe('#journey', () => {
 
     test('Should remove the amenity sectors once amenity is no longer ticked', () => {
       const formSession = removeSkippedAnswers({ ...usesPpps, amenitySubsectors: ['parks'] })
+
+      expect(formSession).toEqual(usesPpps)
+    })
+
+    test('Should remove the horticultural sectors once horticulture is no longer ticked', () => {
+      const formSession = removeSkippedAnswers({ ...usesPpps, hortiSubsectors: ['ornamentals'] })
 
       expect(formSession).toEqual(usesPpps)
     })

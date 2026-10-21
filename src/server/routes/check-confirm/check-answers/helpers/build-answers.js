@@ -5,6 +5,7 @@ import { whoAppliesItems } from '#/server/routes/using-ppps/who-applies/items.js
 import { pppSectorsItems } from '#/server/routes/using-ppps/ppp-sectors/items.js'
 import { agriSubsectorsItems } from '#/server/routes/using-ppps/agri-subsectors/items.js'
 import { amenitySubsectorsItems } from '#/server/routes/using-ppps/amenity-subsector/items.js'
+import { hortiSubsectorsItems } from '#/server/routes/using-ppps/horti-subsector/items.js'
 import { storingItems } from '#/server/routes/using-ppps/storing/items.js'
 import { storageLocationItems } from '#/server/routes/using-ppps/storage-location/items.js'
 import { usingQuantityText } from '#/server/routes/using-ppps/quantity/items.js'
@@ -54,6 +55,7 @@ export function buildAnswers(formData = {}) {
     professionalSectors: labelsFor(pppSectorsItems, usingPPPs['professionalSectors']),
     agriSubsectors: labelsFor(agriSubsectorsItems, usingPPPs['agriSubsectors']),
     amenitySubsectors: labelsFor(amenitySubsectorsItems, usingPPPs['amenitySubsectors']),
+    hortiSubsectors: labelsFor(hortiSubsectorsItems, usingPPPs['hortiSubsectors']),
     storing: labelsFor(storingItems, usingPPPs['storing']),
     storageLocation: labelsFor(storageLocationItems, usingPPPs['storageLocation']),
     usingQuantity: toLines(usingQuantityText(usingPPPs['quantity'])),
