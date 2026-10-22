@@ -113,8 +113,7 @@ function pageAfterAgriSubsectors(formSession) {
 function pageAfterAmenitySubsectors(formSession) {
   if (worksInHorticulture(formSession)) {
     return HORTI_SUBSECTOR_PAGE
-  }
-  else {
+  } else {
     return STORING_PAGE
   }
 }
