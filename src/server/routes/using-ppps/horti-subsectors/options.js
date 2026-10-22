@@ -32,5 +32,5 @@ export const validate = {
       'string.max': otherTooLong
     })
   }),
-  failAction: viewFailAction('using-ppps/horti-subsector/index')
+  failAction: viewFailAction('using-ppps/horti-subsectors/index')
 }

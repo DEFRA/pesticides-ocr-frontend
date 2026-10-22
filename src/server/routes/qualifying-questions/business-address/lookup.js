@@ -9,7 +9,6 @@ import {
   addressSelectPage
 } from '#/server/common/helpers/address-lookup-pages.js'
 
-// The business address's lookup (see common/helpers/address-lookup-pages.js).
 const businessAddressLookup = {
   searchPage: ADDRESS_SEARCH_PAGE,
   selectPage: ADDRESS_SELECT_PAGE,

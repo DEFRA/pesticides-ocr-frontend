@@ -13,9 +13,10 @@
 
     <form method="post" action="{{ formAction }}" novalidate>
 
+      {# A single value is posted as a string, which the macro's "in" check would match as a substring. #}
       {{ govukCheckboxes({
         name: "memberSchemes",
-        values: values["memberSchemes"] if values,
+        values: ([values["memberSchemes"]] if values["memberSchemes"] is string else values["memberSchemes"]) if values,
         fieldset: {
           legend: {
             text: "Are you a member of any assurance schemes? (optional)",

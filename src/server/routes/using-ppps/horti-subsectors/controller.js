@@ -1,7 +1,7 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
 import { splitOtherAnswer } from '#/server/common/helpers/split-other-answer.js'
 import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
-import { HORTI_SUBSECTOR_PAGE, getNextPage } from '#/server/common/helpers/journey.js'
+import { HORTI_SUBSECTORS_PAGE, getNextPage } from '#/server/common/helpers/journey.js'
 import {
   getUsingPPPsAnswers,
   setUsingPPPsAnswer
@@ -19,7 +19,7 @@ export const get = {
       hortiSubsectorsValues
     )
 
-    return h.view('using-ppps/horti-subsector/index', {
+    return h.view('using-ppps/horti-subsectors/index', {
       values: { hortiSubsectors: selected, hortiSubsectorsOther: other }
     })
   }
@@ -34,6 +34,6 @@ export const post = {
     setUsingPPPsAnswer(formSession, 'hortiSubsectors', sectors ?? [other])
     request.yar.set('formSession', formSession)
 
-    return redirectToNextPage(request, h, getNextPage(HORTI_SUBSECTOR_PAGE, formSession))
+    return redirectToNextPage(request, h, getNextPage(HORTI_SUBSECTORS_PAGE, formSession))
   }
 }

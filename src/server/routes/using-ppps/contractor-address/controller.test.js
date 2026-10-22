@@ -86,18 +86,21 @@ describe('#contractorAddressController', () => {
       expect(page('button[type="submit"]').text().trim()).toBe('Continue')
     })
 
-    test('Should size and label the fields for autocomplete as in the design', async () => {
+    test('Should size the fields as in the design', async () => {
       const page = await revisitStep(server, { url })
-      const field = (id) => ({ classes: page(`#${id}`).attr('class'), autocomplete: page(`#${id}`).attr('autocomplete') })
+      const classesOf = (id) => page(`#${id}`).attr('class')
 
-      expect(field('contractorName')).toEqual({
-        classes: expect.stringContaining('govuk-!-width-two-thirds'),
-        autocomplete: 'organization'
-      })
-      expect(field('addressLine1').classes).toEqual(expect.stringContaining('govuk-!-width-one-half'))
-      expect(field('addressLine2').classes).toEqual(expect.stringContaining('govuk-!-width-one-half'))
-      expect(field('addressTown').classes).toEqual(expect.stringContaining('govuk-!-width-one-third'))
-      expect(field('addressPostcode').classes).toEqual(expect.stringContaining('govuk-input--width-10'))
+      expect(classesOf('contractorName')).toEqual(expect.stringContaining('govuk-!-width-two-thirds'))
+      expect(classesOf('addressLine1')).toEqual(expect.stringContaining('govuk-!-width-one-half'))
+      expect(classesOf('addressLine2')).toEqual(expect.stringContaining('govuk-!-width-one-half'))
+      expect(classesOf('addressTown')).toEqual(expect.stringContaining('govuk-!-width-one-third'))
+      expect(classesOf('addressPostcode')).toEqual(expect.stringContaining('govuk-input--width-10'))
+    })
+
+    test("Should not ask the browser to fill in the user's own details for the contractor", async () => {
+      const page = await revisitStep(server, { url })
+
+      expect(page('input[autocomplete]')).toHaveLength(0)
     })
 
     test('Should offer England, Scotland and Wales as the region', async () => {
@@ -209,6 +212,7 @@ describe('#contractorAddressController', () => {
     test.each([
       ['contractorName', { contractorName: '' }, 'Enter the business or company name'],
       ['contractorName', { contractorName: '   ' }, 'Enter the business or company name'],
+      ['contractorName', { contractorName: 'a'.repeat(101) }, 'Business or company name must be 100 characters or less'],
       ['addressLine1', { addressLine1: '' }, 'Enter address line 1, typically the building and street'],
       ['addressLine1', { addressLine1: '   ' }, 'Enter address line 1, typically the building and street'],
       ['addressTown', { addressTown: '' }, 'Enter town or city'],

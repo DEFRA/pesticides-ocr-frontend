@@ -1,6 +1,5 @@
 import { getSectionAnswers, setSectionAnswer } from './section-answers.js'
 
-// The answers to the using PPPs pages (routes/using-ppps).
 export const USING_PPPS_KEY = 'usingPPPs'
 
 export const getUsingPPPsAnswers = (formSession) => getSectionAnswers(formSession, USING_PPPS_KEY)
