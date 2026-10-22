@@ -153,6 +153,29 @@
         ]
       }) }}
 
+      {% if answers.processingProducts or answers.processingSites or answers.processingQuantity %}
+        <h2 class="govuk-heading-m">PPP processing details</h2>
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "Products processed" },
+              value: { html: appAnswerList({ values: answers.processingProducts }) },
+              actions: { items: [{ href: "/processing-ppps/products?change=true", text: "Change", visuallyHiddenText: "products processed" }] }
+            } if answers.processingProducts,
+            {
+              key: { text: "Processing sites" },
+              value: { html: appAnswerList({ values: answers.processingSites }) },
+              actions: { items: [{ href: "/processing-ppps/sites?change=true", text: "Change", visuallyHiddenText: "processing sites" }] }
+            } if answers.processingSites,
+            {
+              key: { text: "Estimated annual quantity" },
+              value: { html: appAnswerList({ values: answers.processingQuantity }) },
+              actions: { items: [{ href: "/processing-ppps/quantity?change=true", text: "Change", visuallyHiddenText: "estimated annual quantity" }] }
+            } if answers.processingQuantity
+          ]
+        }) }}
+      {% endif %}
+
       {% if answers.additionalAddresses or canAddAdditionalAddresses %}
         <h2 class="govuk-heading-m">Additional addresses</h2>
 

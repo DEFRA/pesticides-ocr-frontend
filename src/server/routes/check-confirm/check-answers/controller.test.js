@@ -301,6 +301,39 @@ describe('#checkAnswersController', () => {
       expect(rows.first().find('.govuk-visually-hidden').text().trim()).toBe('storage contact name')
     })
 
+    test('Should show the processing answers in their own section', async () => {
+      const cookie = await getSessionCookie(server, '/processing-ppps/products')
+      const answer = answerAs(cookie)
+
+      await answer('/processing-ppps/products', { products: 'both' })
+      await answer('/processing-ppps/sites', { sites: '51-200' })
+      await answer('/processing-ppps/quantity', { quantity: '300' })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const section = page('h2')
+        .filter((_index, element) => page(element).text().trim() === 'PPP processing details')
+        .next('.govuk-summary-list')
+      const rows = section.find('.govuk-summary-list__row')
+
+      expect(rows.map((_index, row) => page(row).find('dt').text().trim()).get()).toEqual([
+        'Products processed',
+        'Processing sites',
+        'Estimated annual quantity'
+      ])
+      expect(
+        rows.map((_index, row) => page(row).find('.govuk-summary-list__value').text().trim()).get()
+      ).toEqual(['Both PPPs and ingredients or adjuvants', '51 to 200', '300 kilograms or litres'])
+      expect(rows.first().find('a').attr('href')).toBe('/processing-ppps/products?change=true')
+    })
+
+    test('Should not show the processing section without processing answers', async () => {
+      const cookie = await completeJourney(server)
+
+      const { result } = await loadAnswers(cookie)
+
+      expect(result).not.toEqual(expect.stringContaining('PPP processing details'))
+    })
+
     test('Should show where products are stored between storing products and the quantity', async () => {
       const cookie = await getSessionCookie(server, '/using-ppps/storing')
       const answer = answerAs(cookie)
