@@ -66,6 +66,48 @@ describe('#businessContactController', () => {
       expect(headers.location).toBe('/address-activity')
     })
 
+    test('Should redirect to who applies page when the business uses PPPs', async () => {
+      const cookie = await answerStep(server, {
+        url: '/business-activities',
+        payload: { businessActivities: ['using', 'selling'] }
+      })
+
+      const { statusCode, headers } = await server.inject({
+        method: 'POST',
+        url: '/business-contact',
+        headers: { cookie },
+        payload: {
+          contactName: 'John Smith',
+          contactTelephone: '01234 567890',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/using-ppps/who-applies')
+    })
+
+    test('Should redirect to address activity page when the business does not use PPPs', async () => {
+      const cookie = await answerStep(server, {
+        url: '/business-activities',
+        payload: { businessActivities: ['selling', 'distributing'] }
+      })
+
+      const { statusCode, headers } = await server.inject({
+        method: 'POST',
+        url: '/business-contact',
+        headers: { cookie },
+        payload: {
+          contactName: 'John Smith',
+          contactTelephone: '01234 567890',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/address-activity')
+    })
+
     test('Should return view with error message', async () => {
       const { result, statusCode } = await server.inject({
         method: 'POST',

@@ -54,29 +54,98 @@
       }) }}
 
       <h2 class="govuk-heading-m">PPP activity details</h2>
-      {% set isArea = answers.quantityType == "area" %}
       {{ govukSummaryList({
         rows: [
+          {
+            key: { text: "Who applies PPPs" },
+            value: { html: appAnswerList({ values: answers.whoApplies }) },
+            actions: { items: [{ href: "/using-ppps/who-applies?change=true", text: "Change", visuallyHiddenText: "who applies PPPs" }] }
+          } if answers.whoApplies,
+          {
+            key: { text: "Contractor name" },
+            value: { html: appAnswerList({ values: answers.contractorName }) },
+            actions: { items: [{ href: "/using-ppps/contractor-address?change=true", text: "Change", visuallyHiddenText: "contractor name" }] }
+          } if answers.contractorName,
+          {
+            key: { text: "Contractor address" },
+            value: { html: appAnswerList({ values: answers.contractorAddress }) },
+            actions: { items: [{ href: "/using-ppps/contractor-address?change=true", text: "Change", visuallyHiddenText: "contractor address" }] }
+          } if answers.contractorAddress,
+          {
+            key: { text: "Sectors" },
+            value: { html: appAnswerList({ values: answers.professionalSectors }) },
+            actions: { items: [{ href: "/using-ppps/ppp-sectors?change=true", text: "Change", visuallyHiddenText: "sectors" }] }
+          } if answers.professionalSectors,
+          {
+            key: { text: "Agricultural sectors" },
+            value: { html: appAnswerList({ values: answers.agriSubsectors }) },
+            actions: { items: [{ href: "/using-ppps/agri-subsectors?change=true", text: "Change", visuallyHiddenText: "agricultural sectors" }] }
+          } if answers.agriSubsectors,
+          {
+            key: { text: "Amenity sectors" },
+            value: { html: appAnswerList({ values: answers.amenitySubsectors }) },
+            actions: { items: [{ href: "/using-ppps/amenity-subsector?change=true", text: "Change", visuallyHiddenText: "amenity sectors" }] }
+          } if answers.amenitySubsectors,
+          {
+            key: { text: "Horticultural sectors" },
+            value: { html: appAnswerList({ values: answers.hortiSubsectors }) },
+            actions: { items: [{ href: "/using-ppps/horti-subsector?change=true", text: "Change", visuallyHiddenText: "horticultural sectors" }] }
+          } if answers.hortiSubsectors,
+          {
+            key: { text: "Assurance schemes" },
+            value: { html: appAnswerList({ values: answers.memberSchemes }) },
+            actions: { items: [{ href: "/using-ppps/member-schemes?change=true", text: "Change", visuallyHiddenText: "assurance schemes" }] }
+          } if answers.memberSchemes,
+          {
+            key: { text: "Storing products" },
+            value: { html: appAnswerList({ values: answers.storing }) },
+            actions: { items: [{ href: "/using-ppps/storing?change=true", text: "Change", visuallyHiddenText: "storing products" }] }
+          } if answers.storing,
+          {
+            key: { text: "Storage contact name" },
+            value: { html: appAnswerList({ values: answers.storageContactName }) },
+            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact name" }] }
+          } if answers.storageContactName,
+          {
+            key: { text: "Storage business name" },
+            value: { html: appAnswerList({ values: answers.storageBusinessName }) },
+            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage business name" }] }
+          } if answers.storageBusinessName,
+          {
+            key: { text: "Storage contact job title" },
+            value: { html: appAnswerList({ values: answers.storageContactJobTitle }) },
+            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact job title" }] }
+          } if answers.storageContactJobTitle,
+          {
+            key: { text: "Storage contact telephone" },
+            value: { html: appAnswerList({ values: answers.storageContactTelephone }) },
+            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact telephone" }] }
+          } if answers.storageContactTelephone,
+          {
+            key: { text: "Storage contact email" },
+            value: { html: appAnswerList({ values: answers.storageContactEmail }) },
+            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact email" }] }
+          } if answers.storageContactEmail,
+          {
+            key: { text: "Where products are stored" },
+            value: { html: appAnswerList({ values: answers.storageLocation }) },
+            actions: { items: [{ href: "/using-ppps/storage-location?change=true", text: "Change", visuallyHiddenText: "where products are stored" }] }
+          } if answers.storageLocation,
+          {
+            key: { text: "Other storage address" },
+            value: { html: appAnswerList({ values: answers.ownStorageAddress }) },
+            actions: { items: [{ href: "/using-ppps/own-storage-address?change=true", text: "Change", visuallyHiddenText: "other storage address" }] }
+          } if answers.ownStorageAddress,
+          {
+            key: { text: "Quantity used in a typical year" },
+            value: { html: appAnswerList({ values: answers.usingQuantity }) },
+            actions: { items: [{ href: "/using-ppps/quantity?change=true", text: "Change", visuallyHiddenText: "quantity used in a typical year" }] }
+          } if answers.usingQuantity,
           {
             key: { text: "PPP activities at the address" },
             value: { html: appAnswerList({ values: answers.addressActivities }) },
             actions: { items: [{ href: "/address-activity?change=true", text: "Change", visuallyHiddenText: "PPP activities at the address" }] }
           } if answers.addressActivities,
-          {
-            key: { text: "Area covered by PPPs in the last year" if isArea else "Quantity of PPPs used in the last year" },
-            value: { html: appAnswerList({ values: answers.quantity }) },
-            actions: { items: [{ href: "/quantity?change=true", text: "Change", visuallyHiddenText: "area covered by PPPs in the last year" if isArea else "quantity of PPPs used in the last year" }] }
-          } if answers.quantity,
-          {
-            key: { text: "Main sectors of work" },
-            value: { html: appAnswerList({ values: answers.professionalSectors }) },
-            actions: { items: [{ href: "/professional-sectors?change=true", text: "Change", visuallyHiddenText: "main sectors of work" }] }
-          } if answers.professionalSectors,
-          {
-            key: { text: "Assurance schemes" },
-            value: { html: appAnswerList({ values: answers.memberSchemes }) },
-            actions: { items: [{ href: "/member-schemes?change=true", text: "Change", visuallyHiddenText: "assurance schemes" }] }
-          } if answers.memberSchemes,
           {
             key: { text: "Additional addresses" },
             value: { text: answers.additionalAddresses.length }

@@ -1,0 +1,51 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "address-fields/macro.njk" import appAddressFields %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <h1 class="govuk-heading-l">Who applies PPPs on your behalf?</h1>
+
+    <p class="govuk-body">Provide details of third parties that apply PPPs on your behalf, for example contract sprayers.</p>
+
+    <form method="post" action="{{ formAction }}" novalidate>
+
+      {{ govukInput({
+        label: {
+          text: "Business or company name"
+        },
+        id: "contractorName",
+        name: "contractorName",
+        value: values["contractorName"] if values,
+        errorMessage: errors["contractorName"] if errors["contractorName"],
+        autocomplete: "organization",
+        classes: "govuk-!-width-two-thirds"
+      }) }}
+
+      {{ appAddressFields({
+        values: values,
+        errors: errors,
+        regionItems: items,
+        fieldClasses: {
+          addressLine1: "govuk-!-width-one-half",
+          addressLine2: "govuk-!-width-one-half"
+        }
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        type: "submit"
+      }) }}
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}

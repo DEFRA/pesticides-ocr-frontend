@@ -5,7 +5,7 @@ import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie } from '#/test-helpers/session-helpers.js'
 import { config } from '#/config/config.js'
-import { completeJourney, revisitStep } from '#/test-helpers/journey-helpers.js'
+import { answerUpToStoring, completeJourney, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { ADDRESS_SEARCH_PAGE, ADDRESS_SELECT_PAGE } from '#/server/common/constants/address-pages.js'
 
 describe('#checkAnswersController', () => {
@@ -51,7 +51,7 @@ describe('#checkAnswersController', () => {
     const cookie = await getSessionCookie(server, '/business-activities')
     const answer = answerAs(cookie)
 
-    await answer('/business-activities', { businessActivities: ['using'] })
+    await answer('/business-activities', { businessActivities: ['distributing'] })
     await answer('/business-name', { businessName: 'Pesticides Ltd' })
     await answer('/business-address', { addressPostcode: 'LS1 1AA', addressBuilding: 'Lower Meadow Barn' })
     await answer('/business-address/select', { address: '0' })
@@ -61,11 +61,20 @@ describe('#checkAnswersController', () => {
       contactEmail: 'jo@example.com'
     })
     await answer('/address-activity', { addressActivities: ['use'] })
-    await answer('/quantity', { quantityType: 'amount', quantityAmount: '80000' })
-    await answer('/professional-sectors', { professionalSectors: ['amenity'] })
-    await answer('/member-schemes', { memberSchemes: ['leaf'] })
 
     return cookie
+  }
+
+  // An organisation that applies PPPs itself, in forestry only, and doesn't
+  // store them: the route that reaches check answers through the PPP pages.
+  const completeUsingJourney = async () => {
+    const cookie = await answerUpToStoring(server)
+    const answer = answerAs(cookie)
+
+    await answer('/using-ppps/storing', { storing: 'no' })
+    const quantity = await answer('/using-ppps/quantity', { quantity: '60-149' })
+
+    return { cookie, quantity }
   }
 
   const startAnAddress = (cookie) =>
@@ -103,11 +112,8 @@ describe('#checkAnswersController', () => {
         businessActivities: ['manufacturing', 'selling']
       })
       await answer('/address-activity', { addressActivities: ['store'] })
-      await answer('/quantity', {
-        quantityType: 'area',
-        quantityAmount: '',
-        quantityArea: '67'
-      })
+      await answer('/using-ppps/storing', { storing: 'third-party' })
+      await answer('/using-ppps/quantity', { quantity: '400-plus' })
 
       const { result } = await server.inject({
         method: 'GET',
@@ -125,52 +131,216 @@ describe('#checkAnswersController', () => {
           'Store plant protection products (PPPs) or adjuvants'
         )
       )
-      expect(result).toEqual(expect.stringContaining('67 hectares'))
+      expect(result).toEqual(
+        expect.stringContaining('Yes, a third party stores them for us')
+      )
+      expect(result).toEqual(expect.stringContaining('400 and over litres or kilograms'))
     })
 
-    test('Should title the quantity row to match the type that was entered', async () => {
-      const titleFor = async (payload) => {
-        const cookie = await getSessionCookie(server, '/quantity')
+    test('Should show storing products and the quantity with links to change them once answered', async () => {
+      const cookie = await getSessionCookie(server, '/using-ppps/storing')
+      const answer = answerAs(cookie)
 
-        await server.inject({
-          method: 'POST',
-          url: '/quantity',
-          headers: { cookie },
-          payload
-        })
+      await answer('/using-ppps/storing', { storing: 'own' })
+      await answer('/using-ppps/quantity', { quantity: '1-29' })
 
-        const { result } = await server.inject({
-          method: 'GET',
-          url: '/check-answers',
-          headers: { cookie }
-        })
+      const page = load((await loadAnswers(cookie)).result)
+      const rowFor = (key) =>
+        page('.govuk-summary-list__row').filter(
+          (_index, element) => page(element).find('dt').text().trim() === key
+        )
+      const storing = rowFor('Storing products')
+      const quantity = rowFor('Quantity used in a typical year')
 
-        return result
-      }
+      expect(storing.closest('.govuk-summary-list').prev('h2').text().trim()).toBe(
+        'PPP activity details'
+      )
+      expect(storing.find('.govuk-summary-list__value').text().trim()).toBe('Yes, at sites we own')
+      expect(storing.find('a').attr('href')).toBe('/using-ppps/storing?change=true')
+      expect(storing.find('.govuk-visually-hidden').text().trim()).toBe('storing products')
 
-      const area = await titleFor({
-        quantityType: 'area',
-        quantityAmount: '',
-        quantityArea: '67'
+      expect(storing.next().find('dt').text().trim()).toBe('Quantity used in a typical year')
+      expect(quantity.find('.govuk-summary-list__value').text().trim()).toBe(
+        '1 to 29 litres or kilograms'
+      )
+      expect(quantity.find('a').attr('href')).toBe('/using-ppps/quantity?change=true')
+      expect(quantity.find('.govuk-visually-hidden').text().trim()).toBe(
+        'quantity used in a typical year'
+      )
+    })
+
+    test('Should show the agricultural sectors straight after the sectors', async () => {
+      const cookie = await getSessionCookie(server, '/using-ppps/ppp-sectors')
+      const answer = answerAs(cookie)
+
+      await answer('/using-ppps/ppp-sectors', {
+        professionalSectors: ['agriculture'],
+        professionalSectorsOther: ''
       })
-      const amount = await titleFor({
-        quantityType: 'amount',
-        quantityAmount: '80000',
-        quantityArea: ''
+      await answer('/using-ppps/agri-subsectors', {
+        agriSubsectors: ['arable', 'outdoor-vegetables'],
+        agriSubsectorsOther: ''
       })
 
-      expect(area).toEqual(
-        expect.stringContaining('Area covered by PPPs in the last year')
+      const page = load((await loadAnswers(cookie)).result)
+      const row = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Agricultural sectors'
       )
-      expect(area).not.toEqual(
-        expect.stringContaining('Quantity of PPPs used in the last year')
+
+      expect(row.prev().find('dt').text().trim()).toBe('Sectors')
+      expect(row.find('.govuk-summary-list__value').html()).toEqual(
+        expect.stringMatching(/Arable\s*<br>\s*Outdoor vegetables/)
       )
-      expect(amount).toEqual(
-        expect.stringContaining('Quantity of PPPs used in the last year')
+      expect(row.find('a').attr('href')).toBe('/using-ppps/agri-subsectors?change=true')
+      expect(row.find('.govuk-visually-hidden').text().trim()).toBe('agricultural sectors')
+    })
+
+    test('Should show the amenity sectors straight after the agricultural sectors', async () => {
+      const cookie = await getSessionCookie(server, '/using-ppps/ppp-sectors')
+      const answer = answerAs(cookie)
+
+      await answer('/using-ppps/agri-subsectors', { agriSubsectors: ['arable'], agriSubsectorsOther: '' })
+      await answer('/using-ppps/amenity-subsector', {
+        amenitySubsectors: ['parks'],
+        amenitySubsectorsOther: ''
+      })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const row = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Amenity sectors'
       )
-      expect(amount).not.toEqual(
-        expect.stringContaining('Area covered by PPPs in the last year')
+
+      expect(row.prev().find('dt').text().trim()).toBe('Agricultural sectors')
+      expect(row.find('.govuk-summary-list__value').text().trim()).toBe('Parks')
+      expect(row.find('a').attr('href')).toBe('/using-ppps/amenity-subsector?change=true')
+      expect(row.find('.govuk-visually-hidden').text().trim()).toBe('amenity sectors')
+    })
+
+    test('Should show the horticultural sectors straight after the amenity sectors', async () => {
+      const cookie = await getSessionCookie(server, '/using-ppps/ppp-sectors')
+      const answer = answerAs(cookie)
+
+      await answer('/using-ppps/amenity-subsector', {
+        amenitySubsectors: ['parks'],
+        amenitySubsectorsOther: ''
+      })
+      await answer('/using-ppps/horti-subsector', {
+        hortiSubsectors: ['ornamentals'],
+        hortiSubsectorsOther: ''
+      })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const row = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Horticultural sectors'
       )
+
+      expect(row.prev().find('dt').text().trim()).toBe('Amenity sectors')
+      expect(row.find('.govuk-summary-list__value').text().trim()).toBe('Ornamentals')
+      expect(row.find('a').attr('href')).toBe('/using-ppps/horti-subsector?change=true')
+      expect(row.find('.govuk-visually-hidden').text().trim()).toBe('horticultural sectors')
+    })
+
+    test('Should show the other storage address straight after where products are stored', async () => {
+      const cookie = await getSessionCookie(server, '/using-ppps/storing')
+      const answer = answerAs(cookie)
+
+      await answer('/using-ppps/storage-location', { storageLocation: 'main-and-other' })
+      await answer('/using-ppps/own-storage-address/manual', {
+        addressLine1: '1 Barn Lane',
+        addressLine2: '',
+        addressTown: 'York',
+        addressPostcode: 'YO1 7HH',
+        addressRegion: 'england'
+      })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const row = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Other storage address'
+      )
+
+      expect(row.prev().find('dt').text().trim()).toBe('Where products are stored')
+      expect(row.find('.govuk-summary-list__value').html()).toEqual(
+        expect.stringMatching(/1 Barn Lane\s*<br>\s*York\s*<br>\s*YO1 7HH\s*<br>\s*England/)
+      )
+      expect(row.find('a').attr('href')).toBe('/using-ppps/own-storage-address?change=true')
+      expect(row.find('.govuk-visually-hidden').text().trim()).toBe('other storage address')
+    })
+
+    test('Should show the storage contact straight after storing products', async () => {
+      const cookie = await getSessionCookie(server, '/using-ppps/storing')
+      const answer = answerAs(cookie)
+
+      await answer('/using-ppps/storing', { storing: 'third-party' })
+      await answer('/using-ppps/third-party-storage-contact', {
+        contactName: 'Sam Store',
+        businessName: 'Safe Storage Ltd',
+        contactJobTitle: 'Warehouse manager',
+        contactTelephone: '01234 567890',
+        contactEmail: 'sam@example.com'
+      })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const storing = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Storing products'
+      )
+      const rows = storing.nextAll().slice(0, 5)
+
+      expect(rows.map((_index, row) => page(row).find('dt').text().trim()).get()).toEqual([
+        'Storage contact name',
+        'Storage business name',
+        'Storage contact job title',
+        'Storage contact telephone',
+        'Storage contact email'
+      ])
+      expect(
+        rows.map((_index, row) => page(row).find('.govuk-summary-list__value').text().trim()).get()
+      ).toEqual(['Sam Store', 'Safe Storage Ltd', 'Warehouse manager', '01234 567890', 'sam@example.com'])
+      rows.each((_index, row) => {
+        expect(page(row).find('a').attr('href')).toBe('/using-ppps/third-party-storage-contact?change=true')
+      })
+      expect(rows.first().find('.govuk-visually-hidden').text().trim()).toBe('storage contact name')
+    })
+
+    test('Should show where products are stored between storing products and the quantity', async () => {
+      const cookie = await getSessionCookie(server, '/using-ppps/storing')
+      const answer = answerAs(cookie)
+
+      await answer('/using-ppps/storing', { storing: 'own' })
+      await answer('/using-ppps/storage-location', { storageLocation: 'main-address' })
+      await answer('/using-ppps/quantity', { quantity: '1-29' })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const row = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Where products are stored'
+      )
+
+      expect(row.prev().find('dt').text().trim()).toBe('Storing products')
+      expect(row.next().find('dt').text().trim()).toBe('Quantity used in a typical year')
+      expect(row.find('.govuk-summary-list__value').text().trim()).toBe(
+        'Only at the main business address'
+      )
+      expect(row.find('a').attr('href')).toBe('/using-ppps/storage-location?change=true')
+      expect(row.find('.govuk-visually-hidden').text().trim()).toBe('where products are stored')
+    })
+
+    test('Should reach check answers for an organisation that uses PPPs, with its rows in order', async () => {
+      const { cookie, quantity } = await completeUsingJourney()
+
+      const page = load((await loadAnswers(cookie)).result)
+      const pppRows = page('h2')
+        .filter((_index, element) => page(element).text().trim() === 'PPP activity details')
+        .next('.govuk-summary-list')
+        .find('.govuk-summary-list__key')
+        .map((_index, key) => page(key).text().trim())
+        .get()
+
+      expect(quantity.headers.location).toBe('/check-answers')
+      expect(pppRows).toEqual([
+        'Who applies PPPs',
+        'Sectors',
+        'Storing products',
+        'Quantity used in a typical year'
+      ])
     })
 
     test('Should omit the rows of questions that have no answer', async () => {
@@ -185,10 +355,15 @@ describe('#checkAnswersController', () => {
 
       const { result } = await loadAnswers(cookie)
 
+      const keys = load(result)('.govuk-summary-list__key')
+        .map((_index, key) => load(key).text().trim())
+        .get()
+
       expect(result).toEqual(expect.stringContaining('Business name'))
-      expect(result).not.toEqual(expect.stringContaining('Main sectors of work'))
+      expect(keys).not.toContain('Sectors')
       expect(result).not.toEqual(expect.stringContaining('Assurance schemes'))
-      expect(result).not.toEqual(expect.stringContaining('Quantity of PPPs used'))
+      expect(keys).not.toContain('Storing products')
+      expect(keys).not.toContain('Quantity used in a typical year')
     })
 
     test('Should show the contact job title or role with a link to change it when one was given', async () => {
@@ -215,6 +390,132 @@ describe('#checkAnswersController', () => {
       expect(row.find('.govuk-summary-list__value').text().trim()).toBe('Farm manager')
       expect(row.find('a').attr('href')).toBe('/business-contact?change=true')
       expect(row.find('.govuk-visually-hidden').text().trim()).toBe('job title or role')
+    })
+
+    test('Should show who applies PPPs with a link to change it once answered', async () => {
+      const cookie = await getSessionCookie(server, '/using-ppps/who-applies')
+
+      await answerAs(cookie)('/using-ppps/who-applies', { whoApplies: 'contractor' })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const row = page('.govuk-summary-list__row').filter(
+        (_index, element) => page(element).find('dt').text().trim() === 'Who applies PPPs'
+      )
+
+      expect(row).toHaveLength(1)
+      expect(row.find('.govuk-summary-list__value').text().trim()).toBe(
+        'Another organisation applies PPPs on our behalf'
+      )
+      expect(row.find('a').attr('href')).toBe('/using-ppps/who-applies?change=true')
+      expect(row.find('.govuk-visually-hidden').text().trim()).toBe('who applies PPPs')
+    })
+
+    test('Should not show a who applies PPPs row before it is answered', async () => {
+      const cookie = await completeJourney(server)
+
+      const { result } = await loadAnswers(cookie)
+
+      expect(result).not.toEqual(expect.stringContaining('Who applies PPPs'))
+    })
+
+    describe('Contractor', () => {
+      const rowsFor = (page, key) =>
+        page('.govuk-summary-list__row').filter(
+          (_index, element) => page(element).find('dt').text().trim() === key
+        )
+
+      test('Should show the contractor name and address straight after who applies PPPs, with links to change them', async () => {
+        const cookie = await getSessionCookie(server, '/using-ppps/who-applies')
+        const answer = answerAs(cookie)
+
+        await answer('/using-ppps/who-applies', { whoApplies: 'contractor' })
+        await answer('/using-ppps/contractor-address', {
+          contractorName: 'Spray Contractors Ltd',
+          addressLine1: '1 High Street',
+          addressLine2: '',
+          addressTown: 'York',
+          addressPostcode: 'YO1 7HH',
+          addressRegion: 'wales'
+        })
+
+        const page = load((await loadAnswers(cookie)).result)
+        const name = rowsFor(page, 'Contractor name')
+        const address = rowsFor(page, 'Contractor address')
+
+        expect(
+          rowsFor(page, 'Who applies PPPs').next().find('dt').text().trim()
+        ).toBe('Contractor name')
+        expect(name.next().find('dt').text().trim()).toBe('Contractor address')
+
+        expect(name.find('.govuk-summary-list__value').text().trim()).toBe('Spray Contractors Ltd')
+        expect(name.find('a').attr('href')).toBe('/using-ppps/contractor-address?change=true')
+        expect(name.find('.govuk-visually-hidden').text().trim()).toBe('contractor name')
+
+        expect(address.find('.govuk-summary-list__value').html().trim()).toBe(
+          '1 High Street<br>York<br>YO1 7HH<br>Wales'
+        )
+        expect(address.find('a').attr('href')).toBe('/using-ppps/contractor-address?change=true')
+        expect(address.find('.govuk-visually-hidden').text().trim()).toBe('contractor address')
+      })
+
+      test('Should show the sectors straight after the contractor rows, with a link to change them', async () => {
+        const cookie = await getSessionCookie(server, '/using-ppps/who-applies')
+        const answer = answerAs(cookie)
+
+        await answer('/using-ppps/who-applies', { whoApplies: 'contractor' })
+        await answer('/using-ppps/contractor-address', {
+          contractorName: 'Spray Contractors Ltd',
+          addressLine1: '1 High Street',
+          addressLine2: '',
+          addressTown: 'York',
+          addressPostcode: 'YO1 7HH',
+          addressRegion: 'wales'
+        })
+        await answer('/using-ppps/ppp-sectors', {
+          professionalSectors: ['amenity', 'public-services'],
+          professionalSectorsOther: ''
+        })
+
+        const page = load((await loadAnswers(cookie)).result)
+        const sectors = rowsFor(page, 'Sectors')
+
+        expect(rowsFor(page, 'Contractor address').next().find('dt').text().trim()).toBe('Sectors')
+        expect(sectors.closest('.govuk-summary-list').prev('h2').text().trim()).toBe(
+          'PPP activity details'
+        )
+        expect(sectors.find('.govuk-summary-list__value').html().trim()).toBe(
+          'Amenity<br>Public Services and Local Authorities'
+        )
+        expect(sectors.find('a').attr('href')).toBe('/using-ppps/ppp-sectors?change=true')
+        expect(sectors.find('.govuk-visually-hidden').text().trim()).toBe('sectors')
+      })
+
+      test('Should show the Other text as the sectors when no sector was chosen', async () => {
+        const cookie = await getSessionCookie(server, '/using-ppps/who-applies')
+        const answer = answerAs(cookie)
+
+        await answer('/using-ppps/who-applies', { whoApplies: 'self' })
+        await answer('/using-ppps/ppp-sectors', { professionalSectorsOther: 'Vineyard management' })
+
+        const page = load((await loadAnswers(cookie)).result)
+        const sectors = rowsFor(page, 'Sectors')
+
+        expect(rowsFor(page, 'Who applies PPPs').next().find('dt').text().trim()).toBe('Sectors')
+        expect(sectors.find('.govuk-summary-list__value').text().trim()).toBe(
+          'Vineyard management'
+        )
+      })
+
+      test('Should not show the contractor rows before the contractor is given', async () => {
+        const cookie = await getSessionCookie(server, '/using-ppps/who-applies')
+
+        await answerAs(cookie)('/using-ppps/who-applies', { whoApplies: 'contractor' })
+
+        const { result } = await loadAnswers(cookie)
+
+        expect(result).not.toEqual(expect.stringContaining('Contractor name'))
+        expect(result).not.toEqual(expect.stringContaining('Contractor address'))
+      })
     })
 
     test('Should not show a job title or role row when it was left empty', async () => {
@@ -628,6 +929,21 @@ describe('#checkAnswersController', () => {
       expect(registerCalls(fetchSpy)).toHaveLength(0)
     })
 
+    test('Should send storing products and the quantity band for an organisation that uses PPPs', async () => {
+      const fetchSpy = stubBackend(created())
+      const { cookie } = await completeUsingJourney()
+
+      const { headers } = await submit(cookie)
+
+      const [, options] = registerCalls(fetchSpy).at(-1)
+      const body = JSON.parse(options.body)
+
+      expect(headers.location).toBe('/confirmation')
+      expect(body.usingPPPs).toEqual(expect.objectContaining({ storing: 'no', quantity: '60-149' }))
+      expect(body).not.toHaveProperty('storing')
+      expect(body).not.toHaveProperty('quantity')
+    })
+
     test('Should not send an address that was abandoned before it was finished', async () => {
       const fetchSpy = stubBackend(created())
       const cookie = await completeProfessionalJourney()
@@ -722,7 +1038,8 @@ describe('#checkAnswersController', () => {
       expect(result).toEqual(expect.stringContaining('href="/business-name?change=true"'))
       expect(result).toEqual(expect.stringContaining('href="/business-contact?change=true"'))
       expect(result).toEqual(expect.stringContaining('href="/address-activity?change=true"'))
-      expect(result).not.toEqual(expect.stringContaining('href="/quantity?change=true"'))
+      expect(result).not.toEqual(expect.stringContaining('href="/using-ppps/storing?change=true"'))
+      expect(result).not.toEqual(expect.stringContaining('href="/using-ppps/quantity?change=true"'))
     })
 
     test('Should return to check answers with the amended value', async () => {
@@ -766,19 +1083,39 @@ describe('#checkAnswersController', () => {
       expect(valid.headers.location).toBe('/check-answers')
     })
 
-    test('Should ask the questions an amended answer makes relevant before returning', async () => {
+    test('Should return to check answers and offer additional addresses once products are used at the address', async () => {
       const cookie = await completeJourney(server)
 
       const activity = await submit('/address-activity?change=true', cookie, {
         addressActivities: ['use']
       })
-      const quantity = await submit('/quantity?change=true', cookie, {
-        quantityType: 'amount',
-        quantityAmount: '80000'
+      const { result } = await loadAnswers(cookie)
+
+      expect(activity.headers.location).toBe('/check-answers')
+      expect(result).toEqual(expect.stringContaining('Add another address'))
+    })
+
+    test('Should ask the PPP questions in turn once using PPPs is ticked', async () => {
+      const cookie = await completeJourney(server)
+
+      const activities = await submit('/business-activities?change=true', cookie, {
+        businessActivities: ['using']
+      })
+      const whoApplies = await submit('/using-ppps/who-applies?change=true', cookie, { whoApplies: 'self' })
+      const sectors = await submit('/using-ppps/ppp-sectors?change=true', cookie, {
+        professionalSectors: ['forestry'],
+        professionalSectorsOther: ''
+      })
+      const storing = await submit('/using-ppps/storing?change=true', cookie, { storing: 'no' })
+      const quantity = await submit('/using-ppps/quantity?change=true', cookie, {
+        quantity: '30-59'
       })
 
-      expect(activity.headers.location).toBe('/quantity?change=true')
-      expect(quantity.headers.location).toBe('/professional-sectors?change=true')
+      expect(activities.headers.location).toBe('/using-ppps/who-applies?change=true')
+      expect(whoApplies.headers.location).toBe('/using-ppps/ppp-sectors?change=true')
+      expect(sectors.headers.location).toBe('/using-ppps/storing?change=true')
+      expect(storing.headers.location).toBe('/using-ppps/quantity?change=true')
+      expect(quantity.headers.location).toBe('/check-answers')
     })
 
     test('Should return to check answers once the business activities are changed', async () => {
@@ -792,20 +1129,46 @@ describe('#checkAnswersController', () => {
     })
 
     test('Should remove answers an amended answer makes irrelevant', async () => {
-      const cookie = await completeJourney(server)
+      const { cookie } = await completeUsingJourney()
 
-      await submit('/address-activity?change=true', cookie, { addressActivities: ['use'] })
-      await submit('/quantity?change=true', cookie, {
-        quantityType: 'amount',
-        quantityAmount: '80000'
+      await submit('/using-ppps/ppp-sectors?change=true', cookie, {
+        professionalSectors: ['horticulture'],
+        professionalSectorsOther: ''
       })
+      await submit('/using-ppps/horti-subsector?change=true', cookie, {
+        hortiSubsectors: ['ornamentals'],
+        hortiSubsectorsOther: ''
+      })
+      await submit('/using-ppps/member-schemes?change=true', cookie, {
+        memberSchemes: ['leaf'],
+        memberSchemesOther: ''
+      })
+      const withSchemes = await loadAnswers(cookie)
+
+      await submit('/using-ppps/ppp-sectors?change=true', cookie, {
+        professionalSectors: ['forestry'],
+        professionalSectorsOther: ''
+      })
+      const withoutSchemes = await loadAnswers(cookie)
+
+      expect(withSchemes.result).toEqual(expect.stringContaining('Assurance schemes'))
+      expect(withoutSchemes.result).not.toEqual(expect.stringContaining('Assurance schemes'))
+    })
+
+    test('Should remove storing products and the quantity once using PPPs is no longer ticked', async () => {
+      const { cookie } = await completeUsingJourney()
       const withQuantity = await loadAnswers(cookie)
 
-      await submit('/address-activity?change=true', cookie, { addressActivities: ['store'] })
+      await submit('/business-activities?change=true', cookie, {
+        businessActivities: ['distributing']
+      })
       const withoutQuantity = await loadAnswers(cookie)
 
-      expect(withQuantity.result).toEqual(expect.stringContaining('80000 litres or kilograms'))
-      expect(withoutQuantity.result).not.toEqual(expect.stringContaining('80000'))
+      expect(withQuantity.result).toEqual(expect.stringContaining('60 to 149 litres or kilograms'))
+      expect(withoutQuantity.result).not.toEqual(expect.stringContaining('Storing products'))
+      expect(withoutQuantity.result).not.toEqual(
+        expect.stringContaining('Quantity used in a typical year')
+      )
     })
 
     test('Should link back to the previous page when moving through the journey', async () => {

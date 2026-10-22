@@ -1,0 +1,64 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block content %}
+{% set question = "Which sector are your PPP activities in?" %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <h1 class="govuk-heading-l">{{ question }}</h1>
+
+    <p class="govuk-body">Include activities where PPPs are applied by another organisation on your behalf.</p>
+
+    <form method="post" action="{{ formAction }}" novalidate>
+
+      {{ govukCheckboxes({
+        name: "professionalSectors",
+        values: values["professionalSectors"] if values,
+        fieldset: {
+          legend: {
+            text: question,
+            classes: "govuk-visually-hidden"
+          }
+        },
+        hint: {
+          text: "Select all that apply.",
+          classes: "govuk-!-margin-bottom-6"
+        },
+        errorMessage: errors["professionalSectors"] if errors["professionalSectors"],
+        items: items
+      }) }}
+
+      <h4 class="govuk-heading-s govuk-!-margin-top-6">or</h4>
+
+      {{ govukTextarea({
+        name: "professionalSectorsOther",
+        value: values["professionalSectorsOther"] if values,
+        id: "professionalSectorsOther",
+        label: {
+          text: "Other",
+          classes: "govuk-!-margin-bottom-3"
+        },
+        hint: {
+          text: "Describe your main type of work in a few words"
+        },
+        errorMessage: errors["professionalSectorsOther"] if errors["professionalSectorsOther"]
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        type: "submit"
+      }) }}
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}

@@ -20,7 +20,7 @@ const storedDoc = {
     contactEmail: 'john.smith@pesticides.co.uk'
   },
   addressActivities: ['use', 'store'],
-  quantity: { quantityType: 'amount', quantity: 80000 }
+  usingPPPs: { quantity: '60-149' }
 }
 
 describe('toOperatorView', () => {
@@ -44,7 +44,7 @@ describe('toOperatorView', () => {
         'Use plant protection products (PPPs) or adjuvants',
         'Store plant protection products (PPPs) or adjuvants'
       ],
-      quantity: '80,000 litres or kilograms',
+      quantity: '60 to 149 litres or kilograms',
       registeredDate: '2026-03-11',
       status: 'Registered'
     })
@@ -59,42 +59,24 @@ describe('toOperatorView', () => {
     expect(operator.registeredDate).toBe('2026-03-11')
   })
 
-  test('formats an area quantity as hectares', () => {
-    const operator = toOperatorView({
-      ...storedDoc,
-      quantity: { quantityType: 'area', quantity: 1500 }
-    })
-
-    expect(operator.quantity).toBe('1,500 hectares')
-  })
-
-  // The seed data (and anything else written straight to the database) stores
-  // the quantity as the string the form submitted.
-  test('formats a quantity stored as a numeric string', () => {
-    const operator = toOperatorView({
-      ...storedDoc,
-      quantity: { quantityType: 'amount', quantity: '80000' }
-    })
-
-    expect(operator.quantity).toBe('80,000 litres or kilograms')
-  })
-
   test.each([
-    ['an empty string', ''],
-    ['whitespace', '   '],
-    ['a non-numeric string', 'lots'],
-    ['a hex string', '0x10'],
-    ['an exponent string', '1e3'],
-    ['NaN', Number.NaN],
-    ['Infinity', Infinity],
-    ['null', null]
-  ])('leaves the quantity empty for %s', (_description, value) => {
-    const operator = toOperatorView({
-      ...storedDoc,
-      quantity: { quantityType: 'amount', quantity: value }
-    })
+    ['1-29', '1 to 29 litres or kilograms'],
+    ['30-59', '30 to 59 litres or kilograms'],
+    ['60-149', '60 to 149 litres or kilograms'],
+    ['150-399', '150 to 399 litres or kilograms'],
+    ['400-plus', '400 and over litres or kilograms']
+  ])('shows the quantity band %s as its label with the unit', (band, quantity) => {
+    expect(toOperatorView({ ...storedDoc, usingPPPs: { quantity: band } }).quantity).toBe(quantity)
+  })
 
-    expect(operator.quantity).toBe('')
+  test('falls back to the raw value for an unknown quantity band', () => {
+    expect(toOperatorView({ ...storedDoc, usingPPPs: { quantity: '1000-plus' } }).quantity).toBe(
+      '1000-plus'
+    )
+  })
+
+  test('leaves the quantity empty when no quantity band is stored', () => {
+    expect(toOperatorView({ ...storedDoc, usingPPPs: {} }).quantity).toBe('')
   })
 
   test('uses the journey label for every business activity', () => {

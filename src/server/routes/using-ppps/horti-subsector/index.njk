@@ -1,0 +1,59 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <form method="post" action="{{ formAction }}" novalidate>
+
+      {{ govukCheckboxes({
+        name: "hortiSubsectors",
+        values: values["hortiSubsectors"] if values,
+        fieldset: {
+          legend: {
+            text: "What horticultural sectors do you apply PPPs in?",
+            isPageHeading: true,
+            classes: "govuk-fieldset__legend--l"
+          }
+        },
+        hint: {
+          text: "Select all that apply",
+          classes: "govuk-!-margin-bottom-6"
+        },
+        errorMessage: errors["hortiSubsectors"] if errors["hortiSubsectors"],
+        items: items
+      }) }}
+
+      <h4 class="govuk-heading-s govuk-!-margin-top-6">or</h4>
+
+      {{ govukTextarea({
+        name: "hortiSubsectorsOther",
+        value: values["hortiSubsectorsOther"] if values,
+        id: "hortiSubsectorsOther",
+        label: {
+          text: "Other",
+          classes: "govuk-!-margin-bottom-3"
+        },
+        hint: {
+          text: "Describe your main type of work in a few words"
+        },
+        errorMessage: errors["hortiSubsectorsOther"] if errors["hortiSubsectorsOther"]
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        type: "submit"
+      }) }}
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}

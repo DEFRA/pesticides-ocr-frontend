@@ -1,3 +1,4 @@
+import { ADDRESS_SEARCH_KEY } from '#/server/common/constants/session-keys.js'
 import { getSession } from '#/server/common/helpers/get-session.js'
 import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
 import { getNextPage } from '#/server/common/helpers/journey.js'
@@ -33,6 +34,7 @@ export const post = {
 
     formSession['address'] = request.payload
     request.yar.set('formSession', formSession)
+    request.yar.clear(ADDRESS_SEARCH_KEY)
 
     return redirectToNextPage(request, h, getNextPage(ADDRESS_SEARCH_PAGE, formSession))
   }

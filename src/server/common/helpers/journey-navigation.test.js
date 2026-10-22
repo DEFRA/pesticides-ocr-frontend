@@ -50,7 +50,10 @@ describe('#journeyNavigation', () => {
 
     test('Should remove answers to pages the route now skips', () => {
       const store = {
-        formSession: { ...answeredJourney, quantity: { quantityType: 'amount', quantity: '80000' } }
+        formSession: {
+          ...answeredJourney,
+          additionalAddresses: [{ address: { addressLine1: 'Highfield Farm' } }]
+        }
       }
       const request = createRequest({ path: '/address-activity', store })
 
@@ -60,11 +63,11 @@ describe('#journeyNavigation', () => {
     })
 
     test('Should go to the first missing page in change mode when an answer opens a branch', () => {
-      const store = { formSession: { ...answeredJourney, addressActivities: ['use'] } }
-      const request = createRequest({ path: '/address-activity', query: { change: 'true' }, store })
+      const store = { formSession: { ...answeredJourney, businessActivities: ['using'] } }
+      const request = createRequest({ path: '/business-activities', query: { change: 'true' }, store })
 
-      expect(redirectToNextPage(request, h, '/quantity')).toEqual({
-        location: '/quantity?change=true'
+      expect(redirectToNextPage(request, h, '/business-name')).toEqual({
+        location: '/using-ppps/who-applies?change=true'
       })
     })
   })
@@ -88,7 +91,7 @@ describe('#journeyNavigation', () => {
     })
 
     test('Should return nothing for a page the answers skip', () => {
-      const request = createRequest({ path: '/quantity', store: { formSession: answeredJourney } })
+      const request = createRequest({ path: '/using-ppps/member-schemes', store: { formSession: answeredJourney } })
 
       expect(getBackLink(request)).toBeUndefined()
     })

@@ -1,8 +1,15 @@
 import { businessActivityItems } from '../../../qualifying-questions/business-activities/items.js'
 import { addressActivityItems } from '../../../qualifying-questions/address-activity/items.js'
-import { quantityTypeItems } from '../../../qualifying-questions/quantity/items.js'
-import { professionalSectorsItems } from '../../../pro-users/professional-sectors/items.js'
-import { memberSchemesItems } from '../../../pro-users/member-schemes/items.js'
+import { memberSchemesItems } from '#/server/routes/using-ppps/member-schemes/items.js'
+import { whoAppliesItems } from '#/server/routes/using-ppps/who-applies/items.js'
+import { pppSectorsItems } from '#/server/routes/using-ppps/ppp-sectors/items.js'
+import { agriSubsectorsItems } from '#/server/routes/using-ppps/agri-subsectors/items.js'
+import { amenitySubsectorsItems } from '#/server/routes/using-ppps/amenity-subsector/items.js'
+import { hortiSubsectorsItems } from '#/server/routes/using-ppps/horti-subsector/items.js'
+import { storingItems } from '#/server/routes/using-ppps/storing/items.js'
+import { storageLocationItems } from '#/server/routes/using-ppps/storage-location/items.js'
+import { usingQuantityText } from '#/server/routes/using-ppps/quantity/items.js'
+import { getUsingPPPsAnswers } from '#/server/common/helpers/using-ppps-answers.js'
 import {
   additionalAddressLines,
   addressLines,
@@ -30,20 +37,9 @@ function memberSchemeLines(memberSchemes) {
   return labels.length > 0 ? labels : ['None']
 }
 
-function quantityLines(quantity = {}) {
-  const type = quantityTypeItems.find(
-    (item) => item.value === quantity['quantityType']
-  )
-
-  if (!type || !quantity.quantity) {
-    return []
-  }
-
-  return [`${quantity.quantity} ${type.unit}`]
-}
-
 export function buildAnswers(formData = {}) {
   const contact = formData['primaryContact'] ?? {}
+  const usingPPPs = getUsingPPPsAnswers(formData)
 
   return withValues({
     businessActivities: labelsFor(businessActivityItems, formData['businessActivities']),
@@ -53,11 +49,24 @@ export function buildAnswers(formData = {}) {
     contactJobTitle: toLines(contact['contactJobTitle']),
     contactTelephone: toLines(contact['contactTelephone']),
     contactEmail: toLines(contact['contactEmail']),
+    whoApplies: labelsFor(whoAppliesItems, usingPPPs['whoApplies']),
+    contractorName: toLines(usingPPPs.contractor?.['contractorName']),
+    contractorAddress: addressLines(usingPPPs.contractor?.address),
+    professionalSectors: labelsFor(pppSectorsItems, usingPPPs['professionalSectors']),
+    agriSubsectors: labelsFor(agriSubsectorsItems, usingPPPs['agriSubsectors']),
+    amenitySubsectors: labelsFor(amenitySubsectorsItems, usingPPPs['amenitySubsectors']),
+    hortiSubsectors: labelsFor(hortiSubsectorsItems, usingPPPs['hortiSubsectors']),
+    memberSchemes: memberSchemeLines(usingPPPs['memberSchemes']),
+    storing: labelsFor(storingItems, usingPPPs['storing']),
+    storageLocation: labelsFor(storageLocationItems, usingPPPs['storageLocation']),
+    ownStorageAddress: addressLines(usingPPPs['ownStorageAddress']),
+    storageContactName: toLines(usingPPPs.storageContact?.['contactName']),
+    storageBusinessName: toLines(usingPPPs.storageContact?.['businessName']),
+    storageContactJobTitle: toLines(usingPPPs.storageContact?.['contactJobTitle']),
+    storageContactTelephone: toLines(usingPPPs.storageContact?.['contactTelephone']),
+    storageContactEmail: toLines(usingPPPs.storageContact?.['contactEmail']),
+    usingQuantity: toLines(usingQuantityText(usingPPPs['quantity'])),
     addressActivities: labelsFor(addressActivityItems, formData['addressActivities']),
-    quantity: quantityLines(formData.quantity),
-    quantityType: formData.quantity?.['quantityType'],
-    professionalSectors: labelsFor(professionalSectorsItems, formData['professionalSectors']),
-    memberSchemes: memberSchemeLines(formData['memberSchemes']),
     additionalAddresses: (formData['additionalAddresses'] ?? []).map((entry) => withValues(additionalAddressLines(entry)))
   })
 }
