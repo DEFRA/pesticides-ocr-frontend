@@ -18,6 +18,10 @@ const contact = {
   contactEmail: 'sam@example.com'
 }
 
+// A valid address of the given length, keeping each domain label within 63 characters.
+const emailOfLength = (length) =>
+  `${'a'.repeat(64)}@${'b'.repeat(length - 193)}.${'c'.repeat(61)}.${'d'.repeat(61)}.com`
+
 describe('#storageContactController', () => {
   let server
 
@@ -53,6 +57,12 @@ describe('#storageContactController', () => {
       expect(page('.govuk-inset-text')).toHaveLength(0)
     })
 
+    test("Should not ask the browser to fill in the user's own details for the contact", async () => {
+      const page = await revisitStep(server, { url })
+
+      expect(page('input[autocomplete]')).toHaveLength(0)
+    })
+
     test('Should link back to storing products once the route up to it is answered', async () => {
       const cookie = await answerUpToStoring(server)
       await answerStep(server, {
@@ -79,6 +89,22 @@ describe('#storageContactController', () => {
       expect(headers.location).toBe('/using-ppps/quantity')
     })
 
+    test('Should accept a contact at the length limits', async () => {
+      const { statusCode } = await injectWithSession(server, {
+        method: 'POST',
+        url,
+        payload: {
+          ...contact,
+          contactName: 'a'.repeat(100),
+          businessName: 'a'.repeat(100),
+          contactTelephone: '0'.repeat(20),
+          contactEmail: emailOfLength(254)
+        }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+    })
+
     test('Should accept the contact without a job title', async () => {
       const { statusCode } = await injectWithSession(server, {
         method: 'POST',
@@ -91,12 +117,18 @@ describe('#storageContactController', () => {
 
     test.each([
       ['contactName', '', 'Enter a contact name'],
+      ['contactName', '   ', 'Enter a contact name'],
+      ['contactName', 'a'.repeat(101), 'Contact name must be 100 characters or less'],
       ['businessName', '', 'Enter a business name'],
+      ['businessName', '   ', 'Enter a business name'],
+      ['businessName', 'a'.repeat(101), 'Business name must be 100 characters or less'],
       ['contactJobTitle', 'a'.repeat(101), 'Job title or role must be 100 characters or less'],
       ['contactTelephone', '', 'Enter a telephone number'],
       ['contactTelephone', 'call me', 'Enter a valid telephone number'],
+      ['contactTelephone', '0'.repeat(21), 'Telephone number must be 20 characters or less'],
       ['contactEmail', '', 'Enter an email address'],
-      ['contactEmail', 'not an email', 'Enter a valid email address']
+      ['contactEmail', 'not an email', 'Enter a valid email address'],
+      ['contactEmail', emailOfLength(255), 'Email address must be 254 characters or less']
     ])('Should show an error when %s is %o', async (field, value, message) => {
       const { result, statusCode } = await server.inject({
         method: 'POST',

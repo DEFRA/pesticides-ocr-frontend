@@ -10,58 +10,29 @@ export const CHECK_ANSWERS_PAGE = '/check-answers'
 // journey stops here for anyone who only sells PPPs.
 export const SELL_SECTION_PAGE = '/sell'
 
-// Where an organisation that uses PPPs says who applies them, after the business
-// contact (see routes/using-ppps/who-applies). Every using PPPs page sits under
-// /using-ppps, and their answers under formSession.usingPPPs.
+// Every using PPPs page sits under /using-ppps, and its answer under
+// formSession.usingPPPs.
 export const WHO_APPLIES_PAGE = '/using-ppps/who-applies'
-
-// Where an organisation that uses PPPs says which sectors its PPP activities
-// are in, after who applies them (and the contractor's details, if any). See
-// routes/using-ppps/ppp-sectors.
-export const PPP_SECTORS_PAGE = '/using-ppps/ppp-sectors'
-
-// Where an organisation that uses a contractor gives the contractor's name and
-// address (see routes/using-ppps/contractor-address).
 export const CONTRACTOR_ADDRESS_PAGE = '/using-ppps/contractor-address'
+export const PPP_SECTORS_PAGE = '/using-ppps/ppp-sectors'
 
 // Each sector with sub-sectors (agriculture, amenity, horticulture) has its own
 // page after the PPP sectors, asked in that order for the sectors ticked.
-// See routes/using-ppps/agri-subsectors, amenity-subsector and horti-subsector.
 export const AGRI_SUBSECTORS_PAGE = '/using-ppps/agri-subsectors'
-export const AMENITY_SUBSECTOR_PAGE = '/using-ppps/amenity-subsector'
-export const HORTI_SUBSECTOR_PAGE = '/using-ppps/horti-subsector'
+export const AMENITY_SUBSECTORS_PAGE = '/using-ppps/amenity-subsectors'
+export const HORTI_SUBSECTORS_PAGE = '/using-ppps/horti-subsectors'
 
-// Where an organisation says which assurance schemes it's a member of, after
-// the last sub-sector page it's asked (see routes/using-ppps/member-schemes).
 export const USING_MEMBER_SCHEMES_PAGE = '/using-ppps/member-schemes'
-
-// Where an organisation that uses PPPs says whether it stores the products it
-// applies, after the PPP sectors (see routes/using-ppps/storing).
 export const STORING_PAGE = '/using-ppps/storing'
-
-// Where an organisation that stores the products it applies at sites it owns
-// says where those sites are (see routes/using-ppps/storage-location).
 export const STORAGE_LOCATION_PAGE = '/using-ppps/storage-location'
-
-// Where an organisation that stores products at other locations too finds the
-// address of that location, with a lookup like the business address's (see
-// routes/using-ppps/own-storage-address).
 export const OWN_STORAGE_ADDRESS_PAGE = '/using-ppps/own-storage-address'
 export const OWN_STORAGE_ADDRESS_SELECT_PAGE = '/using-ppps/own-storage-address/select'
 export const OWN_STORAGE_ADDRESS_MANUAL_PAGE = '/using-ppps/own-storage-address/manual'
-
-// Where an organisation whose products a third party stores gives that third
-// party's contact (see routes/using-ppps/third-party-storage-contact).
 export const STORAGE_CONTACT_PAGE = '/using-ppps/third-party-storage-contact'
-
-// Where an organisation that uses PPPs gives the quantity it uses in a typical
-// year (see routes/using-ppps/quantity).
 export const USING_QUANTITY_PAGE = '/using-ppps/quantity'
 
-// The processing PPPs pages, for an organisation that processes PPPs: after the
-// business contact, or after the using PPPs pages when it uses them too. Every
-// processing PPPs page sits under /processing-ppps, and their answers under
-// formSession.processingPPPs (see routes/processing-ppps).
+// Every processing PPPs page sits under /processing-ppps, and its answer under
+// formSession.processingPPPs.
 export const PROCESSING_PRODUCTS_PAGE = '/processing-ppps/products'
 export const PROCESSING_SITES_PAGE = '/processing-ppps/sites'
 export const PROCESSING_QUANTITY_PAGE = '/processing-ppps/quantity'
@@ -99,23 +70,24 @@ const worksInHorticulture = worksIn('horticulture')
 // After the agricultural sectors, the next ticked sector's page, if any.
 function pageAfterAgriSubsectors(formSession) {
   if (worksInAmenity(formSession)) {
-    return AMENITY_SUBSECTOR_PAGE
+    return AMENITY_SUBSECTORS_PAGE
   }
 
   if (worksInHorticulture(formSession)) {
-    return HORTI_SUBSECTOR_PAGE
+    return HORTI_SUBSECTORS_PAGE
   }
 
   return USING_MEMBER_SCHEMES_PAGE
 }
 
-// After the amenity sectors, the horticultural sectors if ticked.
+// After the amenity sectors, the horticultural sectors if ticked. Otherwise the
+// assurance schemes, which aren't asked of amenity-only organisations.
 function pageAfterAmenitySubsectors(formSession) {
   if (worksInHorticulture(formSession)) {
-    return HORTI_SUBSECTOR_PAGE
-  } else {
-    return STORING_PAGE
+    return HORTI_SUBSECTORS_PAGE
   }
+
+  return worksInAgriculture(formSession) ? USING_MEMBER_SCHEMES_PAGE : STORING_PAGE
 }
 
 function pageAfterWhoApplies(formSession) {
@@ -131,11 +103,11 @@ function pageAfterSectors(formSession) {
   }
 
   if (worksInAmenity(formSession)) {
-    return AMENITY_SUBSECTOR_PAGE
+    return AMENITY_SUBSECTORS_PAGE
   }
 
   if (worksInHorticulture(formSession)) {
-    return HORTI_SUBSECTOR_PAGE
+    return HORTI_SUBSECTORS_PAGE
   }
 
   return STORING_PAGE
@@ -201,12 +173,12 @@ export const JOURNEY = {
     sessionKey: 'agriSubsectors',
     next: pageAfterAgriSubsectors
   },
-  [AMENITY_SUBSECTOR_PAGE]: {
+  [AMENITY_SUBSECTORS_PAGE]: {
     section: USING_PPPS_KEY,
     sessionKey: 'amenitySubsectors',
     next: pageAfterAmenitySubsectors
   },
-  [HORTI_SUBSECTOR_PAGE]: {
+  [HORTI_SUBSECTORS_PAGE]: {
     section: USING_PPPS_KEY,
     sessionKey: 'hortiSubsectors',
     next: () => USING_MEMBER_SCHEMES_PAGE

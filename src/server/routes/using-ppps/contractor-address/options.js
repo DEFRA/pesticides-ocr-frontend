@@ -4,6 +4,7 @@ import { addressFields, requiredText } from '#/server/common/helpers/address-fie
 import { regionItems } from '#/server/common/constants/regions.js'
 
 const ENTER_CONTRACTOR_NAME_MESSAGE = 'Enter the business or company name'
+const NAME_MAX_LENGTH = 100
 const ENTER_ADDRESS_LINE_1_MESSAGE = 'Enter address line 1, typically the building and street'
 
 export const app = {
@@ -13,7 +14,9 @@ export const app = {
 
 export const validate = {
   payload: Joi.object({
-    contractorName: requiredText(ENTER_CONTRACTOR_NAME_MESSAGE),
+    contractorName: requiredText(ENTER_CONTRACTOR_NAME_MESSAGE).max(NAME_MAX_LENGTH).messages({
+      'string.max': 'Business or company name must be 100 characters or less'
+    }),
     ...addressFields({ addressLine1Message: ENTER_ADDRESS_LINE_1_MESSAGE })
   }),
   failAction: viewFailAction('using-ppps/contractor-address/index')

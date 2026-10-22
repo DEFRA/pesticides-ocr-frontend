@@ -8,12 +8,15 @@
     regionItems  - the region radio items (regionItems in common/constants/regions.js)
     fieldClasses - optional width classes for addressLine1, addressLine2,
                    addressTown and addressPostcode
+    autocomplete - false for someone else's address, so the browser doesn't
+                   fill in the user's own
 -#}
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% set values = params.values %}
 {% set errors = params.errors %}
-{% set fieldClasses = params.fieldClasses or {} -%}
+{% set fieldClasses = params.fieldClasses or {} %}
+{% set autofill = params.autocomplete !== false -%}
 
       {{ govukInput({
         label: {
@@ -23,7 +26,7 @@
         name: "addressLine1",
         value: values["addressLine1"] if values,
         errorMessage: errors["addressLine1"] if errors["addressLine1"],
-        autocomplete: "address-line1",
+        autocomplete: "address-line1" if autofill else none,
         classes: fieldClasses.addressLine1 or "govuk-!-width-two-thirds"
       }) }}
 
@@ -35,7 +38,7 @@
         name: "addressLine2",
         value: values["addressLine2"] if values,
         errorMessage: errors["addressLine2"] if errors["addressLine2"],
-        autocomplete: "address-line2",
+        autocomplete: "address-line2" if autofill else none,
         classes: fieldClasses.addressLine2 or "govuk-!-width-two-thirds"
       }) }}
 
@@ -47,7 +50,7 @@
         name: "addressTown",
         value: values["addressTown"] if values,
         errorMessage: errors["addressTown"] if errors["addressTown"],
-        autocomplete: "address-level2",
+        autocomplete: "address-level2" if autofill else none,
         classes: fieldClasses.addressTown or "govuk-!-width-one-third"
       }) }}
 
@@ -59,7 +62,7 @@
         name: "addressPostcode",
         value: values["addressPostcode"] if values,
         errorMessage: errors["addressPostcode"] if errors["addressPostcode"],
-        autocomplete: "postal-code",
+        autocomplete: "postal-code" if autofill else none,
         classes: fieldClasses.addressPostcode or "govuk-input--width-10"
       }) }}
 

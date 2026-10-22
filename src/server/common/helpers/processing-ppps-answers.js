@@ -1,6 +1,5 @@
 import { getSectionAnswers, setSectionAnswer } from './section-answers.js'
 
-// The answers to the processing PPPs pages (routes/processing-ppps).
 export const PROCESSING_PPPS_KEY = 'processingPPPs'
 
 export const getProcessingPPPsAnswers = (formSession) =>

@@ -1,7 +1,7 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
 import { splitOtherAnswer } from '#/server/common/helpers/split-other-answer.js'
 import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
-import { AMENITY_SUBSECTOR_PAGE, getNextPage } from '#/server/common/helpers/journey.js'
+import { AMENITY_SUBSECTORS_PAGE, getNextPage } from '#/server/common/helpers/journey.js'
 import {
   getUsingPPPsAnswers,
   setUsingPPPsAnswer
@@ -19,7 +19,7 @@ export const get = {
       amenitySubsectorsValues
     )
 
-    return h.view('using-ppps/amenity-subsector/index', {
+    return h.view('using-ppps/amenity-subsectors/index', {
       values: { amenitySubsectors: selected, amenitySubsectorsOther: other }
     })
   }
@@ -34,6 +34,6 @@ export const post = {
     setUsingPPPsAnswer(formSession, 'amenitySubsectors', sectors ?? [other])
     request.yar.set('formSession', formSession)
 
-    return redirectToNextPage(request, h, getNextPage(AMENITY_SUBSECTOR_PAGE, formSession))
+    return redirectToNextPage(request, h, getNextPage(AMENITY_SUBSECTORS_PAGE, formSession))
   }
 }

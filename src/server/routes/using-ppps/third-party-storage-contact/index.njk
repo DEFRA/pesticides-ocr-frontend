@@ -14,6 +14,7 @@
 
     <p class="govuk-body">We may need to contact someone about your organisation's PPP storage. This should be a person with knowledge of these activities.</p>
 
+    {# The contact is someone else, so the browser isn't asked to fill in the user's own details. #}
     <form method="post" action="{{ formAction }}" novalidate>
 
       {{ govukInput({
@@ -23,7 +24,6 @@
         id: "contactName",
         name: "contactName",
         value: values["contactName"] if values,
-        autocomplete: "name",
         classes: "govuk-!-width-two-thirds",
         errorMessage: errors["contactName"] if errors["contactName"]
       }) }}
@@ -35,7 +35,6 @@
         id: "businessName",
         name: "businessName",
         value: values["businessName"] if values,
-        autocomplete: "organization",
         classes: "govuk-!-width-two-thirds",
         errorMessage: errors["businessName"] if errors["businessName"]
       }) }}
@@ -47,7 +46,6 @@
         id: "contactJobTitle",
         name: "contactJobTitle",
         value: values["contactJobTitle"] if values,
-        autocomplete: "organization-title",
         classes: "govuk-!-width-two-thirds",
         errorMessage: errors["contactJobTitle"] if errors["contactJobTitle"]
       }) }}
@@ -59,7 +57,6 @@
         id: "contactTelephone",
         name: "contactTelephone",
         value: values["contactTelephone"] if values,
-        autocomplete: "tel",
         classes: "govuk-!-width-two-thirds",
         errorMessage: errors["contactTelephone"] if errors["contactTelephone"]
       }) }}
@@ -71,7 +68,6 @@
         id: "contactEmail",
         name: "contactEmail",
         value: values["contactEmail"] if values,
-        autocomplete: "email",
         classes: "govuk-!-width-two-thirds",
         errorMessage: errors["contactEmail"] if errors["contactEmail"]
       }) }}

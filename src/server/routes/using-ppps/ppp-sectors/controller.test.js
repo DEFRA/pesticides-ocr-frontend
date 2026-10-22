@@ -91,6 +91,17 @@ describe('#pppSectorsController', () => {
   })
 
   describe('POST /ppp-sectors', () => {
+    test('Should not tick an option whose value is part of a single rejected value', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/using-ppps/ppp-sectors',
+        payload: { professionalSectors: 'forestry-x' }
+      })
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(checkedValues(load(result), 'professionalSectors')).toEqual([])
+    })
+
     const postSectors = (payload) =>
       injectWithSession(server, {
         method: 'POST',
@@ -100,12 +111,12 @@ describe('#pppSectorsController', () => {
 
     test.each([
       [['agriculture'], '/using-ppps/agri-subsectors'],
-      [['amenity'], '/using-ppps/amenity-subsector'],
-      [['horticulture'], '/using-ppps/horti-subsector'],
+      [['amenity'], '/using-ppps/amenity-subsectors'],
+      [['horticulture'], '/using-ppps/horti-subsectors'],
       [['agriculture', 'horticulture'], '/using-ppps/agri-subsectors'],
       [['agriculture', 'amenity', 'horticulture'], '/using-ppps/agri-subsectors'],
-      [['amenity', 'horticulture'], '/using-ppps/amenity-subsector'],
-      [['horticulture', 'forestry'], '/using-ppps/horti-subsector'],
+      [['amenity', 'horticulture'], '/using-ppps/amenity-subsectors'],
+      [['horticulture', 'forestry'], '/using-ppps/horti-subsectors'],
       [['business-premises'], '/using-ppps/storing'],
       [['forestry'], '/using-ppps/storing'],
       [['public-services', 'schools-universities', 'sports-clubs'], '/using-ppps/storing']
