@@ -111,7 +111,12 @@ function pageAfterAgriSubsectors(formSession) {
 
 // After the amenity sectors, the horticultural sectors if ticked.
 function pageAfterAmenitySubsectors(formSession) {
-  return worksInHorticulture(formSession) ? HORTI_SUBSECTOR_PAGE : USING_MEMBER_SCHEMES_PAGE
+  if (worksInHorticulture(formSession)) {
+    return HORTI_SUBSECTOR_PAGE
+  }
+  else {
+    return STORING_PAGE
+  }
 }
 
 function pageAfterWhoApplies(formSession) {
