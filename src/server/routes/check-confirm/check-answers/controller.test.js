@@ -7,6 +7,10 @@ import { getSessionCookie } from '#/test-helpers/session-helpers.js'
 import { config } from '#/config/config.js'
 import { answerUpToStoring, completeJourney, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { ADDRESS_SEARCH_PAGE, ADDRESS_SELECT_PAGE } from '#/server/common/constants/address-pages.js'
+import {
+  OWN_STORAGE_ADDRESS_PAGE,
+  OWN_STORAGE_ADDRESS_SELECT_PAGE
+} from '#/server/common/helpers/journey.js'
 
 describe('#checkAnswersController', () => {
   let server
@@ -200,7 +204,7 @@ describe('#checkAnswersController', () => {
       const answer = answerAs(cookie)
 
       await answer('/using-ppps/agri-subsectors', { agriSubsectors: ['arable'], agriSubsectorsOther: '' })
-      await answer('/using-ppps/amenity-subsector', {
+      await answer('/using-ppps/amenity-subsectors', {
         amenitySubsectors: ['parks'],
         amenitySubsectorsOther: ''
       })
@@ -212,7 +216,7 @@ describe('#checkAnswersController', () => {
 
       expect(row.prev().find('dt').text().trim()).toBe('Agricultural sectors')
       expect(row.find('.govuk-summary-list__value').text().trim()).toBe('Parks')
-      expect(row.find('a').attr('href')).toBe('/using-ppps/amenity-subsector?change=true')
+      expect(row.find('a').attr('href')).toBe('/using-ppps/amenity-subsectors?change=true')
       expect(row.find('.govuk-visually-hidden').text().trim()).toBe('amenity sectors')
     })
 
@@ -220,11 +224,11 @@ describe('#checkAnswersController', () => {
       const cookie = await getSessionCookie(server, '/using-ppps/ppp-sectors')
       const answer = answerAs(cookie)
 
-      await answer('/using-ppps/amenity-subsector', {
+      await answer('/using-ppps/amenity-subsectors', {
         amenitySubsectors: ['parks'],
         amenitySubsectorsOther: ''
       })
-      await answer('/using-ppps/horti-subsector', {
+      await answer('/using-ppps/horti-subsectors', {
         hortiSubsectors: ['ornamentals'],
         hortiSubsectorsOther: ''
       })
@@ -236,7 +240,7 @@ describe('#checkAnswersController', () => {
 
       expect(row.prev().find('dt').text().trim()).toBe('Amenity sectors')
       expect(row.find('.govuk-summary-list__value').text().trim()).toBe('Ornamentals')
-      expect(row.find('a').attr('href')).toBe('/using-ppps/horti-subsector?change=true')
+      expect(row.find('a').attr('href')).toBe('/using-ppps/horti-subsectors?change=true')
       expect(row.find('.govuk-visually-hidden').text().trim()).toBe('horticultural sectors')
     })
 
@@ -299,6 +303,39 @@ describe('#checkAnswersController', () => {
         expect(page(row).find('a').attr('href')).toBe('/using-ppps/third-party-storage-contact?change=true')
       })
       expect(rows.first().find('.govuk-visually-hidden').text().trim()).toBe('storage contact name')
+    })
+
+    test('Should show the processing answers in their own section', async () => {
+      const cookie = await getSessionCookie(server, '/processing-ppps/products')
+      const answer = answerAs(cookie)
+
+      await answer('/processing-ppps/products', { products: 'both' })
+      await answer('/processing-ppps/sites', { sites: '51-200' })
+      await answer('/processing-ppps/quantity', { quantity: '300' })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const section = page('h2')
+        .filter((_index, element) => page(element).text().trim() === 'PPP processing details')
+        .next('.govuk-summary-list')
+      const rows = section.find('.govuk-summary-list__row')
+
+      expect(rows.map((_index, row) => page(row).find('dt').text().trim()).get()).toEqual([
+        'Products processed',
+        'Processing sites',
+        'Estimated annual quantity'
+      ])
+      expect(
+        rows.map((_index, row) => page(row).find('.govuk-summary-list__value').text().trim()).get()
+      ).toEqual(['Both PPPs and ingredients or adjuvants', '51 to 200', '300 kilograms or litres'])
+      expect(rows.first().find('a').attr('href')).toBe('/processing-ppps/products?change=true')
+    })
+
+    test('Should not show the processing section without processing answers', async () => {
+      const cookie = await completeJourney(server)
+
+      const { result } = await loadAnswers(cookie)
+
+      expect(result).not.toEqual(expect.stringContaining('PPP processing details'))
     })
 
     test('Should show where products are stored between storing products and the quantity', async () => {
@@ -987,6 +1024,30 @@ describe('#checkAnswersController', () => {
       expect(select.headers.location).toBe(ADDRESS_SEARCH_PAGE)
     })
 
+    test('Should clear the own storage address search once the registration is submitted', async () => {
+      stubBackend(created())
+      const cookie = await completeJourney(server)
+      await server.inject({
+        method: 'POST',
+        url: OWN_STORAGE_ADDRESS_PAGE,
+        headers: { cookie },
+        payload: { addressPostcode: 'LS1 1AA', addressBuilding: 'Lower Meadow Barn' }
+      })
+
+      await submit(cookie)
+      const search = await revisitStep(server, { url: OWN_STORAGE_ADDRESS_PAGE, cookie })
+      const select = await server.inject({
+        method: 'GET',
+        url: OWN_STORAGE_ADDRESS_SELECT_PAGE,
+        headers: { cookie }
+      })
+
+      expect(search('#addressPostcode').val()).toBeFalsy()
+      expect(search('#addressBuilding').val()).toBeFalsy()
+      expect(select.statusCode).toBe(statusCodes.redirect)
+      expect(select.headers.location).toBe(OWN_STORAGE_ADDRESS_PAGE)
+    })
+
     test('Should not submit the same registration twice', async () => {
       const fetchSpy = stubBackend(created())
       const cookie = await completeJourney(server)
@@ -1135,7 +1196,7 @@ describe('#checkAnswersController', () => {
         professionalSectors: ['horticulture'],
         professionalSectorsOther: ''
       })
-      await submit('/using-ppps/horti-subsector?change=true', cookie, {
+      await submit('/using-ppps/horti-subsectors?change=true', cookie, {
         hortiSubsectors: ['ornamentals'],
         hortiSubsectorsOther: ''
       })

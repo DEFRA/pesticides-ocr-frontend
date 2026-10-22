@@ -104,29 +104,29 @@ describe('#journey', () => {
       ['/using-ppps/who-applies', { whoApplies: 'contractor' }, '/using-ppps/contractor-address'],
       ['/using-ppps/contractor-address', { whoApplies: 'contractor' }, '/using-ppps/ppp-sectors'],
       ['/using-ppps/ppp-sectors', { professionalSectors: ['agriculture'] }, '/using-ppps/agri-subsectors'],
-      ['/using-ppps/ppp-sectors', { professionalSectors: ['amenity'] }, '/using-ppps/amenity-subsector'],
-      ['/using-ppps/ppp-sectors', { professionalSectors: ['horticulture'] }, '/using-ppps/horti-subsector'],
+      ['/using-ppps/ppp-sectors', { professionalSectors: ['amenity'] }, '/using-ppps/amenity-subsectors'],
+      ['/using-ppps/ppp-sectors', { professionalSectors: ['horticulture'] }, '/using-ppps/horti-subsectors'],
       ['/using-ppps/ppp-sectors', { professionalSectors: ['horticulture', 'agriculture'] }, '/using-ppps/agri-subsectors'],
       ['/using-ppps/ppp-sectors', { professionalSectors: ['amenity', 'agriculture'] }, '/using-ppps/agri-subsectors'],
-      ['/using-ppps/ppp-sectors', { professionalSectors: ['horticulture', 'amenity'] }, '/using-ppps/amenity-subsector'],
-      ['/using-ppps/ppp-sectors', { professionalSectors: ['forestry', 'horticulture'] }, '/using-ppps/horti-subsector'],
+      ['/using-ppps/ppp-sectors', { professionalSectors: ['horticulture', 'amenity'] }, '/using-ppps/amenity-subsectors'],
+      ['/using-ppps/ppp-sectors', { professionalSectors: ['forestry', 'horticulture'] }, '/using-ppps/horti-subsectors'],
       ['/using-ppps/ppp-sectors', { professionalSectors: ['business-premises'] }, '/using-ppps/storing'],
       ['/using-ppps/ppp-sectors', { professionalSectors: ['forestry', 'sports-clubs'] }, '/using-ppps/storing'],
       ['/using-ppps/ppp-sectors', { professionalSectors: ['Vineyard management'] }, '/using-ppps/storing'],
       [
         '/using-ppps/agri-subsectors',
         { professionalSectors: ['agriculture', 'amenity'] },
-        '/using-ppps/amenity-subsector'
+        '/using-ppps/amenity-subsectors'
       ],
       [
         '/using-ppps/agri-subsectors',
         { professionalSectors: ['agriculture', 'horticulture'] },
-        '/using-ppps/horti-subsector'
+        '/using-ppps/horti-subsectors'
       ],
       [
         '/using-ppps/agri-subsectors',
         { professionalSectors: ['agriculture', 'amenity', 'horticulture'] },
-        '/using-ppps/amenity-subsector'
+        '/using-ppps/amenity-subsectors'
       ],
       ['/using-ppps/agri-subsectors', { professionalSectors: ['agriculture'] }, '/using-ppps/member-schemes'],
       [
@@ -135,12 +135,12 @@ describe('#journey', () => {
         '/using-ppps/member-schemes'
       ],
       [
-        '/using-ppps/amenity-subsector',
+        '/using-ppps/amenity-subsectors',
         { professionalSectors: ['amenity', 'horticulture'] },
-        '/using-ppps/horti-subsector'
+        '/using-ppps/horti-subsectors'
       ],
-      ['/using-ppps/amenity-subsector', { professionalSectors: ['amenity'] }, '/using-ppps/member-schemes'],
-      ['/using-ppps/horti-subsector', { professionalSectors: ['horticulture'] }, '/using-ppps/member-schemes'],
+      ['/using-ppps/amenity-subsectors', { professionalSectors: ['amenity'] }, '/using-ppps/storing'],
+      ['/using-ppps/horti-subsectors', { professionalSectors: ['horticulture'] }, '/using-ppps/member-schemes'],
       ['/using-ppps/storing', { storing: 'own' }, '/using-ppps/storage-location'],
       ['/using-ppps/storage-location', { storageLocation: 'main-address' }, '/using-ppps/quantity'],
       ['/using-ppps/storage-location', { storageLocation: 'main-and-other' }, '/using-ppps/own-storage-address'],
@@ -216,8 +216,8 @@ describe('#journey', () => {
 
     test.each([
       [['agriculture', 'horticulture'], '/using-ppps/agri-subsectors'],
-      [['amenity', 'horticulture'], '/using-ppps/amenity-subsector'],
-      [['horticulture'], '/using-ppps/horti-subsector'],
+      [['amenity', 'horticulture'], '/using-ppps/amenity-subsectors'],
+      [['horticulture'], '/using-ppps/horti-subsectors'],
       [['Vineyard management'], '/using-ppps/storing']
     ])('Should go on from the PPP sectors %o to %s', (professionalSectors, nextPage) => {
       expect(
@@ -303,8 +303,8 @@ describe('#journey', () => {
 
     test.each([
       [['agriculture'], '/using-ppps/member-schemes'],
-      [['agriculture', 'amenity'], '/using-ppps/amenity-subsector'],
-      [['agriculture', 'horticulture'], '/using-ppps/horti-subsector']
+      [['agriculture', 'amenity'], '/using-ppps/amenity-subsectors'],
+      [['agriculture', 'horticulture'], '/using-ppps/horti-subsectors']
     ])(
       'Should go on from the agricultural sectors, with the sectors %o, to %s',
       (professionalSectors, nextPage) => {
@@ -320,8 +320,8 @@ describe('#journey', () => {
     )
 
     test.each([
-      [['amenity'], '/using-ppps/member-schemes'],
-      [['amenity', 'horticulture'], '/using-ppps/horti-subsector'],
+      [['amenity'], '/using-ppps/storing'],
+      [['amenity', 'horticulture'], '/using-ppps/horti-subsectors'],
       [['agriculture', 'amenity'], '/using-ppps/member-schemes']
     ])(
       'Should go on from the amenity sectors, with the sectors %o, to %s',
@@ -345,11 +345,11 @@ describe('#journey', () => {
         professionalSectors: ['amenity']
       }
 
-      expect(getPreviousPage('/using-ppps/amenity-subsector', amenityOnly)).toBe(
+      expect(getPreviousPage('/using-ppps/amenity-subsectors', amenityOnly)).toBe(
         '/using-ppps/ppp-sectors'
       )
       expect(
-        getPreviousPage('/using-ppps/amenity-subsector', {
+        getPreviousPage('/using-ppps/amenity-subsectors', {
           ...amenityOnly,
           professionalSectors: ['agriculture', 'amenity'],
           agriSubsectors: ['arable']
@@ -360,11 +360,11 @@ describe('#journey', () => {
     test.each([
       [['horticulture'], '/using-ppps/ppp-sectors'],
       [['agriculture', 'horticulture'], '/using-ppps/agri-subsectors'],
-      [['amenity', 'horticulture'], '/using-ppps/amenity-subsector'],
-      [['agriculture', 'amenity', 'horticulture'], '/using-ppps/amenity-subsector']
+      [['amenity', 'horticulture'], '/using-ppps/amenity-subsectors'],
+      [['agriculture', 'amenity', 'horticulture'], '/using-ppps/amenity-subsectors']
     ])('Should return the page before the horticultural sectors for %o', (professionalSectors, previous) => {
       expect(
-        getPreviousPage('/using-ppps/horti-subsector', {
+        getPreviousPage('/using-ppps/horti-subsectors', {
           ...appliesProducts,
           whoApplies: 'self',
           professionalSectors,
@@ -447,7 +447,7 @@ describe('#journey', () => {
           professionalSectors: ['horticulture'],
           hortiSubsectors: ['ornamentals']
         })
-      ).toBe('/using-ppps/horti-subsector')
+      ).toBe('/using-ppps/horti-subsectors')
     })
 
     test('Should return the PPP sectors before storing products', () => {
@@ -866,6 +866,63 @@ describe('#journey', () => {
 
       expect(formSession).not.toHaveProperty('usingPPPs')
       expect(formSession.addressActivities).toEqual(['store'])
+    })
+  })
+  describe('#processing PPPs', () => {
+    const answeredToContact = {
+      businessName: 'Pesticides Ltd',
+      address: { addressLine1: 'Lower Meadow Barn' },
+      primaryContact: { contactName: 'Jo Bloggs' }
+    }
+    const processes = { ...answeredToContact, businessActivities: ['processing'] }
+    const processingPPPs = { products: 'both', sites: '11-50', quantity: 250 }
+    const usingPPPs = { whoApplies: 'self', professionalSectors: ['forestry'], storing: 'no', quantity: '1-29' }
+
+    test('Should go from the business contact to the processing products when only processing', () => {
+      expect(journey.getNextPage('/business-contact', processes)).toBe('/processing-ppps/products')
+      expect(journey.findFirstMissingPage(processes)).toBe('/processing-ppps/products')
+    })
+
+    test('Should walk the processing pages to check answers, keeping the answers under processingPPPs', () => {
+      expect(
+        journey.findFirstMissingPage({ ...processes, processingPPPs: { products: 'ppps' } })
+      ).toBe('/processing-ppps/sites')
+      expect(
+        journey.findFirstMissingPage({ ...processes, processingPPPs: { products: 'ppps', sites: '1-10' } })
+      ).toBe('/processing-ppps/quantity')
+      expect(journey.findFirstMissingPage({ ...processes, processingPPPs })).toBe('/check-answers')
+      expect(journey.getPreviousPage('/processing-ppps/products', processes)).toBe('/business-contact')
+    })
+
+    test('Should ask the using PPPs pages first, then processing, when both are ticked', () => {
+      const both = { ...answeredToContact, businessActivities: ['using', 'processing'] }
+
+      expect(journey.getNextPage('/business-contact', both)).toBe('/using-ppps/who-applies')
+      expect(journey.findFirstMissingPage({ ...both, usingPPPs })).toBe('/processing-ppps/products')
+      expect(journey.getPreviousPage('/processing-ppps/products', { ...both, usingPPPs })).toBe(
+        '/using-ppps/quantity'
+      )
+      expect(journey.findFirstMissingPage({ ...both, usingPPPs, processingPPPs })).toBe(
+        '/check-answers'
+      )
+    })
+
+    test('Should go from the using PPPs quantity to check answers when not processing', () => {
+      expect(
+        journey.findFirstMissingPage({ ...answeredToContact, businessActivities: ['using'], usingPPPs })
+      ).toBe('/check-answers')
+    })
+
+    test('Should remove the processing answers once processing is no longer ticked', () => {
+      const formSession = journey.removeSkippedAnswers({
+        ...answeredToContact,
+        businessActivities: ['using'],
+        usingPPPs,
+        processingPPPs
+      })
+
+      expect(formSession).not.toHaveProperty('processingPPPs')
+      expect(formSession.usingPPPs).toEqual(usingPPPs)
     })
   })
 })

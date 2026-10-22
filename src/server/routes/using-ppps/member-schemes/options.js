@@ -1,6 +1,6 @@
 import Joi from 'joi'
 import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
-import { memberSchemesItems } from './items.js'
+import { memberSchemesItems, memberSchemesValues } from './items.js'
 
 export const app = {
   pageTitle: 'Are you a member of any assurance schemes? (optional)',
@@ -13,13 +13,18 @@ const selectSchemeOrOther =
 export const validate = {
   payload: Joi.object({
     memberSchemes: Joi.array()
+      .items(Joi.string().valid(...memberSchemesValues))
       .single()
+      .unique()
       .when('memberSchemesOther', {
         is: Joi.exist(),
         then: Joi.forbidden()
       })
       .messages({
-        'any.unknown': selectSchemeOrOther
+        'any.unknown': selectSchemeOrOther,
+        'any.only': selectSchemeOrOther,
+        'array.base': selectSchemeOrOther,
+        'array.unique': selectSchemeOrOther
       }),
     memberSchemesOther: Joi.string()
       .trim()

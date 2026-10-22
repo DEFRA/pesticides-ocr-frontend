@@ -21,7 +21,6 @@ export const readOwnStorageAddress = (formSession) =>
 export const saveOwnStorageAddress = (formSession, address) =>
   setUsingPPPsAnswer(formSession, 'ownStorageAddress', address)
 
-// The own storage address's lookup (see common/helpers/address-lookup-pages.js).
 const ownStorageAddressLookup = {
   searchPage: OWN_STORAGE_ADDRESS_PAGE,
   selectPage: OWN_STORAGE_ADDRESS_SELECT_PAGE,

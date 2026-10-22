@@ -32,5 +32,5 @@ export const validate = {
       'string.max': otherTooLong
     })
   }),
-  failAction: viewFailAction('using-ppps/amenity-subsector/index')
+  failAction: viewFailAction('using-ppps/amenity-subsectors/index')
 }

@@ -5,11 +5,11 @@ import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-h
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie, injectWithSession } from '#/test-helpers/session-helpers.js'
 
-const url = '/using-ppps/horti-subsector'
-const question = 'What horticultural sectors do you apply PPPs in?'
-const selectSubsectorOrOther = 'Select a horticultural sector or describe your main type of work'
+const url = '/using-ppps/amenity-subsectors'
+const question = 'What amenity sectors do you apply PPPs in?'
+const selectSubsectorOrOther = 'Select an amenity sector or describe your main type of work'
 
-describe('#hortiSubsectorsController', () => {
+describe('#amenitySubsectorsController', () => {
   let server
 
   beforeAll(async () => {
@@ -21,7 +21,7 @@ describe('#hortiSubsectorsController', () => {
     await server.stop({ timeout: 0 })
   })
 
-  describe('GET /using-ppps/horti-subsector', () => {
+  describe('GET /using-ppps/amenity-subsectors', () => {
     let page
     let statusCode
 
@@ -41,24 +41,30 @@ describe('#hortiSubsectorsController', () => {
     })
 
     test('Should show the hint above the checkboxes', () => {
-      expect(textOf('#hortiSubsectors-hint')).toBe('Select all that apply')
+      expect(textOf('#amenitySubsectors-hint')).toBe('Select all that apply')
     })
 
-    test('Should show every horticultural sector, in order', () => {
-      const labels = page('input[name="hortiSubsectors"]')
+    test('Should show every amenity sector, in order', () => {
+      const labels = page('input[name="amenitySubsectors"]')
         .map((_index, input) => page(`label[for="${page(input).attr('id')}"]`).text().trim())
         .get()
 
-      expect(labels).toEqual(['Edible protected crops', 'Orchards and soft fruit', 'Ornamentals'])
+      expect(labels).toEqual([
+        'Parks',
+        'Sports grounds, including golf courses',
+        'Public or private property',
+        'Infrastructure, such as roads, railways and waterways',
+        'Utilities, such as transport and water companies'
+      ])
     })
 
     test('Should offer Other after an "or" divider', () => {
       expect(textOf('h4')).toBe('or')
-      expect(textOf('label[for="hortiSubsectorsOther"]')).toBe('Other')
-      expect(textOf('#hortiSubsectorsOther-hint')).toBe(
+      expect(textOf('label[for="amenitySubsectorsOther"]')).toBe('Other')
+      expect(textOf('#amenitySubsectorsOther-hint')).toBe(
         'Describe your main type of work in a few words'
       )
-      expect(page('textarea#hortiSubsectorsOther')).toHaveLength(1)
+      expect(page('textarea#amenitySubsectorsOther')).toHaveLength(1)
     })
 
     test('Should link back to the PPP sectors once the route up to it is answered', async () => {
@@ -79,7 +85,7 @@ describe('#hortiSubsectorsController', () => {
       })
       await answer('/using-ppps/who-applies', { whoApplies: 'self' })
       await answer('/using-ppps/ppp-sectors', {
-        professionalSectors: ['horticulture'],
+        professionalSectors: ['amenity'],
         professionalSectorsOther: ''
       })
 
@@ -89,8 +95,19 @@ describe('#hortiSubsectorsController', () => {
     })
   })
 
-  describe('POST /using-ppps/horti-subsector', () => {
-    const postHortiSubsectors = (payload) =>
+  describe('POST /using-ppps/amenity-subsectors', () => {
+    test('Should not tick an option whose value is part of a single rejected value', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/using-ppps/amenity-subsectors',
+        payload: { amenitySubsectors: 'parks-x' }
+      })
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(checkedValues(load(result), 'amenitySubsectors')).toEqual([])
+    })
+
+    const postAmenitySubsectors = (payload) =>
       injectWithSession(server, { method: 'POST', url, payload })
 
     // Ticks the PPP sectors first, since they decide where the page goes next.
@@ -104,13 +121,15 @@ describe('#hortiSubsectorsController', () => {
     }
 
     test.each([
-      [['horticulture'], '/using-ppps/member-schemes'],
-      [['agriculture', 'amenity', 'horticulture'], '/using-ppps/member-schemes'],
-      [['horticulture', 'forestry'], '/using-ppps/member-schemes']
+      [['amenity', 'horticulture'], '/using-ppps/horti-subsectors'],
+      [['agriculture', 'amenity', 'horticulture'], '/using-ppps/horti-subsectors'],
+      [['amenity'], '/using-ppps/storing'],
+      [['agriculture', 'amenity'], '/using-ppps/member-schemes'],
+      [['amenity', 'forestry'], '/using-ppps/storing']
     ])('Should go on from the sectors %o to %s', async (professionalSectors, location) => {
       const { statusCode, headers } = await afterSectors(professionalSectors, {
-        hortiSubsectors: ['ornamentals'],
-        hortiSubsectorsOther: ''
+        amenitySubsectors: ['parks'],
+        amenitySubsectorsOther: ''
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -118,29 +137,29 @@ describe('#hortiSubsectorsController', () => {
     })
 
     test('Should accept Other on its own', async () => {
-      const { statusCode, headers } = await afterSectors(['horticulture'], {
-        hortiSubsectorsOther: 'Vineyards'
+      const { statusCode, headers } = await afterSectors(['amenity'], {
+        amenitySubsectorsOther: 'Cemeteries'
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/using-ppps/member-schemes')
+      expect(headers.location).toBe('/using-ppps/storing')
     })
 
     test.each([
-      [{ hortiSubsectorsOther: '' }],
-      [{ hortiSubsectorsOther: '   ' }],
-      [{ hortiSubsectors: ['ornamentals'], hortiSubsectorsOther: 'Vineyards' }],
-      [{ hortiSubsectors: ['orchards'], hortiSubsectorsOther: '' }]
+      [{ amenitySubsectorsOther: '' }],
+      [{ amenitySubsectorsOther: '   ' }],
+      [{ amenitySubsectors: ['parks'], amenitySubsectorsOther: 'Cemeteries' }],
+      [{ amenitySubsectors: ['gardens'], amenitySubsectorsOther: '' }]
     ])('Should show an error for %o', async (payload) => {
-      const { result, statusCode } = await postHortiSubsectors(payload)
+      const { result, statusCode } = await postAmenitySubsectors(payload)
 
       expect(statusCode).toBe(statusCodes.ok)
       expect(result).toEqual(expect.stringContaining(selectSubsectorOrOther))
     })
 
     test('Should show an error when Other is longer than 100 characters', async () => {
-      const { result, statusCode } = await postHortiSubsectors({
-        hortiSubsectorsOther: 'a'.repeat(101)
+      const { result, statusCode } = await postAmenitySubsectors({
+        amenitySubsectorsOther: 'a'.repeat(101)
       })
 
       expect(statusCode).toBe(statusCodes.ok)
@@ -149,25 +168,25 @@ describe('#hortiSubsectorsController', () => {
   })
 
   describe('Pre-populating from the session', () => {
-    test('Should check the horticultural sectors held in the session', async () => {
+    test('Should check the amenity sectors held in the session', async () => {
       const cookie = await answerStep(server, {
         url,
-        payload: { hortiSubsectors: ['edible-protected', 'ornamentals'], hortiSubsectorsOther: '' }
+        payload: { amenitySubsectors: ['parks', 'utilities'], amenitySubsectorsOther: '' }
       })
 
       const page = await revisitStep(server, { url, cookie })
 
-      expect(checkedValues(page, 'hortiSubsectors')).toEqual(['edible-protected', 'ornamentals'])
-      expect(page('#hortiSubsectorsOther').val()).toBeFalsy()
+      expect(checkedValues(page, 'amenitySubsectors')).toEqual(['parks', 'utilities'])
+      expect(page('#amenitySubsectorsOther').val()).toBeFalsy()
     })
 
     test('Should populate the Other text held in the session', async () => {
-      const cookie = await answerStep(server, { url, payload: { hortiSubsectorsOther: ' Vineyards ' } })
+      const cookie = await answerStep(server, { url, payload: { amenitySubsectorsOther: ' Cemeteries ' } })
 
       const page = await revisitStep(server, { url, cookie })
 
-      expect(checkedValues(page, 'hortiSubsectors')).toEqual([])
-      expect(page('#hortiSubsectorsOther').val().trim()).toBe('Vineyards')
+      expect(checkedValues(page, 'amenitySubsectors')).toEqual([])
+      expect(page('#amenitySubsectorsOther').val().trim()).toBe('Cemeteries')
     })
 
     test('Should tell the browser not to store the page', async () => {

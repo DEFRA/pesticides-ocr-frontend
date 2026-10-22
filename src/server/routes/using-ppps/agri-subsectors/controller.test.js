@@ -90,6 +90,17 @@ describe('#agriSubsectorsController', () => {
   })
 
   describe('POST /using-ppps/agri-subsectors', () => {
+    test('Should not tick an option whose value is part of a single rejected value', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/using-ppps/agri-subsectors',
+        payload: { agriSubsectors: 'arable-x' }
+      })
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(checkedValues(load(result), 'agriSubsectors')).toEqual([])
+    })
+
     const postAgriSubsectors = (payload) =>
       injectWithSession(server, { method: 'POST', url, payload })
 
@@ -104,9 +115,9 @@ describe('#agriSubsectorsController', () => {
     }
 
     test.each([
-      [['agriculture', 'amenity'], '/using-ppps/amenity-subsector'],
-      [['agriculture', 'horticulture'], '/using-ppps/horti-subsector'],
-      [['agriculture', 'amenity', 'horticulture'], '/using-ppps/amenity-subsector'],
+      [['agriculture', 'amenity'], '/using-ppps/amenity-subsectors'],
+      [['agriculture', 'horticulture'], '/using-ppps/horti-subsectors'],
+      [['agriculture', 'amenity', 'horticulture'], '/using-ppps/amenity-subsectors'],
       [['agriculture'], '/using-ppps/member-schemes'],
       [['agriculture', 'forestry'], '/using-ppps/member-schemes']
     ])('Should go on from the sectors %o to %s', async (professionalSectors, location) => {

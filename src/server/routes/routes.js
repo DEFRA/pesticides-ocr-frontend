@@ -13,8 +13,8 @@ import { whoApplies } from './using-ppps/who-applies/index.js'
 import { contractorAddress } from './using-ppps/contractor-address/index.js'
 import { pppSectors } from './using-ppps/ppp-sectors/index.js'
 import { agriSubsectors } from './using-ppps/agri-subsectors/index.js'
-import { amenitySubsectors } from './using-ppps/amenity-subsector/index.js'
-import { hortiSubsectors } from './using-ppps/horti-subsector/index.js'
+import { amenitySubsectors } from './using-ppps/amenity-subsectors/index.js'
+import { hortiSubsectors } from './using-ppps/horti-subsectors/index.js'
 import { memberSchemes } from './using-ppps/member-schemes/index.js'
 import { storing } from './using-ppps/storing/index.js'
 import { storageLocation } from './using-ppps/storage-location/index.js'
@@ -23,6 +23,9 @@ import { ownStorageAddressSelect } from './using-ppps/own-storage-address/select
 import { ownStorageAddressManual } from './using-ppps/own-storage-address/manual/index.js'
 import { storageContact } from './using-ppps/third-party-storage-contact/index.js'
 import { usingQuantity } from './using-ppps/quantity/index.js'
+import { processingProducts } from './processing-ppps/products/index.js'
+import { processingSites } from './processing-ppps/sites/index.js'
+import { processingQuantity } from './processing-ppps/quantity/index.js'
 import { addressActivity } from './qualifying-questions/address-activity/index.js'
 import { checkAnswers } from './check-confirm/check-answers/index.js'
 import { confirmation } from './check-confirm/confirmation/index.js'
@@ -59,6 +62,9 @@ export const routes = [
   ownStorageAddressManual,
   storageContact,
   usingQuantity,
+  processingProducts,
+  processingSites,
+  processingQuantity,
   addressActivity,
   checkAnswers,
   confirmation,

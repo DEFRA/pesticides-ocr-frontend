@@ -1,3 +1,5 @@
+import { load } from 'cheerio'
+
 import { createServer } from '#/server/server.js'
 import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
@@ -56,6 +58,17 @@ describe('#memberSchemesController', () => {
   })
 
   describe('POST /using-ppps/member-schemes', () => {
+    test('Should not tick an option whose value is part of a single rejected value', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/using-ppps/member-schemes',
+        payload: { memberSchemes: 'leaf-x' }
+      })
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(checkedValues(load(result), 'memberSchemes')).toEqual([])
+    })
+
     const selectSchemeOrOther =
       'Select a member scheme or describe your main type of work'
 
@@ -134,6 +147,17 @@ describe('#memberSchemesController', () => {
         memberSchemes: ['leaf', 'sqc'],
         memberSchemesOther: 'Vineyard assurance'
       })
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(result).toEqual(expect.stringContaining(selectSchemeOrOther))
+    })
+
+    test.each([
+      ['an unknown scheme', 'made-up-scheme'],
+      ['an unknown scheme alongside a real one', ['leaf', 'made-up-scheme']],
+      ['the same scheme twice', ['leaf', 'leaf']]
+    ])('Should show an error for %s', async (_description, memberSchemes) => {
+      const { statusCode, result } = await postSchemes({ memberSchemes, memberSchemesOther: '' })
 
       expect(statusCode).toBe(statusCodes.ok)
       expect(result).toEqual(expect.stringContaining(selectSchemeOrOther))

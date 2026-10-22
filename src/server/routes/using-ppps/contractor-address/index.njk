@@ -15,6 +15,7 @@
 
     <p class="govuk-body">Provide details of third parties that apply PPPs on your behalf, for example contract sprayers.</p>
 
+    {# The contractor is another business, so the browser isn't asked to fill in the user's own details. #}
     <form method="post" action="{{ formAction }}" novalidate>
 
       {{ govukInput({
@@ -25,7 +26,6 @@
         name: "contractorName",
         value: values["contractorName"] if values,
         errorMessage: errors["contractorName"] if errors["contractorName"],
-        autocomplete: "organization",
         classes: "govuk-!-width-two-thirds"
       }) }}
 
@@ -33,6 +33,7 @@
         values: values,
         errors: errors,
         regionItems: items,
+        autocomplete: false,
         fieldClasses: {
           addressLine1: "govuk-!-width-one-half",
           addressLine2: "govuk-!-width-one-half"
