@@ -23,6 +23,9 @@ import { ownStorageAddressSelect } from './using-ppps/own-storage-address/select
 import { ownStorageAddressManual } from './using-ppps/own-storage-address/manual/index.js'
 import { storageContact } from './using-ppps/third-party-storage-contact/index.js'
 import { usingQuantity } from './using-ppps/quantity/index.js'
+import { processingProducts } from './processing-ppps/products/index.js'
+import { processingSites } from './processing-ppps/sites/index.js'
+import { processingQuantity } from './processing-ppps/quantity/index.js'
 import { addressActivity } from './qualifying-questions/address-activity/index.js'
 import { checkAnswers } from './check-confirm/check-answers/index.js'
 import { confirmation } from './check-confirm/confirmation/index.js'
@@ -59,6 +62,9 @@ export const routes = [
   ownStorageAddressManual,
   storageContact,
   usingQuantity,
+  processingProducts,
+  processingSites,
+  processingQuantity,
   addressActivity,
   checkAnswers,
   confirmation,

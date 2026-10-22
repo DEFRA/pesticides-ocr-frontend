@@ -340,4 +340,21 @@ describe('#buildAnswers', () => {
     expect(buildAnswers({}).additionalAddresses).toBeUndefined()
     expect(buildAnswers({ additionalAddresses: [] }).additionalAddresses).toBeUndefined()
   })
+  test('Should give the processing answers with their labels and the quantity unit', () => {
+    const answers = buildAnswers({
+      processingPPPs: { products: 'ingredients', sites: '400-plus', quantity: 1200 }
+    })
+
+    expect(answers.processingProducts).toEqual(['Ingredients or adjuvants only'])
+    expect(answers.processingSites).toEqual(['400 and over'])
+    expect(answers.processingQuantity).toEqual(['1200 kilograms or litres'])
+  })
+
+  test('Should leave out the processing answers when there are none', () => {
+    const answers = buildAnswers({})
+
+    expect(answers).not.toHaveProperty('processingProducts')
+    expect(answers).not.toHaveProperty('processingSites')
+    expect(answers).not.toHaveProperty('processingQuantity')
+  })
 })

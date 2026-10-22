@@ -868,4 +868,61 @@ describe('#journey', () => {
       expect(formSession.addressActivities).toEqual(['store'])
     })
   })
+  describe('#processing PPPs', () => {
+    const answeredToContact = {
+      businessName: 'Pesticides Ltd',
+      address: { addressLine1: 'Lower Meadow Barn' },
+      primaryContact: { contactName: 'Jo Bloggs' }
+    }
+    const processes = { ...answeredToContact, businessActivities: ['processing'] }
+    const processingPPPs = { products: 'both', sites: '11-50', quantity: 250 }
+    const usingPPPs = { whoApplies: 'self', professionalSectors: ['forestry'], storing: 'no', quantity: '1-29' }
+
+    test('Should go from the business contact to the processing products when only processing', () => {
+      expect(journey.getNextPage('/business-contact', processes)).toBe('/processing-ppps/products')
+      expect(journey.findFirstMissingPage(processes)).toBe('/processing-ppps/products')
+    })
+
+    test('Should walk the processing pages to check answers, keeping the answers under processingPPPs', () => {
+      expect(
+        journey.findFirstMissingPage({ ...processes, processingPPPs: { products: 'ppps' } })
+      ).toBe('/processing-ppps/sites')
+      expect(
+        journey.findFirstMissingPage({ ...processes, processingPPPs: { products: 'ppps', sites: '1-10' } })
+      ).toBe('/processing-ppps/quantity')
+      expect(journey.findFirstMissingPage({ ...processes, processingPPPs })).toBe('/check-answers')
+      expect(journey.getPreviousPage('/processing-ppps/products', processes)).toBe('/business-contact')
+    })
+
+    test('Should ask the using PPPs pages first, then processing, when both are ticked', () => {
+      const both = { ...answeredToContact, businessActivities: ['using', 'processing'] }
+
+      expect(journey.getNextPage('/business-contact', both)).toBe('/using-ppps/who-applies')
+      expect(journey.findFirstMissingPage({ ...both, usingPPPs })).toBe('/processing-ppps/products')
+      expect(journey.getPreviousPage('/processing-ppps/products', { ...both, usingPPPs })).toBe(
+        '/using-ppps/quantity'
+      )
+      expect(journey.findFirstMissingPage({ ...both, usingPPPs, processingPPPs })).toBe(
+        '/check-answers'
+      )
+    })
+
+    test('Should go from the using PPPs quantity to check answers when not processing', () => {
+      expect(
+        journey.findFirstMissingPage({ ...answeredToContact, businessActivities: ['using'], usingPPPs })
+      ).toBe('/check-answers')
+    })
+
+    test('Should remove the processing answers once processing is no longer ticked', () => {
+      const formSession = journey.removeSkippedAnswers({
+        ...answeredToContact,
+        businessActivities: ['using'],
+        usingPPPs,
+        processingPPPs
+      })
+
+      expect(formSession).not.toHaveProperty('processingPPPs')
+      expect(formSession.usingPPPs).toEqual(usingPPPs)
+    })
+  })
 })

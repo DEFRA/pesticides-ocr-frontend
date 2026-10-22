@@ -1,6 +1,7 @@
 import { ADDRESS_SEARCH_PAGE } from '#/server/common/constants/address-pages.js'
 import { SELLING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 import { USING_PPPS_KEY, getUsingPPPsAnswers } from './using-ppps-answers.js'
+import { PROCESSING_PPPS_KEY } from './processing-ppps-answers.js'
 
 const FIRST_PAGE = '/business-activities'
 export const CHECK_ANSWERS_PAGE = '/check-answers'
@@ -57,10 +58,33 @@ export const STORAGE_CONTACT_PAGE = '/using-ppps/third-party-storage-contact'
 // year (see routes/using-ppps/quantity).
 export const USING_QUANTITY_PAGE = '/using-ppps/quantity'
 
+// The processing PPPs pages, for an organisation that processes PPPs: after the
+// business contact, or after the using PPPs pages when it uses them too. Every
+// processing PPPs page sits under /processing-ppps, and their answers under
+// formSession.processingPPPs (see routes/processing-ppps).
+export const PROCESSING_PRODUCTS_PAGE = '/processing-ppps/products'
+export const PROCESSING_SITES_PAGE = '/processing-ppps/sites'
+export const PROCESSING_QUANTITY_PAGE = '/processing-ppps/quantity'
+
 const onlySellsProducts = ({ businessActivities = [] }) =>
   businessActivities.length === 1 && businessActivities[0] === SELLING
 
 const usesProducts = ({ businessActivities = [] }) => businessActivities.includes('using')
+
+const processesProducts = ({ businessActivities = [] }) => businessActivities.includes('processing')
+
+function pageAfterBusinessContact(formSession) {
+  if (usesProducts(formSession)) {
+    return WHO_APPLIES_PAGE
+  }
+
+  return processesProducts(formSession) ? PROCESSING_PRODUCTS_PAGE : '/address-activity'
+}
+
+// The end of the using PPPs pages: on to processing if the organisation does
+// that too.
+const pageAfterUsingPPPs = (formSession) =>
+  processesProducts(formSession) ? PROCESSING_PRODUCTS_PAGE : CHECK_ANSWERS_PAGE
 
 // professionalSectors holds the chosen sector values, or just the Other text.
 function worksIn(sector) {
@@ -149,7 +173,7 @@ export const JOURNEY = {
   },
   '/business-contact': {
     sessionKey: 'primaryContact',
-    next: (formSession) => (usesProducts(formSession) ? WHO_APPLIES_PAGE : '/address-activity')
+    next: pageAfterBusinessContact
   },
   // A page with a `section` keeps its answer under formSession[section] rather
   // than at the top level.
@@ -210,6 +234,21 @@ export const JOURNEY = {
   },
   [USING_QUANTITY_PAGE]: {
     section: USING_PPPS_KEY,
+    sessionKey: 'quantity',
+    next: pageAfterUsingPPPs
+  },
+  [PROCESSING_PRODUCTS_PAGE]: {
+    section: PROCESSING_PPPS_KEY,
+    sessionKey: 'products',
+    next: () => PROCESSING_SITES_PAGE
+  },
+  [PROCESSING_SITES_PAGE]: {
+    section: PROCESSING_PPPS_KEY,
+    sessionKey: 'sites',
+    next: () => PROCESSING_QUANTITY_PAGE
+  },
+  [PROCESSING_QUANTITY_PAGE]: {
+    section: PROCESSING_PPPS_KEY,
     sessionKey: 'quantity',
     next: () => CHECK_ANSWERS_PAGE
   },

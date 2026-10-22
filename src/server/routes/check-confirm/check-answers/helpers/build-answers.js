@@ -10,6 +10,9 @@ import { storingItems } from '#/server/routes/using-ppps/storing/items.js'
 import { storageLocationItems } from '#/server/routes/using-ppps/storage-location/items.js'
 import { usingQuantityText } from '#/server/routes/using-ppps/quantity/items.js'
 import { getUsingPPPsAnswers } from '#/server/common/helpers/using-ppps-answers.js'
+import { getProcessingPPPsAnswers } from '#/server/common/helpers/processing-ppps-answers.js'
+import { processingProductsItems } from '#/server/routes/processing-ppps/products/items.js'
+import { processingSitesItems } from '#/server/routes/processing-ppps/sites/items.js'
 import {
   additionalAddressLines,
   addressLines,
@@ -40,6 +43,8 @@ function memberSchemeLines(memberSchemes) {
 export function buildAnswers(formData = {}) {
   const contact = formData['primaryContact'] ?? {}
   const usingPPPs = getUsingPPPsAnswers(formData)
+  const processingPPPs = getProcessingPPPsAnswers(formData)
+  const processingQuantity = processingPPPs['quantity']
 
   return withValues({
     businessActivities: labelsFor(businessActivityItems, formData['businessActivities']),
@@ -66,6 +71,11 @@ export function buildAnswers(formData = {}) {
     storageContactTelephone: toLines(usingPPPs.storageContact?.['contactTelephone']),
     storageContactEmail: toLines(usingPPPs.storageContact?.['contactEmail']),
     usingQuantity: toLines(usingQuantityText(usingPPPs['quantity'])),
+    processingProducts: labelsFor(processingProductsItems, processingPPPs['products']),
+    processingSites: labelsFor(processingSitesItems, processingPPPs['sites']),
+    processingQuantity: toLines(
+      processingQuantity === undefined ? undefined : `${processingQuantity} kilograms or litres`
+    ),
     addressActivities: labelsFor(addressActivityItems, formData['addressActivities']),
     additionalAddresses: (formData['additionalAddresses'] ?? []).map((entry) => withValues(additionalAddressLines(entry)))
   })
