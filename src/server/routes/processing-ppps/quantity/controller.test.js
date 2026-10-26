@@ -36,6 +36,15 @@ describe('#processingQuantityController', () => {
       expect(page('.govuk-input__suffix').text().trim()).toBe('Kilograms or litres')
     })
 
+    // GOV.UK advises a plain text input for decimals, as inputmode="decimal"
+    // shows a keypad with no decimal point on some devices.
+    test('Should use a plain text input for the quantity, with spellcheck off', async () => {
+      const page = await revisitStep(server, { url })
+
+      expect(page('#quantity').attr('inputmode')).toBeUndefined()
+      expect(page('#quantity').attr('spellcheck')).toBe('false')
+    })
+
     test('Should tell the browser not to store the page', async () => {
       const { headers } = await server.inject({ method: 'GET', url })
 
