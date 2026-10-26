@@ -26,6 +26,9 @@ import { usingQuantity } from './using-ppps/quantity/index.js'
 import { processingProducts } from './processing-ppps/products/index.js'
 import { processingSites } from './processing-ppps/sites/index.js'
 import { processingQuantity } from './processing-ppps/quantity/index.js'
+import { distributeProducts } from './distribute/products/index.js'
+import { distributeSites } from './distribute/sites/index.js'
+import { distributeQuantity } from './distribute/quantity/index.js'
 import { addressActivity } from './qualifying-questions/address-activity/index.js'
 import { checkAnswers } from './check-confirm/check-answers/index.js'
 import { confirmation } from './check-confirm/confirmation/index.js'
@@ -65,6 +68,9 @@ export const routes = [
   processingProducts,
   processingSites,
   processingQuantity,
+  distributeProducts,
+  distributeSites,
+  distributeQuantity,
   addressActivity,
   checkAnswers,
   confirmation,

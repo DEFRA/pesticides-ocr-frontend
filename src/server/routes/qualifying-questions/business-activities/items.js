@@ -2,6 +2,7 @@ export const USING = 'using'
 export const PROCESSING = 'processing'
 export const ONLY_STORING = 'only-storing'
 export const SELLING = 'selling'
+export const DISTRIBUTING = 'distributing'
 
 export const businessActivityItems = [
   { value: USING, text: 'Using PPPs as part of your work' },
@@ -9,7 +10,7 @@ export const businessActivityItems = [
   { value: 'importing', text: 'Importing PPPs' },
   { value: PROCESSING, text: 'Processing PPPs' },
   { value: SELLING, text: 'Selling PPPs' },
-  { value: 'distributing', text: 'Distributing PPPs' },
+  { value: DISTRIBUTING, text: 'Distributing PPPs' },
   {
     value: ONLY_STORING,
     text: 'Only storing PPPs for other businesses',

@@ -358,4 +358,13 @@ describe('#buildAnswers', () => {
     expect(answers).not.toHaveProperty('processingSites')
     expect(answers).not.toHaveProperty('processingQuantity')
   })
+  test('Should give the distribute answers with their labels and the quantity unit', () => {
+    const answers = buildAnswers({
+      distributePPPs: { products: 'ppps', sites: '11-50', quantity: 75 }
+    })
+
+    expect(answers.distributeProducts).toEqual(['Plant protection products (PPPs) only'])
+    expect(answers.distributeSites).toEqual(['11 to 50'])
+    expect(answers.distributeQuantity).toEqual(['75 kilograms or litres'])
+  })
 })

@@ -1,6 +1,11 @@
 import { ADDRESS_SEARCH_PAGE } from '#/server/common/constants/address-pages.js'
-import { PROCESSING_PPPS_KEY, USING_PPPS_KEY } from '#/server/common/constants/session-keys.js'
 import {
+  DISTRIBUTE_PPPS_KEY,
+  PROCESSING_PPPS_KEY,
+  USING_PPPS_KEY
+} from '#/server/common/constants/session-keys.js'
+import {
+  DISTRIBUTING,
   PROCESSING,
   SELLING,
   USING
@@ -41,25 +46,43 @@ export const PROCESSING_PRODUCTS_PAGE = '/processing-ppps/products'
 export const PROCESSING_SITES_PAGE = '/processing-ppps/sites'
 export const PROCESSING_QUANTITY_PAGE = '/processing-ppps/quantity'
 
+// The distribute pages, for an organisation that distributes PPPs, after any
+// earlier activity sections it needs (see ACTIVITY_SECTIONS). Their answers are
+// under formSession.distributePPPs (see routes/distribute).
+export const DISTRIBUTE_PRODUCTS_PAGE = '/distribute/products'
+export const DISTRIBUTE_SITES_PAGE = '/distribute/sites'
+export const DISTRIBUTE_QUANTITY_PAGE = '/distribute/quantity'
+
 const onlySellsProducts = ({ businessActivities = [] }) =>
   businessActivities.length === 1 && businessActivities[0] === SELLING
 
-const usesProducts = ({ businessActivities = [] }) => businessActivities.includes(USING)
+// The activity sections, in the order the journey asks them: each is shown when
+// its business activity is ticked, after the earlier ones. The Manufacture,
+// Import and Sell sections will slot in here (Using, Manufacture, Import,
+// Process, Sell, Distribute) once they're built.
+const ACTIVITY_SECTIONS = [
+  { activity: USING, firstPage: WHO_APPLIES_PAGE },
+  { activity: PROCESSING, firstPage: PROCESSING_PRODUCTS_PAGE },
+  { activity: DISTRIBUTING, firstPage: DISTRIBUTE_PRODUCTS_PAGE }
+]
 
-const processesProducts = ({ businessActivities = [] }) => businessActivities.includes(PROCESSING)
+// The first page of the next ticked section after `afterActivity`'s (or of the
+// first ticked section, with no `afterActivity`), if there is one.
+function nextSectionPage({ businessActivities = [] }, afterActivity) {
+  const start = afterActivity
+    ? ACTIVITY_SECTIONS.findIndex(({ activity }) => activity === afterActivity) + 1
+    : 0
 
-function pageAfterBusinessContact(formSession) {
-  if (usesProducts(formSession)) {
-    return WHO_APPLIES_PAGE
-  }
-
-  return processesProducts(formSession) ? PROCESSING_PRODUCTS_PAGE : '/address-activity'
+  return ACTIVITY_SECTIONS.slice(start).find(({ activity }) => businessActivities.includes(activity))
+    ?.firstPage
 }
 
-// The end of the using PPPs pages: on to processing if the organisation does
-// that too.
-const pageAfterUsingPPPs = (formSession) =>
-  processesProducts(formSession) ? PROCESSING_PRODUCTS_PAGE : CHECK_ANSWERS_PAGE
+const pageAfterBusinessContact = (formSession) =>
+  nextSectionPage(formSession) ?? '/address-activity'
+
+// The end of a section: on to the next ticked section, or check answers.
+const pageAfterSection = (activity) => (formSession) =>
+  nextSectionPage(formSession, activity) ?? CHECK_ANSWERS_PAGE
 
 // professionalSectors holds the chosen sector values, or just the Other text.
 function worksIn(sector) {
@@ -215,7 +238,7 @@ export const JOURNEY = {
   [USING_QUANTITY_PAGE]: {
     section: USING_PPPS_KEY,
     sessionKey: 'quantity',
-    next: pageAfterUsingPPPs
+    next: pageAfterSection(USING)
   },
   [PROCESSING_PRODUCTS_PAGE]: {
     section: PROCESSING_PPPS_KEY,
@@ -229,6 +252,22 @@ export const JOURNEY = {
   },
   [PROCESSING_QUANTITY_PAGE]: {
     section: PROCESSING_PPPS_KEY,
+    sessionKey: 'quantity',
+    next: pageAfterSection(PROCESSING)
+  },
+  [DISTRIBUTE_PRODUCTS_PAGE]: {
+    section: DISTRIBUTE_PPPS_KEY,
+    sessionKey: 'products',
+    next: () => DISTRIBUTE_SITES_PAGE
+  },
+  [DISTRIBUTE_SITES_PAGE]: {
+    section: DISTRIBUTE_PPPS_KEY,
+    sessionKey: 'sites',
+    next: () => DISTRIBUTE_QUANTITY_PAGE
+  },
+  // Where the journey goes after the distribute pages isn't defined yet.
+  [DISTRIBUTE_QUANTITY_PAGE]: {
+    section: DISTRIBUTE_PPPS_KEY,
     sessionKey: 'quantity',
     next: () => CHECK_ANSWERS_PAGE
   },
