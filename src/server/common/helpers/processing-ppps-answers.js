@@ -1,6 +1,5 @@
+import { PROCESSING_PPPS_KEY } from '#/server/common/constants/session-keys.js'
 import { getSectionAnswers, setSectionAnswer } from './section-answers.js'
-
-export const PROCESSING_PPPS_KEY = 'processingPPPs'
 
 export const getProcessingPPPsAnswers = (formSession) =>
   getSectionAnswers(formSession, PROCESSING_PPPS_KEY)

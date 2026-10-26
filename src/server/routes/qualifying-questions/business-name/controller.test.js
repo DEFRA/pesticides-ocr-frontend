@@ -2,6 +2,7 @@ import { createServer } from '#/server/server.js'
 import { answerStep, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { injectWithSession } from '#/test-helpers/session-helpers.js'
+import { SELLING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 describe('#businessNameController', () => {
   let server
@@ -51,7 +52,7 @@ describe('#businessNameController', () => {
     test('Should redirect to the sell section when only selling PPPs', async () => {
       const cookie = await answerStep(server, {
         url: '/business-activities',
-        payload: { businessActivities: ['selling'] }
+        payload: { businessActivities: [SELLING] }
       })
 
       const { statusCode, headers } = await server.inject({
@@ -68,7 +69,7 @@ describe('#businessNameController', () => {
     test('Should redirect to business address when selling alongside other activities', async () => {
       const cookie = await answerStep(server, {
         url: '/business-activities',
-        payload: { businessActivities: ['selling', 'distributing'] }
+        payload: { businessActivities: [SELLING, 'distributing'] }
       })
 
       const { statusCode, headers } = await server.inject({
@@ -91,6 +92,41 @@ describe('#businessNameController', () => {
 
       expect(result).toEqual(expect.stringContaining('Enter a business name'))
       expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should show the enter message when the business name is only spaces', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/business-name',
+        payload: { businessName: '   ' }
+      })
+
+      expect(result).toEqual(expect.stringContaining('Enter a business name'))
+      expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should show an error when the business name is over 200 characters', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/business-name',
+        payload: { businessName: 'a'.repeat(201) }
+      })
+
+      expect(result).toEqual(
+        expect.stringContaining('Business or organisation name must be 200 characters or less')
+      )
+      expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should accept a business name of exactly 200 characters', async () => {
+      const { statusCode, headers } = await injectWithSession(server, {
+        method: 'POST',
+        url: '/business-name',
+        payload: { businessName: 'a'.repeat(200) }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/business-address')
     })
   })
 

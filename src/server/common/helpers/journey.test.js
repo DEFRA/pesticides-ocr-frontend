@@ -1,8 +1,10 @@
 import * as journey from './journey.js'
-import { USING_PPPS_KEY } from './using-ppps-answers.js'
+import { USING_PPPS_KEY } from '#/server/common/constants/session-keys.js'
 import {
   ONLY_STORING,
-  SELLING
+  PROCESSING,
+  SELLING,
+  USING
 } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 // Most tests write the using PPPs answers alongside the others, for
@@ -71,7 +73,7 @@ describe('#journey', () => {
 
   // Uses PPPs as part of its work, answered up to the business contact.
   const appliesProducts = {
-    businessActivities: ['using'],
+    businessActivities: [USING],
     businessName: 'Pesticides Ltd',
     address: { addressLine1: 'Lower Meadow Barn' },
     primaryContact: { contactName: 'Jo Bloggs' }
@@ -95,8 +97,8 @@ describe('#journey', () => {
       ['/business-name', { businessActivities: [SELLING] }, '/sell'],
       ['/business-name', { businessActivities: [SELLING, 'distributing'] }, '/business-address'],
       ['/business-name', { businessActivities: [ONLY_STORING] }, '/business-address'],
-      ['/business-contact', { businessActivities: ['using'] }, '/using-ppps/who-applies'],
-      ['/business-contact', { businessActivities: ['using', SELLING] }, '/using-ppps/who-applies'],
+      ['/business-contact', { businessActivities: [USING] }, '/using-ppps/who-applies'],
+      ['/business-contact', { businessActivities: [USING, SELLING] }, '/using-ppps/who-applies'],
       ['/business-contact', { businessActivities: ['distributing'] }, '/address-activity'],
       ['/business-contact', { businessActivities: [ONLY_STORING] }, '/address-activity'],
       ['/business-contact', {}, '/address-activity'],
@@ -187,7 +189,7 @@ describe('#journey', () => {
     })
 
     test('Should ask who applies PPPs even when later answers are already held', () => {
-      expect(findFirstMissingPage({ ...usesAtAddress, businessActivities: ['using'] })).toBe(
+      expect(findFirstMissingPage({ ...usesAtAddress, businessActivities: [USING] })).toBe(
         '/using-ppps/who-applies'
       )
     })
@@ -210,7 +212,7 @@ describe('#journey', () => {
 
     test('Should stop at the PPP sectors even when later answers are already held', () => {
       expect(
-        findFirstMissingPage({ ...usesAtAddress, businessActivities: ['using'], whoApplies: 'self' })
+        findFirstMissingPage({ ...usesAtAddress, businessActivities: [USING], whoApplies: 'self' })
       ).toBe('/using-ppps/ppp-sectors')
     })
 
@@ -688,7 +690,7 @@ describe('#journey', () => {
       (whoApplies, answers) => {
         const formSession = {
           ...usesAtAddress,
-          businessActivities: ['using'],
+          businessActivities: [USING],
           whoApplies,
           ...answers,
           additionalAddresses
@@ -699,7 +701,7 @@ describe('#journey', () => {
     )
 
     test('Should keep the later answers while who applies PPPs is unanswered', () => {
-      const formSession = { ...usesAtAddress, businessActivities: ['using'], additionalAddresses }
+      const formSession = { ...usesAtAddress, businessActivities: [USING], additionalAddresses }
 
       expect(removeSkippedAnswers(formSession)).toEqual(formSession)
     })
@@ -822,7 +824,7 @@ describe('#journey', () => {
   })
   describe('#using PPPs answers', () => {
     const answeredToContact = {
-      businessActivities: ['using'],
+      businessActivities: [USING],
       businessName: 'Pesticides Ltd',
       address: { addressLine1: 'Lower Meadow Barn' },
       primaryContact: { contactName: 'Jo Bloggs' }
@@ -874,7 +876,7 @@ describe('#journey', () => {
       address: { addressLine1: 'Lower Meadow Barn' },
       primaryContact: { contactName: 'Jo Bloggs' }
     }
-    const processes = { ...answeredToContact, businessActivities: ['processing'] }
+    const processes = { ...answeredToContact, businessActivities: [PROCESSING] }
     const processingPPPs = { products: 'both', sites: '11-50', quantity: 250 }
     const usingPPPs = { whoApplies: 'self', professionalSectors: ['forestry'], storing: 'no', quantity: '1-29' }
 
@@ -895,7 +897,7 @@ describe('#journey', () => {
     })
 
     test('Should ask the using PPPs pages first, then processing, when both are ticked', () => {
-      const both = { ...answeredToContact, businessActivities: ['using', 'processing'] }
+      const both = { ...answeredToContact, businessActivities: [USING, PROCESSING] }
 
       expect(journey.getNextPage('/business-contact', both)).toBe('/using-ppps/who-applies')
       expect(journey.findFirstMissingPage({ ...both, usingPPPs })).toBe('/processing-ppps/products')
@@ -909,14 +911,14 @@ describe('#journey', () => {
 
     test('Should go from the using PPPs quantity to check answers when not processing', () => {
       expect(
-        journey.findFirstMissingPage({ ...answeredToContact, businessActivities: ['using'], usingPPPs })
+        journey.findFirstMissingPage({ ...answeredToContact, businessActivities: [USING], usingPPPs })
       ).toBe('/check-answers')
     })
 
     test('Should remove the processing answers once processing is no longer ticked', () => {
       const formSession = journey.removeSkippedAnswers({
         ...answeredToContact,
-        businessActivities: ['using'],
+        businessActivities: [USING],
         usingPPPs,
         processingPPPs
       })

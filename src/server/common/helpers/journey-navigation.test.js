@@ -1,4 +1,5 @@
 import { getBackLink, getFormAction, redirectToNextPage } from './journey-navigation.js'
+import { USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 describe('#journeyNavigation', () => {
   const answeredJourney = {
@@ -63,7 +64,7 @@ describe('#journeyNavigation', () => {
     })
 
     test('Should go to the first missing page in change mode when an answer opens a branch', () => {
-      const store = { formSession: { ...answeredJourney, businessActivities: ['using'] } }
+      const store = { formSession: { ...answeredJourney, businessActivities: [USING] } }
       const request = createRequest({ path: '/business-activities', query: { change: 'true' }, store })
 
       expect(redirectToNextPage(request, h, '/business-name')).toEqual({

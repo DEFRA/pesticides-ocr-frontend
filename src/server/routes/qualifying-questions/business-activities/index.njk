@@ -18,7 +18,6 @@
 
     <form method="post" action="{{ formAction }}" novalidate>
 
-      {# A single value is posted as a string, which the macro's "in" check would match as a substring. #}
       {{ govukCheckboxes({
         name: "businessActivities",
         fieldset: {
@@ -32,7 +31,7 @@
         },
         errorMessage: errors["businessActivities"] if errors["businessActivities"],
         items: items,
-        values: ([values["businessActivities"]] if values["businessActivities"] is string else values["businessActivities"]) if values
+        values: values["businessActivities"] | asList if values
       }) }}
 
       {{ govukButton({

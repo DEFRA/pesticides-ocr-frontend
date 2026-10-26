@@ -4,7 +4,7 @@ import { createServer } from '#/server/server.js'
 import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { injectWithSession } from '#/test-helpers/session-helpers.js'
-import { ONLY_STORING, SELLING } from './items.js'
+import { ONLY_STORING, PROCESSING, SELLING, USING } from './items.js'
 
 describe('#businessActivitiesController', () => {
   let server
@@ -89,7 +89,7 @@ describe('#businessActivitiesController', () => {
   describe('POST /business-activities', () => {
     test.each([
       [['manufacturing']],
-      [['using', SELLING, 'distributing']],
+      [[USING, SELLING, 'distributing']],
       [[ONLY_STORING]]
     ])('Should redirect to the business name page for %o', async (businessActivities) => {
       const { statusCode, headers } = await injectWithSession(server, {
@@ -162,12 +162,12 @@ describe('#businessActivitiesController', () => {
     test('Should check the activities held in the session', async () => {
       const cookie = await answerStep(server, {
         url,
-        payload: { businessActivities: ['manufacturing', 'processing'] }
+        payload: { businessActivities: ['manufacturing', PROCESSING] }
       })
 
       const page = await revisitStep(server, { url, cookie })
 
-      expect(checkedValues(page, 'businessActivities')).toEqual(['manufacturing', 'processing'])
+      expect(checkedValues(page, 'businessActivities')).toEqual(['manufacturing', PROCESSING])
     })
 
     test('Should check nothing when no activities are held in the session', async () => {

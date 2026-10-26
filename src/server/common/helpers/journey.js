@@ -1,7 +1,11 @@
 import { ADDRESS_SEARCH_PAGE } from '#/server/common/constants/address-pages.js'
-import { SELLING } from '#/server/routes/qualifying-questions/business-activities/items.js'
-import { USING_PPPS_KEY, getUsingPPPsAnswers } from './using-ppps-answers.js'
-import { PROCESSING_PPPS_KEY } from './processing-ppps-answers.js'
+import { PROCESSING_PPPS_KEY, USING_PPPS_KEY } from '#/server/common/constants/session-keys.js'
+import {
+  PROCESSING,
+  SELLING,
+  USING
+} from '#/server/routes/qualifying-questions/business-activities/items.js'
+import { getUsingPPPsAnswers } from './using-ppps-answers.js'
 
 const FIRST_PAGE = '/business-activities'
 export const CHECK_ANSWERS_PAGE = '/check-answers'
@@ -40,9 +44,9 @@ export const PROCESSING_QUANTITY_PAGE = '/processing-ppps/quantity'
 const onlySellsProducts = ({ businessActivities = [] }) =>
   businessActivities.length === 1 && businessActivities[0] === SELLING
 
-const usesProducts = ({ businessActivities = [] }) => businessActivities.includes('using')
+const usesProducts = ({ businessActivities = [] }) => businessActivities.includes(USING)
 
-const processesProducts = ({ businessActivities = [] }) => businessActivities.includes('processing')
+const processesProducts = ({ businessActivities = [] }) => businessActivities.includes(PROCESSING)
 
 function pageAfterBusinessContact(formSession) {
   if (usesProducts(formSession)) {

@@ -10,6 +10,7 @@ import {
   sessionResponseToolkit
 } from '#/test-helpers/session-helpers.js'
 import { post } from './controller.js'
+import { USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 describe('#contractorAddressController', () => {
   let server
@@ -43,7 +44,7 @@ describe('#contractorAddressController', () => {
     const answer = (path, payload) =>
       server.inject({ method: 'POST', url: path, headers: { cookie }, payload })
 
-    await answer('/business-activities', { businessActivities: ['using'] })
+    await answer('/business-activities', { businessActivities: [USING] })
     await answer('/business-name', { businessName: 'Pesticides Ltd' })
     await answer('/business-address', { addressPostcode: 'LS1 1AA', addressBuilding: 'Lower Meadow Barn' })
     await answer('/business-address/select', { address: '0' })

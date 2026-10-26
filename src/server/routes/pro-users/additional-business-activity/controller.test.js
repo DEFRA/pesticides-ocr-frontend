@@ -1,3 +1,5 @@
+import { load } from 'cheerio'
+
 import { createServer } from '#/server/server.js'
 import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
@@ -92,6 +94,13 @@ describe('#additionalBusinessActivityController', () => {
       expect(result).toEqual(
         expect.stringContaining('Select at least one address activity')
       )
+    })
+
+    test('Should not tick an option whose value is part of a single rejected value', async () => {
+      const { statusCode, result } = await postActivity({ addressActivities: 'store-x' })
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(checkedValues(load(result), 'addressActivities')).toEqual([])
     })
 
     test('Should return view with error message when an unknown value is sent', async () => {

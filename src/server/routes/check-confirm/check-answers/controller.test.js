@@ -11,6 +11,7 @@ import {
   OWN_STORAGE_ADDRESS_PAGE,
   OWN_STORAGE_ADDRESS_SELECT_PAGE
 } from '#/server/common/helpers/journey.js'
+import { ONLY_STORING, SELLING, USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 describe('#checkAnswersController', () => {
   let server
@@ -113,7 +114,7 @@ describe('#checkAnswersController', () => {
         server.inject({ method: 'POST', url, headers: { cookie }, payload })
 
       await answer('/business-activities', {
-        businessActivities: ['manufacturing', 'selling']
+        businessActivities: ['manufacturing', SELLING]
       })
       await answer('/address-activity', { addressActivities: ['store'] })
       await answer('/using-ppps/storing', { storing: 'third-party' })
@@ -328,6 +329,24 @@ describe('#checkAnswersController', () => {
         rows.map((_index, row) => page(row).find('.govuk-summary-list__value').text().trim()).get()
       ).toEqual(['Both PPPs and ingredients or adjuvants', '51 to 200', '300 kilograms or litres'])
       expect(rows.first().find('a').attr('href')).toBe('/processing-ppps/products?change=true')
+    })
+
+    test('Should show a small processing quantity as entered, not in exponent form', async () => {
+      const cookie = await getSessionCookie(server, '/processing-ppps/products')
+      const answer = answerAs(cookie)
+
+      await answer('/processing-ppps/products', { products: 'both' })
+      await answer('/processing-ppps/sites', { sites: '51-200' })
+      await answer('/processing-ppps/quantity', { quantity: '0.07' })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const quantityRow = page('.govuk-summary-list__row').filter(
+        (_index, row) => page(row).find('dt').text().trim() === 'Estimated annual quantity'
+      )
+
+      expect(quantityRow.find('.govuk-summary-list__value').text().trim()).toBe(
+        '0.07 kilograms or litres'
+      )
     })
 
     test('Should not show the processing section without processing answers', async () => {
@@ -958,7 +977,7 @@ describe('#checkAnswersController', () => {
       const fetchSpy = stubBackend(created())
       const cookie = await getSessionCookie(server, '/business-activities')
 
-      await answerAs(cookie)('/business-activities', { businessActivities: ['selling'] })
+      await answerAs(cookie)('/business-activities', { businessActivities: [SELLING] })
       const { statusCode, headers } = await submit(cookie)
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -1160,7 +1179,7 @@ describe('#checkAnswersController', () => {
       const cookie = await completeJourney(server)
 
       const activities = await submit('/business-activities?change=true', cookie, {
-        businessActivities: ['using']
+        businessActivities: [USING]
       })
       const whoApplies = await submit('/using-ppps/who-applies?change=true', cookie, { whoApplies: 'self' })
       const sectors = await submit('/using-ppps/ppp-sectors?change=true', cookie, {
@@ -1183,7 +1202,7 @@ describe('#checkAnswersController', () => {
       const cookie = await completeJourney(server)
 
       const { headers } = await submit('/business-activities?change=true', cookie, {
-        businessActivities: ['only-storing']
+        businessActivities: [ONLY_STORING]
       })
 
       expect(headers.location).toBe('/check-answers')

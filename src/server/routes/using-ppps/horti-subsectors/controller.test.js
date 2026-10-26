@@ -4,6 +4,7 @@ import { createServer } from '#/server/server.js'
 import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie, injectWithSession } from '#/test-helpers/session-helpers.js'
+import { USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 const url = '/using-ppps/horti-subsectors'
 const question = 'What horticultural sectors do you apply PPPs in?'
@@ -65,7 +66,7 @@ describe('#hortiSubsectorsController', () => {
       const cookie = await getSessionCookie(server, '/business-activities')
       const answer = (path, payload) => answerStep(server, { url: path, payload, cookie })
 
-      await answer('/business-activities', { businessActivities: ['using'] })
+      await answer('/business-activities', { businessActivities: [USING] })
       await answer('/business-name', { businessName: 'Pesticides Ltd' })
       await answer('/business-address', {
         addressPostcode: 'LS1 1AA',
