@@ -5,7 +5,9 @@ export const ADDRESS_SEARCH_KEY = 'addressSearch'
 // The same, for the own storage address.
 export const OWN_STORAGE_ADDRESS_SEARCH_KEY = 'ownStorageAddressSearch'
 
-// The sections of `formSession` that hold the using, processing and distribute PPPs answers.
+// The sections of `formSession` that hold the using, processing, distribute and
+// storing PPPs answers.
 export const USING_PPPS_KEY = 'usingPPPs'
 export const PROCESSING_PPPS_KEY = 'processingPPPs'
 export const DISTRIBUTE_PPPS_KEY = 'distributePPPs'
+export const STORE_PPPS_KEY = 'storePPPs'

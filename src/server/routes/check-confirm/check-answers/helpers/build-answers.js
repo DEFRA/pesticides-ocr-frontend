@@ -16,6 +16,9 @@ import { processingSitesItems } from '#/server/routes/processing-ppps/sites/item
 import { getDistributePPPsAnswers } from '#/server/common/helpers/distribute-ppps-answers.js'
 import { distributeProductsItems } from '#/server/routes/distribute/products/items.js'
 import { distributeSitesItems } from '#/server/routes/distribute/sites/items.js'
+import { getStorePPPsAnswers } from '#/server/common/helpers/store-ppps-answers.js'
+import { storeProductsItems } from '#/server/routes/storing/products/items.js'
+import { storeSitesItems } from '#/server/routes/storing/sites/items.js'
 import {
   additionalAddressLines,
   addressLines,
@@ -52,6 +55,7 @@ export function buildAnswers(formData = {}) {
   const usingPPPs = getUsingPPPsAnswers(formData)
   const processingPPPs = getProcessingPPPsAnswers(formData)
   const distributePPPs = getDistributePPPsAnswers(formData)
+  const storePPPs = getStorePPPsAnswers(formData)
 
   return withValues({
     businessActivities: labelsFor(businessActivityItems, formData['businessActivities']),
@@ -84,6 +88,9 @@ export function buildAnswers(formData = {}) {
     distributeProducts: labelsFor(distributeProductsItems, distributePPPs['products']),
     distributeSites: labelsFor(distributeSitesItems, distributePPPs['sites']),
     distributeQuantity: annualQuantityLines(distributePPPs['quantity']),
+    storeProducts: labelsFor(storeProductsItems, storePPPs['products']),
+    storeSites: labelsFor(storeSitesItems, storePPPs['sites']),
+    storeQuantity: annualQuantityLines(storePPPs['quantity']),
     addressActivities: labelsFor(addressActivityItems, formData['addressActivities']),
     additionalAddresses: (formData['additionalAddresses'] ?? []).map((entry) => withValues(additionalAddressLines(entry)))
   })

@@ -197,6 +197,28 @@
           ]
         }) }}
       {% endif %}
+      {% if answers.storeProducts or answers.storeSites or answers.storeQuantity %}
+        <h2 class="govuk-heading-m">PPP storage details</h2>
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "Products stored" },
+              value: { html: appAnswerList({ values: answers.storeProducts }) },
+              actions: { items: [{ href: "/storing/products?change=true", text: "Change", visuallyHiddenText: "products stored" }] }
+            } if answers.storeProducts,
+            {
+              key: { text: "Storage sites" },
+              value: { html: appAnswerList({ values: answers.storeSites }) },
+              actions: { items: [{ href: "/storing/sites?change=true", text: "Change", visuallyHiddenText: "storage sites" }] }
+            } if answers.storeSites,
+            {
+              key: { text: "Estimated annual quantity" },
+              value: { html: appAnswerList({ values: answers.storeQuantity }) },
+              actions: { items: [{ href: "/storing/quantity?change=true", text: "Change", visuallyHiddenText: "estimated annual quantity" }] }
+            } if answers.storeQuantity
+          ]
+        }) }}
+      {% endif %}
 
       {% if answers.additionalAddresses or canAddAdditionalAddresses %}
         <h2 class="govuk-heading-m">Additional addresses</h2>

@@ -367,4 +367,11 @@ describe('#buildAnswers', () => {
     expect(answers.distributeSites).toEqual(['11 to 50'])
     expect(answers.distributeQuantity).toEqual(['75 kilograms or litres'])
   })
+  test('Should give the store answers with their labels and the quantity unit', () => {
+    const answers = buildAnswers({ storePPPs: { products: 'both', sites: '1-10', quantity: 12 } })
+
+    expect(answers.storeProducts).toEqual(['Both PPPs and ingredients or adjuvants'])
+    expect(answers.storeSites).toEqual(['1 to 10'])
+    expect(answers.storeQuantity).toEqual(['12 kilograms or litres'])
+  })
 })
