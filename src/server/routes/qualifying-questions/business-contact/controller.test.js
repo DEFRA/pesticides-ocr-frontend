@@ -3,6 +3,7 @@ import { load } from 'cheerio'
 import { answerStep, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { injectWithSession } from '#/test-helpers/session-helpers.js'
+import { SELLING, USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 describe('#businessContactController', () => {
   let server
@@ -69,7 +70,7 @@ describe('#businessContactController', () => {
     test('Should redirect to who applies page when the business uses PPPs', async () => {
       const cookie = await answerStep(server, {
         url: '/business-activities',
-        payload: { businessActivities: ['using', 'selling'] }
+        payload: { businessActivities: [USING, SELLING] }
       })
 
       const { statusCode, headers } = await server.inject({
@@ -90,7 +91,7 @@ describe('#businessContactController', () => {
     test('Should redirect to address activity page when the business does not use PPPs', async () => {
       const cookie = await answerStep(server, {
         url: '/business-activities',
-        payload: { businessActivities: ['selling', 'distributing'] }
+        payload: { businessActivities: [SELLING, 'distributing'] }
       })
 
       const { statusCode, headers } = await server.inject({
@@ -123,6 +124,28 @@ describe('#businessContactController', () => {
       expect(result).toEqual(expect.stringContaining('Enter a telephone number'))
       expect(result).toEqual(expect.stringContaining('Enter an email address'))
       expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test.each([
+      ['contactTelephone', 'Enter a telephone number'],
+      ['contactEmail', 'Enter an email address']
+    ])('Should show the enter message when %s is missing', async (field, message) => {
+      const payload = {
+        contactName: 'John Smith',
+        contactTelephone: '01234 567890',
+        contactEmail: 'John.Smith@pesticides.co.uk'
+      }
+      delete payload[field]
+
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/business-contact',
+        payload
+      })
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(result).toEqual(expect.stringContaining(message))
+      expect(result).not.toEqual(expect.stringContaining('is required'))
     })
 
     test('Should show an error for a telephone number with invalid characters', async () => {
@@ -235,6 +258,17 @@ describe('#businessContactController', () => {
       Object.keys(contact).forEach((field) => {
         expect(page(`#${field}`).val()).toBeFalsy()
       })
+    })
+
+    test('Should accept a padded email address and save it trimmed', async () => {
+      const cookie = await answerStep(server, {
+        url,
+        payload: { ...contact, contactEmail: ' jo@example.com ' }
+      })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(page('#contactEmail').val()).toBe('jo@example.com')
     })
 
     test('Should save the contact without a job title or role when none is given', async () => {

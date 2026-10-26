@@ -1,3 +1,5 @@
+import { load } from 'cheerio'
+
 import { createServer } from '#/server/server.js'
 import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
@@ -80,6 +82,17 @@ describe('#addressActivityController', () => {
 
       expect(result).toEqual(expect.stringContaining('Select at least one address activity'))
       expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should not tick an option whose value is part of a single rejected value', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/address-activity',
+        payload: { addressActivities: 'store-x' }
+      })
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(checkedValues(load(result), 'addressActivities')).toEqual([])
     })
   })
 

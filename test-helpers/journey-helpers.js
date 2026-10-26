@@ -1,6 +1,7 @@
 import { load } from 'cheerio'
 
 import { getSessionCookie } from './session-helpers.js'
+import { USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 export async function answerStep(server, { url, payload, cookie }) {
   const sessionCookie = cookie ?? (await getSessionCookie(server, url))
@@ -41,7 +42,7 @@ export async function answerUpToStoring(server, cookie) {
   const answer = (url, payload) =>
     server.inject({ method: 'POST', url, headers: { cookie: sessionCookie }, payload })
 
-  await answer('/business-activities', { businessActivities: ['using'] })
+  await answer('/business-activities', { businessActivities: [USING] })
   await answer('/business-name', { businessName: 'Pesticides Ltd' })
   await answer('/business-address', { addressPostcode: 'LS1 1AA', addressBuilding: 'Lower Meadow Barn' })
   await answer('/business-address/select', { address: '0' })

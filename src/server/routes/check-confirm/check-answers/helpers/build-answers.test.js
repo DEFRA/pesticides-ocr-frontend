@@ -1,9 +1,10 @@
 import { buildAnswers } from './build-answers.js'
+import { ONLY_STORING, SELLING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 describe('#buildAnswers', () => {
   test('Should map coded answers to the labels used on the question pages', () => {
     const answers = buildAnswers({
-      businessActivities: ['selling', 'manufacturing'],
+      businessActivities: [SELLING, 'manufacturing'],
       addressActivities: ['store']
     })
 
@@ -17,7 +18,7 @@ describe('#buildAnswers', () => {
   })
 
   test('Should label the exclusive only storing activity', () => {
-    expect(buildAnswers({ businessActivities: ['only-storing'] }).businessActivities).toEqual([
+    expect(buildAnswers({ businessActivities: [ONLY_STORING] }).businessActivities).toEqual([
       'Only storing PPPs for other businesses'
     ])
   })

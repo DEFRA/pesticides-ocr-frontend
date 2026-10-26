@@ -22,11 +22,13 @@ export const contactFields = () => ({
     .pattern(/^[0-9+()\- ]+$/)
     .required()
     .messages({
+      'any.required': 'Enter a telephone number',
       'string.empty': 'Enter a telephone number',
       'string.max': 'Telephone number must be 20 characters or less',
       'string.pattern.base': 'Enter a valid telephone number'
     }),
-  contactEmail: Joi.string().max(EMAIL_MAX_LENGTH).email().required().messages({
+  contactEmail: Joi.string().trim().max(EMAIL_MAX_LENGTH).email().required().messages({
+    'any.required': 'Enter an email address',
     'string.empty': 'Enter an email address',
     'string.max': 'Email address must be 254 characters or less',
     'string.email': 'Enter a valid email address'

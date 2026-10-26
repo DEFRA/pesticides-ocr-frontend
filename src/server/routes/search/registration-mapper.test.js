@@ -1,4 +1,5 @@
 import { toOperatorView } from './registration-mapper.js'
+import { ONLY_STORING, USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 // A representative stored registration, as the backend's /search returns it.
 // Dates arrive as ISO strings over the wire rather than as Date objects.
@@ -82,7 +83,7 @@ describe('toOperatorView', () => {
   test('uses the journey label for every business activity', () => {
     const operator = toOperatorView({
       ...storedDoc,
-      businessActivities: ['using', 'only-storing']
+      businessActivities: [USING, ONLY_STORING]
     })
 
     expect(operator.activities).toEqual([

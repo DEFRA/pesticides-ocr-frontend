@@ -139,6 +139,19 @@ describe('#storageContactController', () => {
       expect(statusCode).toBe(statusCodes.ok)
       expect(result).toEqual(expect.stringContaining(message))
     })
+
+    test.each([
+      ['contactTelephone', 'Enter a telephone number'],
+      ['contactEmail', 'Enter an email address']
+    ])('Should show the enter message when %s is missing', async (field, message) => {
+      const { [field]: _omitted, ...payload } = contact
+
+      const { result, statusCode } = await server.inject({ method: 'POST', url, payload })
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(result).toEqual(expect.stringContaining(message))
+      expect(result).not.toEqual(expect.stringContaining('is required'))
+    })
   })
 
   describe('Pre-populating from the session', () => {
@@ -150,6 +163,17 @@ describe('#storageContactController', () => {
       Object.entries(contact).forEach(([field, value]) => {
         expect(page(`#${field}`).val()).toBe(value)
       })
+    })
+
+    test('Should accept a padded email address and save it trimmed', async () => {
+      const cookie = await answerStep(server, {
+        url,
+        payload: { ...contact, contactEmail: ' sam@example.com ' }
+      })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(page('#contactEmail').val()).toBe('sam@example.com')
     })
 
     test('Should tell the browser not to store the page', async () => {

@@ -1,3 +1,4 @@
+import { load } from 'cheerio'
 import { createServer } from '#/server/server.js'
 import { answerStep, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
@@ -6,6 +7,8 @@ import { injectWithSession } from '#/test-helpers/session-helpers.js'
 const url = '/processing-ppps/quantity'
 const question =
   'What is the overall volume of PPPs, ingredients and adjuvants your business processes in a typical year?'
+const tooLargeMessage = 'Estimated annual quantity is too large. Check you have entered it correctly'
+const decimalPlacesMessage = 'Estimated annual quantity must have no more than 2 decimal places'
 
 describe('#processingQuantityController', () => {
   let server
@@ -41,7 +44,7 @@ describe('#processingQuantityController', () => {
   })
 
   describe('POST /processing-ppps/quantity', () => {
-    test.each([['250'], ['0.5'], [' 1200 ']])('Should go on to check answers for %o', async (quantity) => {
+    test.each([['250'], ['0.5'], [' 1200 '], ['0.07'], ['0.01'], ['12.5']])('Should go on to check answers for %o', async (quantity) => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url,
@@ -57,12 +60,18 @@ describe('#processingQuantityController', () => {
       [{ quantity: '' }, 'Enter the estimated annual quantity'],
       [{ quantity: 'lots' }, 'Estimated annual quantity must be a number greater than 0'],
       [{ quantity: '0' }, 'Estimated annual quantity must be a number greater than 0'],
-      [{ quantity: '-5' }, 'Estimated annual quantity must be a number greater than 0']
+      [{ quantity: '-5' }, 'Estimated annual quantity must be a number greater than 0'],
+      [{ quantity: '9007199254740993' }, tooLargeMessage],
+      [{ quantity: '1e308' }, tooLargeMessage],
+      [{ quantity: '0.0000001' }, decimalPlacesMessage],
+      [{ quantity: '1.234' }, decimalPlacesMessage]
     ])('Should show an error for %o', async (payload, message) => {
       const { result, statusCode } = await server.inject({ method: 'POST', url, payload })
+      const page = load(result)
 
       expect(statusCode).toBe(statusCodes.ok)
-      expect(result).toEqual(expect.stringContaining(message))
+      expect(page('.govuk-error-summary__list a[href="#quantity"]').text().trim()).toBe(message)
+      expect(page('#quantity-error').text()).toEqual(expect.stringContaining(message))
     })
 
     test('Should keep what was typed when it is not valid', async () => {
