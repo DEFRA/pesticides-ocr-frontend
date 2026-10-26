@@ -3,7 +3,7 @@ import { USING } from '#/server/routes/qualifying-questions/business-activities/
 
 describe('#journeyNavigation', () => {
   const answeredJourney = {
-    businessActivities: ['distributing'],
+    businessActivities: ['only-storing'],
     businessName: 'Pesticides Ltd',
     address: { addressLine1: 'Lower Meadow Barn' },
     primaryContact: { contactName: 'Jo Bloggs' },

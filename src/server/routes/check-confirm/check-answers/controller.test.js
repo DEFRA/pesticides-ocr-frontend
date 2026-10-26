@@ -56,7 +56,7 @@ describe('#checkAnswersController', () => {
     const cookie = await getSessionCookie(server, '/business-activities')
     const answer = answerAs(cookie)
 
-    await answer('/business-activities', { businessActivities: ['distributing'] })
+    await answer('/business-activities', { businessActivities: ['only-storing'] })
     await answer('/business-name', { businessName: 'Pesticides Ltd' })
     await answer('/business-address', { addressPostcode: 'LS1 1AA', addressBuilding: 'Lower Meadow Barn' })
     await answer('/business-address/select', { address: '0' })
@@ -347,6 +347,31 @@ describe('#checkAnswersController', () => {
       expect(quantityRow.find('.govuk-summary-list__value').text().trim()).toBe(
         '0.07 kilograms or litres'
       )
+    })
+
+    test('Should show the distribute answers in their own section', async () => {
+      const cookie = await getSessionCookie(server, '/distribute/products')
+      const answer = answerAs(cookie)
+
+      await answer('/distribute/products', { products: 'ingredients' })
+      await answer('/distribute/sites', { sites: '201-400' })
+      await answer('/distribute/quantity', { quantity: '40' })
+
+      const page = load((await loadAnswers(cookie)).result)
+      const rows = page('h2')
+        .filter((_index, element) => page(element).text().trim() === 'PPP distribution details')
+        .next('.govuk-summary-list')
+        .find('.govuk-summary-list__row')
+
+      expect(rows.map((_index, row) => page(row).find('dt').text().trim()).get()).toEqual([
+        'Products distributed',
+        'Distribution sites',
+        'Estimated annual quantity'
+      ])
+      expect(
+        rows.map((_index, row) => page(row).find('.govuk-summary-list__value').text().trim()).get()
+      ).toEqual(['Ingredients or adjuvants only', '201 to 400', '40 kilograms or litres'])
+      expect(rows.last().find('a').attr('href')).toBe('/distribute/quantity?change=true')
     })
 
     test('Should not show the processing section without processing answers', async () => {
@@ -911,7 +936,7 @@ describe('#checkAnswersController', () => {
       expect(options.headers).toEqual({ 'Content-Type': 'application/json' })
       expect(JSON.parse(options.body)).toEqual(
         expect.objectContaining({
-          businessActivities: ['distributing'],
+          businessActivities: ['only-storing'],
           businessName: 'Pesticides Ltd'
         })
       )
@@ -1240,7 +1265,7 @@ describe('#checkAnswersController', () => {
       const withQuantity = await loadAnswers(cookie)
 
       await submit('/business-activities?change=true', cookie, {
-        businessActivities: ['distributing']
+        businessActivities: ['only-storing']
       })
       const withoutQuantity = await loadAnswers(cookie)
 

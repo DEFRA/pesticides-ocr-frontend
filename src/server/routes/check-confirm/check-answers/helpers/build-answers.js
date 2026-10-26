@@ -13,6 +13,9 @@ import { getUsingPPPsAnswers } from '#/server/common/helpers/using-ppps-answers.
 import { getProcessingPPPsAnswers } from '#/server/common/helpers/processing-ppps-answers.js'
 import { processingProductsItems } from '#/server/routes/processing-ppps/products/items.js'
 import { processingSitesItems } from '#/server/routes/processing-ppps/sites/items.js'
+import { getDistributePPPsAnswers } from '#/server/common/helpers/distribute-ppps-answers.js'
+import { distributeProductsItems } from '#/server/routes/distribute/products/items.js'
+import { distributeSitesItems } from '#/server/routes/distribute/sites/items.js'
 import {
   additionalAddressLines,
   addressLines,
@@ -40,11 +43,15 @@ function memberSchemeLines(memberSchemes) {
   return labels.length > 0 ? labels : ['None']
 }
 
+// An estimated annual quantity, entered as a number of kilograms or litres.
+const annualQuantityLines = (quantity) =>
+  toLines(quantity === undefined ? undefined : `${quantity} kilograms or litres`)
+
 export function buildAnswers(formData = {}) {
   const contact = formData['primaryContact'] ?? {}
   const usingPPPs = getUsingPPPsAnswers(formData)
   const processingPPPs = getProcessingPPPsAnswers(formData)
-  const processingQuantity = processingPPPs['quantity']
+  const distributePPPs = getDistributePPPsAnswers(formData)
 
   return withValues({
     businessActivities: labelsFor(businessActivityItems, formData['businessActivities']),
@@ -73,9 +80,10 @@ export function buildAnswers(formData = {}) {
     usingQuantity: toLines(usingQuantityText(usingPPPs['quantity'])),
     processingProducts: labelsFor(processingProductsItems, processingPPPs['products']),
     processingSites: labelsFor(processingSitesItems, processingPPPs['sites']),
-    processingQuantity: toLines(
-      processingQuantity === undefined ? undefined : `${processingQuantity} kilograms or litres`
-    ),
+    processingQuantity: annualQuantityLines(processingPPPs['quantity']),
+    distributeProducts: labelsFor(distributeProductsItems, distributePPPs['products']),
+    distributeSites: labelsFor(distributeSitesItems, distributePPPs['sites']),
+    distributeQuantity: annualQuantityLines(distributePPPs['quantity']),
     addressActivities: labelsFor(addressActivityItems, formData['addressActivities']),
     additionalAddresses: (formData['additionalAddresses'] ?? []).map((entry) => withValues(additionalAddressLines(entry)))
   })

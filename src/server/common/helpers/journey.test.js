@@ -1,6 +1,7 @@
 import * as journey from './journey.js'
 import { USING_PPPS_KEY } from '#/server/common/constants/session-keys.js'
 import {
+  DISTRIBUTING,
   ONLY_STORING,
   PROCESSING,
   SELLING,
@@ -46,7 +47,7 @@ const removeSkippedAnswers = (answers) => lift(journey.removeSkippedAnswers(nest
 
 describe('#journey', () => {
   const storesProducts = {
-    businessActivities: ['distributing'],
+    businessActivities: [ONLY_STORING],
     businessName: 'Pesticides Ltd',
     address: { addressLine1: 'Lower Meadow Barn' },
     primaryContact: { contactName: 'Jo Bloggs' },
@@ -54,7 +55,7 @@ describe('#journey', () => {
   }
 
   // Uses products at the address, which leads on to the optional additional
-  // addresses. The business activities stay as distributing: "using" would
+  // addresses. The business activities stay as only storing: "using" would
   // branch off to who applies PPPs instead.
   const usesAtAddress = {
     ...storesProducts,
@@ -95,11 +96,12 @@ describe('#journey', () => {
       ['/business-activities', { businessActivities: ['manufacturing', 'importing'] }, '/business-name'],
       ['/business-activities', { businessActivities: [ONLY_STORING] }, '/business-name'],
       ['/business-name', { businessActivities: [SELLING] }, '/sell'],
-      ['/business-name', { businessActivities: [SELLING, 'distributing'] }, '/business-address'],
+      ['/business-name', { businessActivities: [SELLING, 'manufacturing'] }, '/business-address'],
       ['/business-name', { businessActivities: [ONLY_STORING] }, '/business-address'],
       ['/business-contact', { businessActivities: [USING] }, '/using-ppps/who-applies'],
       ['/business-contact', { businessActivities: [USING, SELLING] }, '/using-ppps/who-applies'],
-      ['/business-contact', { businessActivities: ['distributing'] }, '/address-activity'],
+      ['/business-contact', { businessActivities: [DISTRIBUTING] }, '/distribute/products'],
+      ['/business-contact', { businessActivities: ['manufacturing'] }, '/address-activity'],
       ['/business-contact', { businessActivities: [ONLY_STORING] }, '/address-activity'],
       ['/business-contact', {}, '/address-activity'],
       ['/using-ppps/who-applies', { whoApplies: 'self' }, '/using-ppps/ppp-sectors'],
@@ -770,8 +772,8 @@ describe('#journey', () => {
     })
 
     test.each([
-      ['distributing', { addressActivities: ['store'] }],
-      ['distributing', {}],
+      [ONLY_STORING, { addressActivities: ['store'] }],
+      [ONLY_STORING, {}],
       [ONLY_STORING, { addressActivities: ['use'] }]
     ])(
       'Should remove storing products and the quantity once using PPPs is no longer ticked (%s, %o)',
@@ -861,7 +863,7 @@ describe('#journey', () => {
     test('Should remove formSession.usingPPPs once every answer in it is skipped', () => {
       const formSession = journey.removeSkippedAnswers({
         ...answeredToContact,
-        businessActivities: ['distributing'],
+        businessActivities: [ONLY_STORING],
         addressActivities: ['store'],
         usingPPPs: { whoApplies: 'self', professionalSectors: ['forestry'] }
       })
@@ -925,6 +927,73 @@ describe('#journey', () => {
 
       expect(formSession).not.toHaveProperty('processingPPPs')
       expect(formSession.usingPPPs).toEqual(usingPPPs)
+    })
+  })
+  describe('#distribute PPPs', () => {
+    const answeredToContact = {
+      businessName: 'Pesticides Ltd',
+      address: { addressLine1: 'Lower Meadow Barn' },
+      primaryContact: { contactName: 'Jo Bloggs' }
+    }
+    const usingPPPs = { whoApplies: 'self', professionalSectors: ['forestry'], storing: 'no', quantity: '1-29' }
+    const processingPPPs = { products: 'ppps', sites: '1-10', quantity: 50 }
+    const distributePPPs = { products: 'both', sites: '400-plus', quantity: 900 }
+    const answering = (businessActivities, answers = {}) => ({
+      ...answeredToContact,
+      businessActivities,
+      ...answers
+    })
+
+    test('Should make the distribute pages the first section when only distributing', () => {
+      const formSession = answering([DISTRIBUTING])
+
+      expect(journey.getNextPage('/business-contact', formSession)).toBe('/distribute/products')
+      expect(journey.findFirstMissingPage(formSession)).toBe('/distribute/products')
+      expect(journey.getPreviousPage('/distribute/products', formSession)).toBe('/business-contact')
+    })
+
+    test('Should walk the distribute pages to check answers, keeping the answers under distributePPPs', () => {
+      expect(
+        journey.findFirstMissingPage(answering([DISTRIBUTING], { distributePPPs: { products: 'ppps' } }))
+      ).toBe('/distribute/sites')
+      expect(
+        journey.findFirstMissingPage(
+          answering([DISTRIBUTING], { distributePPPs: { products: 'ppps', sites: '1-10' } })
+        )
+      ).toBe('/distribute/quantity')
+      expect(journey.findFirstMissingPage(answering([DISTRIBUTING], { distributePPPs }))).toBe(
+        '/check-answers'
+      )
+    })
+
+    test.each([
+      [[DISTRIBUTING, SELLING], {}, '/business-contact'],
+      [[USING, DISTRIBUTING], { usingPPPs }, '/using-ppps/quantity'],
+      [[PROCESSING, DISTRIBUTING], { processingPPPs }, '/processing-ppps/quantity'],
+      [[DISTRIBUTING, PROCESSING, USING], { usingPPPs, processingPPPs }, '/processing-ppps/quantity']
+    ])(
+      'Should ask the distribute pages after the other sections for %o',
+      (businessActivities, answers, previousPage) => {
+        const formSession = answering(businessActivities, answers)
+
+        expect(journey.findFirstMissingPage(formSession)).toBe('/distribute/products')
+        expect(journey.getPreviousPage('/distribute/products', formSession)).toBe(previousPage)
+      }
+    )
+
+    test('Should go from using PPPs to processing, then distributing, when all three are ticked', () => {
+      const formSession = answering([DISTRIBUTING, PROCESSING, USING], { usingPPPs })
+
+      expect(journey.findFirstMissingPage(formSession)).toBe('/processing-ppps/products')
+    })
+
+    test('Should remove the distribute answers once distributing is no longer ticked', () => {
+      const formSession = journey.removeSkippedAnswers(
+        answering([PROCESSING], { processingPPPs, distributePPPs })
+      )
+
+      expect(formSession).not.toHaveProperty('distributePPPs')
+      expect(formSession.processingPPPs).toEqual(processingPPPs)
     })
   })
 })
