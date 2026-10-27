@@ -8,10 +8,10 @@ import {
 
 describe('#journey', () => {
   const amateurSeller = {
-    businessActivities: ['seller-amateur'],
+    primaryContact: { contactName: 'Jo Bloggs' },
     businessName: 'Pesticides Ltd',
     address: { addressLine1: 'Lower Meadow Barn' },
-    primaryContact: { contactName: 'Jo Bloggs' },
+    businessActivities: ['seller-amateur'],
     addressActivities: ['store']
   }
 
@@ -27,9 +27,9 @@ describe('#journey', () => {
 
   describe('#getNextPage', () => {
     test.each([
-      ['/business-activities', { businessActivities: ['seller-amateur'] }, '/business-name'],
+      ['/business-activities', { businessActivities: ['seller-amateur'] }, '/address-activity'],
       ['/business-activities', { businessActivities: ['manufacture'] }, '/main-customer'],
-      ['/business-activities', { businessActivities: ['seller-amateur', 'seller-professional'] }, '/business-name'],
+      ['/business-activities', { businessActivities: ['seller-amateur', 'seller-professional'] }, '/address-activity'],
       ['/address-activity', { addressActivities: ['use'] }, '/quantity'],
       ['/address-activity', { addressActivities: ['store'] }, '/check-answers'],
       ['/quantity', { businessActivities: ['seller-amateur'] }, '/check-answers'],
@@ -42,7 +42,7 @@ describe('#journey', () => {
 
   describe('#findFirstMissingPage', () => {
     test('Should start at the first page when nothing has been answered', () => {
-      expect(findFirstMissingPage({})).toBe('/business-activities')
+      expect(findFirstMissingPage({})).toBe('/business-contact')
     })
 
     test('Should return check answers when every relevant page is answered', () => {
@@ -95,8 +95,8 @@ describe('#journey', () => {
 
   describe('#getPreviousPage', () => {
     test('Should return the page before on the route the answers take', () => {
-      expect(getPreviousPage('/business-name', professionalUser)).toBe('/main-customer')
-      expect(getPreviousPage('/business-name', amateurSeller)).toBe('/business-activities')
+      expect(getPreviousPage('/main-customer', professionalUser)).toBe('/business-activities')
+      expect(getPreviousPage('/address-activity', amateurSeller)).toBe('/business-activities')
       expect(getPreviousPage('/professional-sectors', professionalUser)).toBe('/quantity')
     })
 
@@ -107,7 +107,7 @@ describe('#journey', () => {
     })
 
     test('Should return nothing for the first page', () => {
-      expect(getPreviousPage('/business-activities', professionalUser)).toBeUndefined()
+      expect(getPreviousPage('/business-contact', professionalUser)).toBeUndefined()
     })
 
     test('Should return nothing for a page the answers skip', () => {
@@ -162,10 +162,10 @@ describe('#journey', () => {
       })
 
       expect(Object.keys(formSession)).toEqual([
-        'businessActivities',
+        'primaryContact',
         'businessName',
         'address',
-        'primaryContact',
+        'businessActivities',
         'addressActivities',
         'mainCustomer'
       ])

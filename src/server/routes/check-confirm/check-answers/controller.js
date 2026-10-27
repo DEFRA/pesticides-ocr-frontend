@@ -5,6 +5,13 @@ import { config } from '#/config/config.js'
 import { getSession } from '#/server/common/helpers/get-session.js'
 import { CHECK_ANSWERS_PAGE, findFirstMissingPage, isOnRoute } from '#/server/common/helpers/journey.js'
 import { removeUnfinishedAddresses } from '#/server/common/helpers/additional-addresses.js'
+import { getJourneyToken, TOKEN_HEADER } from '#/server/common/helpers/journey-beacon.js'
+import { backendError, errorBody } from '#/server/common/helpers/ocr-backend-client.js'
+import {
+  EMAIL_NOT_VERIFIED_FLASH,
+  EMAIL_PAGE,
+  clearEmailVerification
+} from '#/server/common/helpers/email-verification.js'
 
 export const get = {
   handler(request, h) {
@@ -45,11 +52,22 @@ export const post = {
       return h.redirect(`${missingPage}?change=true`)
     }
 
+    // The backend only registers an email address verified on this journey, and
+    // fails closed without the token, so don't send a doomed request.
+    const journeyToken = getJourneyToken(request)
+    if (!journeyToken) {
+      throw backendError(
+        statusCodes.serviceUnavailable,
+        'Registration needs JOURNEY_TOKEN_SECRET, which is not configured'
+      )
+    }
+
     const url = `${config.get('ocrBackend.url')}/register`
     const postOptions = {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        [TOKEN_HEADER]: journeyToken
       },
       body: JSON.stringify(formSession)
     }
@@ -59,6 +77,32 @@ export const post = {
       response = await fetch(url, postOptions)
     } catch (error) {
       return Boom.internal(`Failed to submit form data: ${error.message}`)
+    }
+
+    if (response.status === statusCodes.forbidden) {
+      const { code } = await errorBody(response)
+
+      // The verification is too old for the backend, or was for another
+      // address, so the address is confirmed again. The other answers are kept.
+      if (code === 'EMAIL_NOT_VERIFIED') {
+        clearEmailVerification(request)
+        request.yar.flash(EMAIL_NOT_VERIFIED_FLASH, true)
+        return h.redirect(`${EMAIL_PAGE}?change=true`)
+      }
+    }
+
+    // A rejected journey token means the two services disagree on the secret,
+    // which the applicant can't fix, so it is a server error.
+    if (response.status === statusCodes.unauthorized) {
+      const { code } = await errorBody(response)
+      throw backendError(
+        statusCodes.badGateway,
+        `OCR backend registration returned ${response.status}${code ? ` ${code}` : ''}`
+      )
+    }
+
+    if (response.status === statusCodes.serviceUnavailable) {
+      throw backendError(statusCodes.serviceUnavailable, 'OCR backend registration returned 503')
     }
 
     if (response.status !== statusCodes.created) {

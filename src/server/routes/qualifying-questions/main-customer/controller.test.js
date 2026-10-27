@@ -31,7 +31,7 @@ describe('#mainCustomerController', () => {
   })
 
   describe('POST /main-customer', () => {
-    test('Should redirect to business name page', async () => {
+    test('Should redirect to address activity page', async () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/main-customer',
@@ -39,7 +39,7 @@ describe('#mainCustomerController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/business-name')
+      expect(headers.location).toBe('/address-activity')
     })
 
     test('Should return view with error message', async () => {

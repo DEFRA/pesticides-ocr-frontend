@@ -6,6 +6,13 @@ import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie } from '#/test-helpers/session-helpers.js'
 import { config } from '#/config/config.js'
 import { completeJourney } from '#/test-helpers/journey-helpers.js'
+import { mockEmailVerification, useJourneyTokenSecret } from '#/test-helpers/email-verification-helpers.js'
+
+vi.mock(import('#/server/common/helpers/email-verification-client.js'))
+
+beforeEach(() => {
+  mockEmailVerification()
+})
 
 describe('#checkAnswersController', () => {
   let server
@@ -47,22 +54,23 @@ describe('#checkAnswersController', () => {
     server.inject({ method: 'POST', url, headers: { cookie }, payload })
 
   const completeProfessionalJourney = async () => {
-    const cookie = await getSessionCookie(server, '/business-activities')
+    const cookie = await getSessionCookie(server, '/business-contact')
     const answer = answerAs(cookie)
 
-    await answer('/business-activities', { businessActivities: ['use-professional'] })
-    await answer('/main-customer', { mainCustomer: 'professional' })
+    await answer('/business-contact', {
+      contactName: 'Jo Bloggs',
+      contactTelephone: '01234 567890',
+      contactEmail: 'jo@example.com'
+    })
+    await answer('/check-your-email')
     await answer('/business-name', { businessName: 'Pesticides Ltd' })
     await answer('/business-address', {
       addressLine1: 'Lower Meadow Barn',
       addressTown: 'Farm town',
       addressPostcode: 'LS1 1AA'
     })
-    await answer('/business-contact', {
-      contactName: 'Jo Bloggs',
-      contactTelephone: '01234 567890',
-      contactEmail: 'jo@example.com'
-    })
+    await answer('/business-activities', { businessActivities: ['use-professional'] })
+    await answer('/main-customer', { mainCustomer: 'professional' })
     await answer('/address-activity', { addressActivities: ['use'] })
     await answer('/quantity', { quantityType: 'amount', quantityAmount: '80000' })
     await answer('/professional-sectors', { professionalSectors: ['amenity'] })
@@ -474,6 +482,8 @@ describe('#checkAnswersController', () => {
     const backendUrl = 'http://localhost:3001'
     let configuredBackendUrl
 
+    useJourneyTokenSecret()
+
     beforeAll(() => {
       configuredBackendUrl = config.get('ocrBackend.url')
       config.set('ocrBackend.url', backendUrl)
@@ -489,6 +499,13 @@ describe('#checkAnswersController', () => {
     const created = (reference = 'PPP-123-45A') => ({
       status: statusCodes.created,
       json: async () => ({ reference })
+    })
+
+    // The backend's Boom error shape, with its stable machine-readable code.
+    const rejected = (statusCode, error, code, message) => ({
+      status: statusCode,
+      statusText: error,
+      json: async () => ({ statusCode, error, message, code })
     })
 
     const submit = (cookie) =>
@@ -526,7 +543,10 @@ describe('#checkAnswersController', () => {
 
       expect(url).toBe(`${backendUrl}/register`)
       expect(options.method).toBe('POST')
-      expect(options.headers).toEqual({ 'Content-Type': 'application/json' })
+      expect(options.headers).toEqual({
+        'Content-Type': 'application/json',
+        'x-journey-token': expect.stringMatching(/^[0-9a-f-]{36}\.[0-9a-f]{64}$/)
+      })
       expect(JSON.parse(options.body)).toEqual(
         expect.objectContaining({
           businessActivities: ['seller-amateur'],
@@ -582,13 +602,34 @@ describe('#checkAnswersController', () => {
 
     test('Should send the user to the first unanswered question instead of submitting', async () => {
       const fetchSpy = stubBackend(created())
-      const cookie = await getSessionCookie(server, '/business-activities')
+      const cookie = await getSessionCookie(server, '/business-contact')
 
-      await answerAs(cookie)('/business-activities', { businessActivities: ['seller-amateur'] })
+      await answerAs(cookie)('/business-contact', {
+        contactName: 'Jo Bloggs',
+        contactTelephone: '01234 567890',
+        contactEmail: 'jo@example.com'
+      })
+      await answerAs(cookie)('/check-your-email', {})
       const { statusCode, headers } = await submit(cookie)
 
       expect(statusCode).toBe(statusCodes.redirect)
       expect(headers.location).toBe('/business-name?change=true')
+      expect(registerCalls(fetchSpy)).toHaveLength(0)
+    })
+
+    test('Should confirm a changed email address before submitting', async () => {
+      const fetchSpy = stubBackend(created())
+      const cookie = await completeJourney(server)
+
+      await answerAs(cookie)('/business-contact?change=true', {
+        contactName: 'Jo Bloggs',
+        contactTelephone: '01234 567890',
+        contactEmail: 'jane@example.com'
+      })
+      const { statusCode, headers } = await submit(cookie)
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/check-your-email?change=true')
       expect(registerCalls(fetchSpy)).toHaveLength(0)
     })
 
@@ -629,7 +670,7 @@ describe('#checkAnswersController', () => {
       const { headers } = await submit(cookie)
 
       expect(registerCalls(fetchSpy)).toHaveLength(1)
-      expect(headers.location).toBe('/business-activities?change=true')
+      expect(headers.location).toBe('/business-contact?change=true')
     })
 
     test('Should register a second business in the same session without the first reference', async () => {
@@ -645,6 +686,128 @@ describe('#checkAnswersController', () => {
       expect(registerCalls(fetchSpy)).toHaveLength(2)
       expect(JSON.parse(options.body)).not.toHaveProperty('confirmation-reference')
       expect(JSON.parse(options.body)).not.toHaveProperty('confirmationReference')
+    })
+
+    describe('Journey binding', () => {
+      const visit = (url, cookie) => server.inject({ method: 'GET', url, headers: { cookie } })
+
+      test('Should send the same journey token the email was verified with', async () => {
+        const fetchSpy = stubBackend(created())
+        const cookie = await completeJourney(server)
+
+        await submit(cookie)
+        await completeJourney(server, cookie)
+        await submit(cookie)
+
+        const [first, second] = registerCalls(fetchSpy).map(([, options]) => options.headers['x-journey-token'])
+
+        expect(first).toBeTruthy()
+        expect(second).toBe(first)
+      })
+
+      test('Should show the error page without calling the backend when no journey token can be made', async () => {
+        const fetchSpy = stubBackend(created())
+        const cookie = await completeJourney(server)
+        config.set('journeyToken.secret', '')
+
+        try {
+          const { result, statusCode } = await submit(cookie)
+
+          expect(statusCode).toBe(statusCodes.serviceUnavailable)
+          expect(result).toEqual(expect.stringContaining('Something went wrong'))
+          expect(registerCalls(fetchSpy)).toHaveLength(0)
+        } finally {
+          config.set('journeyToken.secret', 'test-journey-secret')
+        }
+      })
+
+      describe('When the backend says the email address is not verified', () => {
+        const notVerified = () =>
+          rejected(
+            statusCodes.forbidden,
+            'Forbidden',
+            'EMAIL_NOT_VERIFIED',
+            'The contact email address has not been verified'
+          )
+
+        test('Should send the applicant back to the email address question', async () => {
+          stubBackend(notVerified())
+          const cookie = await completeJourney(server)
+
+          const { statusCode, headers } = await submit(cookie)
+
+          expect(statusCode).toBe(statusCodes.redirect)
+          expect(headers.location).toBe('/business-contact?change=true')
+        })
+
+        test('Should say why the address needs confirming again, once', async () => {
+          stubBackend(notVerified())
+          const cookie = await completeJourney(server)
+
+          await submit(cookie)
+          const first = await visit('/business-contact?change=true', cookie)
+          const second = await visit('/business-contact?change=true', cookie)
+
+          expect(first.result).toEqual(expect.stringContaining('You need to confirm your email address again'))
+          expect(first.result).toEqual(expect.stringContaining('jo@example.com'))
+          expect(second.result).not.toEqual(expect.stringContaining('You need to confirm your email address again'))
+        })
+
+        test('Should clear the verification, so the address is confirmed again before submitting', async () => {
+          stubBackend(notVerified())
+          const cookie = await completeJourney(server)
+
+          await submit(cookie)
+          const { statusCode, headers } = await visit('/check-answers', cookie)
+
+          expect(statusCode).toBe(statusCodes.redirect)
+          expect(headers.location).toBe('/check-your-email?change=true')
+        })
+
+        test('Should keep the other answers and not record a reference', async () => {
+          stubBackend(notVerified())
+          const cookie = await completeJourney(server)
+
+          await submit(cookie)
+          // The address needs confirming again before any later page will
+          // render, so confirm it, then check the earlier answer survived.
+          mockEmailVerification({ status: 'verified' })
+          await answerAs(cookie)('/business-contact?change=true', {
+            contactName: 'Jo Bloggs',
+            contactTelephone: '01234 567890',
+            contactEmail: 'jo@example.com'
+          })
+          await server.inject({ method: 'POST', url: '/check-your-email?change=true', headers: { cookie } })
+          const businessName = await visit('/business-name', cookie)
+          const confirmation = await visit('/confirmation', cookie)
+
+          expect(businessName.result).toEqual(expect.stringContaining('Pesticides Ltd'))
+          expect(confirmation.statusCode).toBe(statusCodes.badData)
+        })
+      })
+
+      test.each([
+        [rejected(statusCodes.unauthorized, 'Unauthorized', 'JOURNEY_TOKEN_INVALID', 'Invalid journey token'), statusCodes.badGateway],
+        [rejected(statusCodes.serviceUnavailable, 'Service Unavailable', undefined, 'Service Unavailable'), statusCodes.serviceUnavailable]
+      ])('Should show the error page when the backend returns %#', async (response, expectedStatus) => {
+        stubBackend(response)
+        const cookie = await completeJourney(server)
+
+        const { result, statusCode } = await submit(cookie)
+
+        expect(statusCode).toBe(expectedStatus)
+        expect(result).toEqual(expect.stringContaining('Something went wrong'))
+        expect((await visit('/check-answers', cookie)).statusCode).toBe(statusCodes.ok)
+      })
+
+      test('Should show the error page for any other refusal', async () => {
+        stubBackend(rejected(statusCodes.forbidden, 'Forbidden', undefined, 'Forbidden'))
+        const cookie = await completeJourney(server)
+
+        const { statusCode } = await submit(cookie)
+
+        expect(statusCode).toBe(statusCodes.forbidden)
+      })
     })
   })
 
@@ -762,14 +925,14 @@ describe('#checkAnswersController', () => {
       const cookie = await completeJourney(server)
 
       const contact = await visit('/business-contact', cookie)
-      const address = await visit('/business-address', cookie)
       const name = await visit('/business-name', cookie)
+      const address = await visit('/business-address', cookie)
       const activities = await visit('/business-activities', cookie)
 
-      expect(backLinkOf(contact.result)).toBe('/business-address')
+      expect(backLinkOf(contact.result)).toBe('/register-choice')
+      expect(backLinkOf(name.result)).toBe('/business-contact')
       expect(backLinkOf(address.result)).toBe('/business-name')
-      expect(backLinkOf(name.result)).toBe('/business-activities')
-      expect(backLinkOf(activities.result)).toBe('/')
+      expect(backLinkOf(activities.result)).toBe('/business-address')
     })
 
     test('Should not show a back link on check answers', async () => {

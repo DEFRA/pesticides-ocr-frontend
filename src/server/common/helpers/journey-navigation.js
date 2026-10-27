@@ -10,17 +10,23 @@ const isChangeMode = (request) => request?.query?.change === 'true'
 
 const hasSession = (request) => Boolean(request?.yar?.id)
 
-export function redirectToNextPage(request, h, nextPage) {
+export const withChangeMode = (request, path) => (isChangeMode(request) ? `${path}?change=true` : path)
+
+export function nextPageUrl(request, nextPage) {
   const formSession = removeSkippedAnswers(getSession(request, 'formSession'))
   request.yar.set('formSession', formSession)
 
   if (isChangeMode(request)) {
     const missingPage = findFirstMissingPage(formSession)
 
-    return h.redirect(missingPage === CHECK_ANSWERS_PAGE ? missingPage : `${missingPage}?change=true`)
+    return missingPage === CHECK_ANSWERS_PAGE ? missingPage : `${missingPage}?change=true`
   }
 
-  return h.redirect(nextPage)
+  return nextPage
+}
+
+export function redirectToNextPage(request, h, nextPage) {
+  return h.redirect(nextPageUrl(request, nextPage))
 }
 
 export function getBackLink(request) {

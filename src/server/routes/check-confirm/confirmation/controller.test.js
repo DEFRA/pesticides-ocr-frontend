@@ -4,8 +4,17 @@ import { createServer } from '#/server/server.js'
 import { config } from '#/config/config.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { completeJourney } from '#/test-helpers/journey-helpers.js'
+import { mockEmailVerification, useJourneyTokenSecret } from '#/test-helpers/email-verification-helpers.js'
+
+vi.mock(import('#/server/common/helpers/email-verification-client.js'))
+
+beforeEach(() => {
+  mockEmailVerification()
+})
 
 describe('#confirmationController', () => {
+  useJourneyTokenSecret()
+
   let server
 
   beforeAll(async () => {

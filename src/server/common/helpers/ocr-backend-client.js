@@ -24,7 +24,17 @@ export async function parseJson(res, context) {
   }
 }
 
-function backendBaseUrl() {
+// A Boom error body, `{ statusCode, error, message, code }`, or {} when there
+// isn't one. Branch on `code`, never on `message`.
+export async function errorBody(response) {
+  try {
+    return await response.json()
+  } catch {
+    return {}
+  }
+}
+
+export function backendBaseUrl() {
   const url = config.get('ocrBackend.url')
   if (!url) {
     throw backendError(

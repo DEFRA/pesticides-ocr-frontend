@@ -2,14 +2,14 @@ import { getBackLink, getFormAction, redirectToNextPage } from './journey-naviga
 
 describe('#journeyNavigation', () => {
   const answeredJourney = {
-    businessActivities: ['seller-amateur'],
+    primaryContact: { contactName: 'Jo Bloggs' },
     businessName: 'Pesticides Ltd',
     address: { addressLine1: 'Lower Meadow Barn' },
-    primaryContact: { contactName: 'Jo Bloggs' },
+    businessActivities: ['seller-amateur'],
     addressActivities: ['store']
   }
 
-  const createRequest = ({ path = '/business-name', query = {}, store = {}, app = {} } = {}) => {
+  const createRequest = ({ path = '/business-address', query = {}, store = {}, app = {} } = {}) => {
     const url = new URL(path, 'http://localhost')
     url.search = new URLSearchParams(query).toString()
 
@@ -34,8 +34,8 @@ describe('#journeyNavigation', () => {
     test('Should redirect to the next page', () => {
       const request = createRequest({ store: { formSession: answeredJourney } })
 
-      expect(redirectToNextPage(request, h, '/business-address')).toEqual({
-        location: '/business-address'
+      expect(redirectToNextPage(request, h, '/business-activities')).toEqual({
+        location: '/business-activities'
       })
     })
 
@@ -43,7 +43,7 @@ describe('#journeyNavigation', () => {
       const store = { formSession: answeredJourney }
       const request = createRequest({ query: { change: 'true' }, store })
 
-      expect(redirectToNextPage(request, h, '/business-address')).toEqual({
+      expect(redirectToNextPage(request, h, '/business-activities')).toEqual({
         location: '/check-answers'
       })
     })
@@ -78,12 +78,13 @@ describe('#journeyNavigation', () => {
 
     test('Should return the previous page on the route the answers take', () => {
       const professional = createRequest({
-        store: { formSession: { businessActivities: ['manufacture'], mainCustomer: 'both' } }
+        path: '/main-customer',
+        store: { formSession: { primaryContact: {}, businessName: 'x', address: {}, businessActivities: ['manufacture'], mainCustomer: 'both' } }
       })
-      const amateur = createRequest({ store: { formSession: answeredJourney } })
+      const amateur = createRequest({ path: '/business-activities', store: { formSession: answeredJourney } })
 
-      expect(getBackLink(professional)).toBe('/main-customer')
-      expect(getBackLink(amateur)).toBe('/business-activities')
+      expect(getBackLink(professional)).toBe('/business-activities')
+      expect(getBackLink(amateur)).toBe('/business-address')
     })
 
     test('Should return nothing for a page the answers skip', () => {
@@ -132,12 +133,12 @@ describe('#journeyNavigation', () => {
 
   describe('#getFormAction', () => {
     test('Should post the form back to the current page', () => {
-      expect(getFormAction(createRequest())).toBe('/business-name')
+      expect(getFormAction(createRequest())).toBe('/business-address')
     })
 
     test('Should keep change mode when posting the form', () => {
       expect(getFormAction(createRequest({ query: { change: 'true' } }))).toBe(
-        '/business-name?change=true'
+        '/business-address?change=true'
       )
     })
   })

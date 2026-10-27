@@ -14,18 +14,19 @@ import { randomUUID, createHmac } from 'node:crypto'
 import { config } from '#/config/config.js'
 
 const BEACON_TIMEOUT_MS = 2000
-const TOKEN_HEADER = 'x-journey-token'
+export const TOKEN_HEADER = 'x-journey-token'
 
 // Get-or-create the signed per-session token (EQ-472). One nonce per session,
-// signed with the secret shared with the backend, reused for every beacon in the
-// session so the backend records each event once (and rejects direct/forged
-// calls). Returns null when no secret is configured (local/unconfigured tiers),
-// so beacons are simply sent unsigned there.
+// signed with the secret shared with the backend, reused for every backend call
+// in the session so the backend records each event once (and rejects
+// direct/forged calls). Email verifications are bound to it too. Returns null
+// when no secret is configured (local/unconfigured tiers), so beacons are
+// simply sent unsigned there.
 //
 // WIRE-FORMAT CONTRACT: the `<nonce>.<hmac>` shape (sha256, hex digest, shared
 // JOURNEY_TOKEN_SECRET) must match the verifier in pesticides-ocr-backend
 // src/services/metrics/journey-token.js. Keep the two in sync.
-function sessionToken(request) {
+export function getJourneyToken(request) {
   const secret = config.get('journeyToken.secret')
   if (!secret) {
     return null
@@ -57,7 +58,7 @@ async function fireBeacon(request, path) {
     return
   }
 
-  const token = sessionToken(request)
+  const token = getJourneyToken(request)
 
   try {
     const response = await fetch(url, {

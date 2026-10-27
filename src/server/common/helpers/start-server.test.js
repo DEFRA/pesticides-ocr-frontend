@@ -36,7 +36,7 @@ describe('#startServer', () => {
     let server
 
     afterAll(async () => {
-      await server.stop({ timeout: 0 })
+      await server?.stop({ timeout: 0 })
     })
 
     test('Should start up server as expected', async () => {

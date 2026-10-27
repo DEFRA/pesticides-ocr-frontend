@@ -1,9 +1,4 @@
-import { analyticsEvents } from '#/server/common/constants/analytics-events.js'
 import { getSession } from '#/server/common/helpers/get-session.js'
-import {
-  recordJourneyStart,
-  recordOncePerSession
-} from '#/server/common/helpers/journey-beacon.js'
 import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
 import { getNextPage } from '#/server/common/helpers/journey.js'
 
@@ -12,17 +7,8 @@ export const get = {
     const formSession = request.yar.get('formSession') ?? {}
     request.yar.set('formSession', formSession)
 
-    // Record the journey start once per session (consent-free, EQ-472) — this is
-    // the first page after the "Start now" button.
-    const started = recordOncePerSession(request, {
-      sessionKey: 'journeyStarted',
-      record: recordJourneyStart,
-      logMessage: 'Journey start recorded for this session (EQ-472)'
-    })
-
     return h.view('qualifying-questions/business-activities/index', {
-      selected: [formSession.businessActivities ?? []].flat(),
-      analyticsEvent: started ? analyticsEvents.journeyStart : undefined
+      selected: [formSession.businessActivities ?? []].flat()
     })
   }
 }

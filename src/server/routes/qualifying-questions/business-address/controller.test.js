@@ -28,7 +28,7 @@ describe('#businessAddressController', () => {
   })
 
   describe('POST /business-address', () => {
-    test('Should redirect to business contact page', async () => {
+    test('Should redirect to business activities page', async () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-address',
@@ -42,7 +42,7 @@ describe('#businessAddressController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/business-contact')
+      expect(headers.location).toBe('/business-activities')
     })
 
     test('Should return view with error message', async () => {

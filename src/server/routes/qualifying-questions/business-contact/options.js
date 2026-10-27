@@ -2,7 +2,8 @@ import Joi from 'joi'
 import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 
 export const app = {
-  pageTitle: 'Business Contact'
+  pageTitle: 'Who should we contact about your PPP activities?',
+  backLink: '/register-choice'
 }
 
 export const validate = {
@@ -10,6 +11,7 @@ export const validate = {
     contactName: Joi.string().required().messages({
       'string.empty': 'Enter a contact name'
     }),
+    contactJobTitle: Joi.string().allow(''),
     contactTelephone: Joi.string().trim().pattern(/^[0-9+()\- ]+$/).required().messages({
       'string.empty': 'Enter a telephone number',
       'string.pattern.base': 'Enter a valid telephone number'

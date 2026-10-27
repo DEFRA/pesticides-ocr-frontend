@@ -1,7 +1,9 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
+import { createHmac } from 'node:crypto'
 
 import { config } from '#/config/config.js'
 import {
+  getJourneyToken,
   recordJourneyStart,
   recordJourneyNotEligible,
   recordOncePerSession
@@ -118,6 +120,43 @@ describe('#journeyBeacon', () => {
 
     expect(fetch).not.toHaveBeenCalled()
     expect(request.logger.warn).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('#getJourneyToken', () => {
+  const sessionRequest = (initial = {}) => {
+    const store = { ...initial }
+    return {
+      yar: {
+        get: (key) => store[key],
+        set: (key, value) => {
+          store[key] = value
+        }
+      }
+    }
+  }
+
+  test('returns null when no secret is configured', () => {
+    expect(getJourneyToken(sessionRequest())).toBeNull()
+  })
+
+  test('creates a nonce signed with the shared secret and keeps it in the session', () => {
+    config.set('journeyToken.secret', 'shared-secret')
+    const req = sessionRequest()
+
+    const token = getJourneyToken(req)
+    const [nonce, signature] = token.split('.')
+
+    expect(nonce).toMatch(/^[0-9a-f-]{36}$/)
+    expect(signature).toBe(createHmac('sha256', 'shared-secret').update(nonce).digest('hex'))
+    expect(req.yar.get('journeyToken')).toBe(token)
+  })
+
+  test('returns the token already held in the session', () => {
+    config.set('journeyToken.secret', 'shared-secret')
+    const req = sessionRequest({ journeyToken: 'existing-nonce.signature' })
+
+    expect(getJourneyToken(req)).toBe('existing-nonce.signature')
   })
 })
 

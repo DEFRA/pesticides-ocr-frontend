@@ -1,4 +1,8 @@
-const FIRST_PAGE = '/business-activities'
+// The magic-link verification (business-contact -> check-your-email ->
+// verify-email) now opens the journey, straight after the "What would you
+// like to do?" choice page. It must be answered, and the email confirmed,
+// before any of the other qualifying questions.
+const FIRST_PAGE = '/business-contact'
 export const CHECK_ANSWERS_PAGE = '/check-answers'
 
 const onlySellsAmateurProducts = ({ businessActivities = [] }) =>
@@ -8,13 +12,8 @@ const sellsAmateurProducts = ({ businessActivities = [] }) =>
   businessActivities.includes('seller-amateur')
 
 export const JOURNEY = {
-  '/business-activities': {
-    sessionKey: 'businessActivities',
-    next: (formSession) =>
-      sellsAmateurProducts(formSession) ? '/business-name' : '/main-customer'
-  },
-  '/main-customer': {
-    sessionKey: 'mainCustomer',
+  '/business-contact': {
+    sessionKey: 'primaryContact',
     next: () => '/business-name'
   },
   '/business-name': {
@@ -23,10 +22,15 @@ export const JOURNEY = {
   },
   '/business-address': {
     sessionKey: 'address',
-    next: () => '/business-contact'
+    next: () => '/business-activities'
   },
-  '/business-contact': {
-    sessionKey: 'primaryContact',
+  '/business-activities': {
+    sessionKey: 'businessActivities',
+    next: (formSession) =>
+      sellsAmateurProducts(formSession) ? '/address-activity' : '/main-customer'
+  },
+  '/main-customer': {
+    sessionKey: 'mainCustomer',
     next: () => '/address-activity'
   },
   '/address-activity': {

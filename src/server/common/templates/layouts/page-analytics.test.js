@@ -6,6 +6,13 @@ import {
   signInCaseOfficer
 } from '#/test-helpers/session-helpers.js'
 import { completeJourney } from '#/test-helpers/journey-helpers.js'
+import { mockEmailVerification } from '#/test-helpers/email-verification-helpers.js'
+
+vi.mock(import('#/server/common/helpers/email-verification-client.js'))
+
+beforeEach(() => {
+  mockEmailVerification()
+})
 
 vi.mock(import('#/config/config.js'), async (importOriginal) => {
   const originalModule = await importOriginal()
@@ -14,6 +21,8 @@ vi.mock(import('#/config/config.js'), async (importOriginal) => {
       ...originalModule.config,
       get(key) {
         if (key === 'analytics.enabled') return true
+        // /register fails closed without a journey token.
+        if (key === 'journeyToken.secret') return 'test-journey-secret'
         return originalModule.config.get(key)
       }
     }
@@ -32,7 +41,7 @@ describe('#pageLayout analytics', () => {
   })
 
   afterAll(async () => {
-    await server.stop({ timeout: 0 })
+    await server?.stop({ timeout: 0 })
   })
 
   const get = (url, headers = {}) => server.inject({ method: 'GET', url, headers })
@@ -128,7 +137,7 @@ describe('#pageLayout analytics', () => {
     })
 
     test('the first question carries journey_start once per session', async () => {
-      const { first, reload } = await firstThenReload('/business-activities')
+      const { first, reload } = await firstThenReload('/business-contact')
 
       expect(event(first.result)).toBe('journey_start')
       expect(event(reload.result)).toBeUndefined()
@@ -142,7 +151,7 @@ describe('#pageLayout analytics', () => {
     })
 
     test('the confirmation carries registration_complete once per registration', async () => {
-      const cookie = await getSessionCookie(server, '/business-activities')
+      const cookie = await getSessionCookie(server, '/business-contact')
 
       await register(cookie, 'PPP-1A2-B3C')
       const confirmation = await get('/confirmation', { cookie })
@@ -156,7 +165,7 @@ describe('#pageLayout analytics', () => {
       expect(event(second.result)).toBe('registration_complete')
     })
 
-    test.each(['/business-activities', '/not-eligible'])(
+    test.each(['/business-contact', '/not-eligible'])(
       '%s is not cached, so going back asks the server again',
       async (url) => {
         const { headers } = await get(url)

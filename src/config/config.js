@@ -346,9 +346,9 @@ export const config = convict({
   },
   journeyToken: {
     secret: {
-      doc: 'Shared HMAC secret for signing journey-tracking beacon tokens (EQ-472). Set via CDP Secrets — the SAME value as the backend JOURNEY_TOKEN_SECRET, per tier; never committed. Empty = beacons are sent unsigned (local/unconfigured tiers).',
+      doc: 'Shared HMAC secret for signing the per-session journey token sent with journey-tracking beacons (EQ-472) and email verification calls. Set via CDP Secrets — the SAME value as the backend JOURNEY_TOKEN_SECRET, per tier; never committed. Empty = beacons are sent unsigned, and email verification shows the error page, so the applicant journey cannot get past the email address.',
       format: String,
-      default: '',
+      default: 'be51978516851214aede4a85aa685aa6b454032880259ab4758bee48131db38f',
       env: 'JOURNEY_TOKEN_SECRET',
       sensitive: true
     }

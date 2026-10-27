@@ -10,8 +10,8 @@
   },
   "scripts": {
     "build:frontend": "vite build",
-    "dev": "AWS_EMF_ENVIRONMENT=Local npm run server:watch",
-    "dev:debug": "AWS_EMF_ENVIRONMENT=Local npm run server:debug",
+    "dev": "cross-env AWS_EMF_ENVIRONMENT=Local npm run server:watch",
+    "dev:debug": "cross-env AWS_EMF_ENVIRONMENT=Local npm run server:debug",
     "docker:dev": "npm run dev",
     "format": "prettier --write \"src/**/*.js\" \"**/*.{js,cjs,md,json,config.js,test.js}\" && npm run lint:js:fix && npm run lint:scss",
     "format:check": "prettier --check \"src/**/*.js\" \"**/*.{js,cjs,md,json,config.js,test.js}\"",
@@ -20,8 +20,8 @@
     "lint:js": "eslint .",
     "lint:js:fix": "eslint . --fix",
     "lint:scss": "stylelint \"src/**/*.scss\" --cache --cache-location .cache/stylelint --cache-strategy content --color --ignore-path .gitignore",
-    "test": "AWS_EMF_ENVIRONMENT=Local TZ=UTC vitest run --coverage",
-    "test:watch": "AWS_EMF_ENVIRONMENT=Local TZ=UTC vitest",
+    "test": "cross-env AWS_EMF_ENVIRONMENT=Local TZ=UTC vitest run --coverage",
+    "test:watch": "cross-env AWS_EMF_ENVIRONMENT=Local TZ=UTC vitest",
     "security-audit": "npm audit --audit-level=high --omit=dev",
     "server:watch": "nodemon --inspect=0.0.0.0 --ext js,json --legacy-watch --watch ./src/server --watch ./src/config --env-file-if-exists=.env ./src",
     "server:debug": "nodemon --inspect-brk=0.0.0.0 --ext js,json --legacy-watch --watch ./src/server --watch ./src/config --env-file-if-exists=.env ./src",
@@ -81,7 +81,8 @@
     "stylelint-config-gds": "2.0.0",
     "vite": "8.3.1",
     "vitest": "4.1.11",
-    "vitest-fetch-mock": "0.4.5"
+    "vitest-fetch-mock": "0.4.5",
+    "cross-env": "10.1.0"
   },
   "overrides": {
     "tmp": "0.2.5",

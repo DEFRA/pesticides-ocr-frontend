@@ -12,6 +12,7 @@ import { pushJourneyEvent } from './analytics/journey-event.js'
 import { getConsentCookie } from './cookies/cookie-functions.js'
 import { initCookieBanner } from './cookies/cookie-banner.js'
 import { initCookiesPage } from './cookies/cookies-page.js'
+import { initVerifyEmailPage } from './verify-email/verify-email-page.js'
 
 createAll(Button)
 createAll(Checkboxes)
@@ -35,3 +36,4 @@ if (analyticsConfig) {
 }
 initCookieBanner()
 initCookiesPage()
+initVerifyEmailPage()

@@ -106,6 +106,16 @@ REFERENCE_PREFIX='PPP'
 
 `REFERENCE_PREFIX` must match the backend's, and defaults to `PPP`. In mock sign-in mode (the local default), the frontend forwards an unsigned token built from the mock identity, which only a backend in mock auth mode accepts.
 
+#### Email verification
+
+The applicant confirms their email address by magic link before the journey continues past `/business-contact`. Entering the address sends a link through the backend's `POST /email-verifications` and shows `/check-your-email`, where the applicant can request another email, or select Continue after opening the link on another device (`GET /email-verifications/current`). Every call sends the signed per-session journey token in `x-journey-token`, so locally set the same `JOURNEY_TOKEN_SECRET` as the backend as well as `OCR_BACKEND_URL`:
+
+```bash
+JOURNEY_TOKEN_SECRET='any-local-only-value'
+```
+
+Without it, the journey shows the error page at the email address. The verification state is kept in the session under `emailVerification`, not in the answers sent to `/register`, and changing the address clears it.
+
 #### Service metrics
 
 `/dashboard/metrics` shows the journey metrics from the backend's `GET /metrics/journeys` (EQ-472): starts, registrations, not-eligible exits, finished, drop-outs and the completion rate, all time and by month. It is in the case-officer area, so it needs the case-officer role, and like the other case-officer pages it sends nothing to Google Analytics. Locally it uses the same `OCR_BACKEND_URL` as the search.

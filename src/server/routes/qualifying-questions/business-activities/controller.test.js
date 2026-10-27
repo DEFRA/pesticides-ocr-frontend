@@ -71,7 +71,7 @@ describe('#businessActivitiesController', () => {
         payload: { businessActivities: ['seller-amateur'] }
       })
 
-      expect(headers.location).toBe('/business-name')
+      expect(headers.location).toBe('/address-activity')
     })
 
     test('Should skip the main customer page when amateur PPPs are sold alongside other activities', async () => {
@@ -81,7 +81,7 @@ describe('#businessActivitiesController', () => {
         payload: { businessActivities: ['seller-amateur', 'seller-professional'] }
       })
 
-      expect(headers.location).toBe('/business-name')
+      expect(headers.location).toBe('/address-activity')
     })
 
     test('Should return view with error message', async () => {

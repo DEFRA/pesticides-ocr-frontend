@@ -16,22 +16,24 @@ export async function answerStep(server, { url, payload, cookie }) {
 }
 
 export async function completeJourney(server, cookie) {
-  const sessionCookie = cookie ?? (await getSessionCookie(server, '/business-activities'))
+  const sessionCookie = cookie ?? (await getSessionCookie(server, '/business-contact'))
   const answer = (url, payload) =>
     server.inject({ method: 'POST', url, headers: { cookie: sessionCookie }, payload })
 
-  await answer('/business-activities', { businessActivities: ['seller-amateur'] })
+  await answer('/business-contact', {
+    contactName: 'Jo Bloggs',
+    contactTelephone: '01234 567890',
+    contactEmail: 'jo@example.com'
+  })
+  // Needs the email verification client mocked (see email-verification-helpers.js).
+  await answer('/check-your-email')
   await answer('/business-name', { businessName: 'Pesticides Ltd' })
   await answer('/business-address', {
     addressLine1: 'Lower Meadow Barn',
     addressTown: 'Farm town',
     addressPostcode: 'LS1 1AA'
   })
-  await answer('/business-contact', {
-    contactName: 'Jo Bloggs',
-    contactTelephone: '01234 567890',
-    contactEmail: 'jo@example.com'
-  })
+  await answer('/business-activities', { businessActivities: ['seller-amateur'] })
   await answer('/address-activity', { addressActivities: ['store'] })
 
   return sessionCookie
