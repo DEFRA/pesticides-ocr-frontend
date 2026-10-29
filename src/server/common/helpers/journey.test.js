@@ -47,7 +47,7 @@ const removeSkippedAnswers = (answers) => lift(journey.removeSkippedAnswers(nest
 
 describe('#journey', () => {
   const storesProducts = {
-    businessActivities: [ONLY_STORING],
+    businessActivities: ['manufacturing'],
     businessName: 'Pesticides Ltd',
     address: { addressLine1: 'Lower Meadow Barn' },
     primaryContact: { contactName: 'Jo Bloggs' },
@@ -55,7 +55,7 @@ describe('#journey', () => {
   }
 
   // Uses products at the address, which leads on to the optional additional
-  // addresses. The business activities stay as only storing: "using" would
+  // addresses. The business activities stay as manufacturing: "using" would
   // branch off to who applies PPPs instead.
   const usesAtAddress = {
     ...storesProducts,
@@ -102,7 +102,7 @@ describe('#journey', () => {
       ['/business-contact', { businessActivities: [USING, SELLING] }, '/using-ppps/who-applies'],
       ['/business-contact', { businessActivities: [DISTRIBUTING] }, '/distribute/products'],
       ['/business-contact', { businessActivities: ['manufacturing'] }, '/address-activity'],
-      ['/business-contact', { businessActivities: [ONLY_STORING] }, '/address-activity'],
+      ['/business-contact', { businessActivities: [ONLY_STORING] }, '/storing/products'],
       ['/business-contact', {}, '/address-activity'],
       ['/using-ppps/who-applies', { whoApplies: 'self' }, '/using-ppps/ppp-sectors'],
       ['/using-ppps/who-applies', { whoApplies: 'contractor' }, '/using-ppps/contractor-address'],
@@ -581,7 +581,7 @@ describe('#journey', () => {
     test('Should keep the professional answers whatever the business activities are', () => {
       const formSession = removeSkippedAnswers({
         ...usesAtAddress,
-        businessActivities: [ONLY_STORING],
+        businessActivities: ['importing'],
         additionalAddresses
       })
 
@@ -772,9 +772,9 @@ describe('#journey', () => {
     })
 
     test.each([
-      [ONLY_STORING, { addressActivities: ['store'] }],
-      [ONLY_STORING, {}],
-      [ONLY_STORING, { addressActivities: ['use'] }]
+      ['manufacturing', { addressActivities: ['store'] }],
+      ['manufacturing', {}],
+      ['importing', { addressActivities: ['use'] }]
     ])(
       'Should remove storing products and the quantity once using PPPs is no longer ticked (%s, %o)',
       (businessActivity, answers) => {
@@ -863,7 +863,7 @@ describe('#journey', () => {
     test('Should remove formSession.usingPPPs once every answer in it is skipped', () => {
       const formSession = journey.removeSkippedAnswers({
         ...answeredToContact,
-        businessActivities: [ONLY_STORING],
+        businessActivities: ['manufacturing'],
         addressActivities: ['store'],
         usingPPPs: { whoApplies: 'self', professionalSectors: ['forestry'] }
       })
@@ -994,6 +994,42 @@ describe('#journey', () => {
 
       expect(formSession).not.toHaveProperty('distributePPPs')
       expect(formSession.processingPPPs).toEqual(processingPPPs)
+    })
+  })
+  describe('#store PPPs', () => {
+    const onlyStoring = {
+      businessActivities: [ONLY_STORING],
+      businessName: 'Pesticides Ltd',
+      address: { addressLine1: 'Lower Meadow Barn' },
+      primaryContact: { contactName: 'Jo Bloggs' }
+    }
+    const storePPPs = { products: 'both', sites: '11-50', quantity: 300 }
+
+    test('Should go from the business contact to the store pages when only storing', () => {
+      expect(journey.getNextPage('/business-contact', onlyStoring)).toBe('/storing/products')
+      expect(journey.findFirstMissingPage(onlyStoring)).toBe('/storing/products')
+      expect(journey.getPreviousPage('/storing/products', onlyStoring)).toBe('/business-contact')
+    })
+
+    test('Should walk the store pages to check answers, keeping the answers under storePPPs', () => {
+      expect(journey.findFirstMissingPage({ ...onlyStoring, storePPPs: { products: 'ppps' } })).toBe(
+        '/storing/sites'
+      )
+      expect(
+        journey.findFirstMissingPage({ ...onlyStoring, storePPPs: { products: 'ppps', sites: '1-10' } })
+      ).toBe('/storing/quantity')
+      expect(journey.findFirstMissingPage({ ...onlyStoring, storePPPs })).toBe('/check-answers')
+    })
+
+    test('Should remove the store answers once only storing is no longer ticked', () => {
+      const formSession = journey.removeSkippedAnswers({
+        ...onlyStoring,
+        businessActivities: ['manufacturing'],
+        addressActivities: ['store'],
+        storePPPs
+      })
+
+      expect(formSession).not.toHaveProperty('storePPPs')
     })
   })
 })

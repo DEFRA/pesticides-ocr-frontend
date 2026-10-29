@@ -2,10 +2,12 @@ import { ADDRESS_SEARCH_PAGE } from '#/server/common/constants/address-pages.js'
 import {
   DISTRIBUTE_PPPS_KEY,
   PROCESSING_PPPS_KEY,
+  STORE_PPPS_KEY,
   USING_PPPS_KEY
 } from '#/server/common/constants/session-keys.js'
 import {
   DISTRIBUTING,
+  ONLY_STORING,
   PROCESSING,
   SELLING,
   USING
@@ -53,6 +55,12 @@ export const DISTRIBUTE_PRODUCTS_PAGE = '/distribute/products'
 export const DISTRIBUTE_SITES_PAGE = '/distribute/sites'
 export const DISTRIBUTE_QUANTITY_PAGE = '/distribute/quantity'
 
+// The storing pages, for an organisation that only stores PPPs for other
+// businesses. Their answers are under formSession.storePPPs (see routes/storing).
+export const STORE_PRODUCTS_PAGE = '/storing/products'
+export const STORE_SITES_PAGE = '/storing/sites'
+export const STORE_QUANTITY_PAGE = '/storing/quantity'
+
 const onlySellsProducts = ({ businessActivities = [] }) =>
   businessActivities.length === 1 && businessActivities[0] === SELLING
 
@@ -63,7 +71,10 @@ const onlySellsProducts = ({ businessActivities = [] }) =>
 const ACTIVITY_SECTIONS = [
   { activity: USING, firstPage: WHO_APPLIES_PAGE },
   { activity: PROCESSING, firstPage: PROCESSING_PRODUCTS_PAGE },
-  { activity: DISTRIBUTING, firstPage: DISTRIBUTE_PRODUCTS_PAGE }
+  { activity: DISTRIBUTING, firstPage: DISTRIBUTE_PRODUCTS_PAGE },
+  // "Only storing" can't be ticked with any other activity, so its place in
+  // the order doesn't matter.
+  { activity: ONLY_STORING, firstPage: STORE_PRODUCTS_PAGE }
 ]
 
 // The first page of the next ticked section after `afterActivity`'s (or of the
@@ -268,6 +279,21 @@ export const JOURNEY = {
   // Where the journey goes after the distribute pages isn't defined yet.
   [DISTRIBUTE_QUANTITY_PAGE]: {
     section: DISTRIBUTE_PPPS_KEY,
+    sessionKey: 'quantity',
+    next: () => CHECK_ANSWERS_PAGE
+  },
+  [STORE_PRODUCTS_PAGE]: {
+    section: STORE_PPPS_KEY,
+    sessionKey: 'products',
+    next: () => STORE_SITES_PAGE
+  },
+  [STORE_SITES_PAGE]: {
+    section: STORE_PPPS_KEY,
+    sessionKey: 'sites',
+    next: () => STORE_QUANTITY_PAGE
+  },
+  [STORE_QUANTITY_PAGE]: {
+    section: STORE_PPPS_KEY,
     sessionKey: 'quantity',
     next: () => CHECK_ANSWERS_PAGE
   },
