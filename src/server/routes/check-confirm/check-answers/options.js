@@ -11,9 +11,3 @@ export const validate = {
   payload: Joi.object({}).unknown(true).allow(null),
   failAction: viewFailAction('check-confirm/check-answers/index')
 }
-
-export const deleteAdditionalAddressValidate = {
-  params: Joi.object({
-    number: Joi.number().integer().min(1).required()
-  })
-}

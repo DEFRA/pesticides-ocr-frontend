@@ -3,6 +3,7 @@ import { load } from 'cheerio'
 import { answerStep, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { injectWithSession } from '#/test-helpers/session-helpers.js'
+import { SELLING, USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 describe('#businessContactController', () => {
   let server
@@ -26,10 +27,32 @@ describe('#businessContactController', () => {
       expect(result).toEqual(expect.stringContaining('Business Contact |'))
       expect(statusCode).toBe(statusCodes.ok)
     })
+
+    test('Should show the question, the guidance and the inset text', async () => {
+      const page = await revisitStep(server, { url: '/business-contact' })
+
+      expect(page('h1').text().trim()).toBe('Who should we contact about your PPP activities?')
+      expect(page('main p.govuk-body').first().text().trim()).toBe(
+        "We may need to contact someone about your organisation's PPP activities. This should be a person with knowledge of these activities."
+      )
+      expect(page('.govuk-inset-text').text().trim()).toBe(
+        'If these contact details change in the future they must be updated'
+      )
+    })
+
+    test('Should label each field', async () => {
+      const page = await revisitStep(server, { url: '/business-contact' })
+      const labelFor = (field) => page(`label[for="${field}"]`).text().trim()
+
+      expect(labelFor('contactName')).toBe('Contact name')
+      expect(labelFor('contactJobTitle')).toBe('Job title or role (optional)')
+      expect(labelFor('contactTelephone')).toBe('Telephone number')
+      expect(labelFor('contactEmail')).toBe('Email address')
+    })
   })
 
   describe('POST /business-contact', () => {
-    test('Should redirect to address activity page', async () => {
+    test('Should redirect to check answers page', async () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-contact',
@@ -41,7 +64,49 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/address-activity')
+      expect(headers.location).toBe('/check-answers')
+    })
+
+    test('Should redirect to who applies page when the business uses PPPs', async () => {
+      const cookie = await answerStep(server, {
+        url: '/business-activities',
+        payload: { businessActivities: [USING, SELLING] }
+      })
+
+      const { statusCode, headers } = await server.inject({
+        method: 'POST',
+        url: '/business-contact',
+        headers: { cookie },
+        payload: {
+          contactName: 'John Smith',
+          contactTelephone: '01234 567890',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/using-ppps/who-applies')
+    })
+
+    test('Should redirect to check answers when the business has no activity section', async () => {
+      const cookie = await answerStep(server, {
+        url: '/business-activities',
+        payload: { businessActivities: [SELLING, 'manufacturing'] }
+      })
+
+      const { statusCode, headers } = await server.inject({
+        method: 'POST',
+        url: '/business-contact',
+        headers: { cookie },
+        payload: {
+          contactName: 'John Smith',
+          contactTelephone: '01234 567890',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/check-answers')
     })
 
     test('Should return view with error message', async () => {
@@ -56,7 +121,114 @@ describe('#businessContactController', () => {
       })
 
       expect(result).toEqual(expect.stringContaining('Enter a contact name'))
+      expect(result).toEqual(expect.stringContaining('Enter a telephone number'))
+      expect(result).toEqual(expect.stringContaining('Enter an email address'))
       expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test.each([
+      ['contactTelephone', 'Enter a telephone number'],
+      ['contactEmail', 'Enter an email address']
+    ])('Should show the enter message when %s is missing', async (field, message) => {
+      const payload = {
+        contactName: 'John Smith',
+        contactTelephone: '01234 567890',
+        contactEmail: 'John.Smith@pesticides.co.uk'
+      }
+      delete payload[field]
+
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/business-contact',
+        payload
+      })
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(result).toEqual(expect.stringContaining(message))
+      expect(result).not.toEqual(expect.stringContaining('is required'))
+    })
+
+    test('Should show an error for a telephone number with invalid characters', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/business-contact',
+        payload: {
+          contactName: 'John Smith',
+          contactTelephone: 'not-a-number',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+
+      expect(result).toEqual(expect.stringContaining('Enter a valid telephone number'))
+      expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should accept a job title or role and continue to check answers', async () => {
+      const { statusCode, headers } = await injectWithSession(server, {
+        method: 'POST',
+        url: '/business-contact',
+        payload: {
+          contactName: 'John Smith',
+          contactJobTitle: 'Farm manager',
+          contactTelephone: '01234 567890',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/check-answers')
+    })
+
+    test('Should continue when the job title or role is left empty', async () => {
+      const { statusCode, headers } = await injectWithSession(server, {
+        method: 'POST',
+        url: '/business-contact',
+        payload: {
+          contactName: 'John Smith',
+          contactJobTitle: '',
+          contactTelephone: '01234 567890',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/check-answers')
+    })
+
+    test('Should show an error when the job title or role is over 100 characters', async () => {
+      const { result, statusCode } = await server.inject({
+        method: 'POST',
+        url: '/business-contact',
+        payload: {
+          contactName: 'John Smith',
+          contactJobTitle: 'a'.repeat(101),
+          contactTelephone: '01234 567890',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+      const page = load(result)
+
+      expect(statusCode).toBe(statusCodes.ok)
+      expect(result).toEqual(
+        expect.stringContaining('Job title or role must be 100 characters or less')
+      )
+      expect(page('#contactJobTitle').val()).toBe('a'.repeat(101))
+    })
+
+    test('Should accept a job title or role of exactly 100 characters', async () => {
+      const { statusCode, headers } = await injectWithSession(server, {
+        method: 'POST',
+        url: '/business-contact',
+        payload: {
+          contactName: 'John Smith',
+          contactJobTitle: 'a'.repeat(100),
+          contactTelephone: '01234 567890',
+          contactEmail: 'John.Smith@pesticides.co.uk'
+        }
+      })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/check-answers')
     })
   })
 
@@ -65,6 +237,7 @@ describe('#businessContactController', () => {
 
     const contact = {
       contactName: 'Jo Bloggs',
+      contactJobTitle: 'Farm manager',
       contactTelephone: '01234 567890',
       contactEmail: 'jo@example.com'
     }
@@ -85,6 +258,27 @@ describe('#businessContactController', () => {
       Object.keys(contact).forEach((field) => {
         expect(page(`#${field}`).val()).toBeFalsy()
       })
+    })
+
+    test('Should accept a padded email address and save it trimmed', async () => {
+      const cookie = await answerStep(server, {
+        url,
+        payload: { ...contact, contactEmail: ' jo@example.com ' }
+      })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(page('#contactEmail').val()).toBe('jo@example.com')
+    })
+
+    test('Should save the contact without a job title or role when none is given', async () => {
+      const { contactJobTitle, ...withoutJobTitle } = contact
+      const cookie = await answerStep(server, { url, payload: withoutJobTitle })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(page('#contactName').val()).toBe(contact.contactName)
+      expect(page('#contactJobTitle').val()).toBeFalsy()
     })
 
     test('Should validate an amended value and show it rather than the session value', async () => {

@@ -6,7 +6,7 @@ import {
   removeSkippedAnswers
 } from './journey.js'
 
-const isChangeMode = (request) => request?.query?.change === 'true'
+export const isChangeMode = (request) => request?.query?.change === 'true'
 
 const hasSession = (request) => Boolean(request?.yar?.id)
 
