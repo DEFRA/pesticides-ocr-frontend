@@ -4,16 +4,12 @@ import { ONLY_STORING, SELLING } from '#/server/routes/qualifying-questions/busi
 describe('#buildAnswers', () => {
   test('Should map coded answers to the labels used on the question pages', () => {
     const answers = buildAnswers({
-      businessActivities: [SELLING, 'manufacturing'],
-      addressActivities: ['store']
+      businessActivities: [SELLING, 'manufacturing']
     })
 
     expect(answers.businessActivities).toEqual([
       'Selling PPPs',
       'Manufacturing PPPs'
-    ])
-    expect(answers.addressActivities).toEqual([
-      'Store plant protection products (PPPs) or adjuvants'
     ])
   })
 
@@ -281,66 +277,6 @@ describe('#buildAnswers', () => {
     ])
   })
 
-  test('Should shape every additional address the same way as the main one', () => {
-    const answers = buildAnswers({
-      additionalAddresses: [
-        {
-          address: {
-            addressLine1: 'Lowfield Farm',
-            addressLine2: '',
-            addressTown: 'Leeds',
-            addressCounty: '',
-            addressPostcode: 'LS1 1AA'
-          },
-          contact: {
-            contactName: 'Jane Doe',
-            contactTelephone: '01111 222333',
-            contactEmail: 'jane.doe@pesticides.co.uk'
-          },
-          activity: ['store', 'records']
-        }
-      ]
-    })
-
-    expect(answers.additionalAddresses).toEqual([
-      {
-        address: ['Lowfield Farm', 'Leeds', 'LS1 1AA'],
-        contactName: ['Jane Doe'],
-        contactTelephone: ['01111 222333'],
-        contactEmail: ['jane.doe@pesticides.co.uk'],
-        activity: [
-          'Store plant protection products (PPPs) or adjuvants',
-          'Keep records of plant protection products (PPPs)'
-        ]
-      }
-    ])
-  })
-
-  test('Should keep the additional addresses in the order they were added', () => {
-    const answers = buildAnswers({
-      additionalAddresses: [
-        { address: { addressLine1: 'Highfield Farm' } },
-        { address: { addressLine1: 'Lowfield Farm' } }
-      ]
-    })
-
-    expect(answers.additionalAddresses).toHaveLength(2)
-    expect(answers.additionalAddresses[0].address).toEqual(['Highfield Farm'])
-    expect(answers.additionalAddresses[1].address).toEqual(['Lowfield Farm'])
-  })
-
-  test('Should leave out every unanswered part of an additional address', () => {
-    const answers = buildAnswers({
-      additionalAddresses: [{}, { contact: { contactName: 'Jane Doe' } }]
-    })
-
-    expect(answers.additionalAddresses).toEqual([{}, { contactName: ['Jane Doe'] }])
-  })
-
-  test('Should leave out the additional addresses when none were added', () => {
-    expect(buildAnswers({}).additionalAddresses).toBeUndefined()
-    expect(buildAnswers({ additionalAddresses: [] }).additionalAddresses).toBeUndefined()
-  })
   test('Should give the processing answers with their labels and the quantity unit', () => {
     const answers = buildAnswers({
       processingPPPs: { products: 'ingredients', sites: '400-plus', quantity: 1200 }

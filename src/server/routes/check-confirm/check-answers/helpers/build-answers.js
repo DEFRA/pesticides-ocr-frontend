@@ -1,5 +1,4 @@
 import { businessActivityItems } from '../../../qualifying-questions/business-activities/items.js'
-import { addressActivityItems } from '../../../qualifying-questions/address-activity/items.js'
 import { memberSchemesItems } from '#/server/routes/using-ppps/member-schemes/items.js'
 import { whoAppliesItems } from '#/server/routes/using-ppps/who-applies/items.js'
 import { pppSectorsItems } from '#/server/routes/using-ppps/ppp-sectors/items.js'
@@ -16,12 +15,7 @@ import { processingSitesItems } from '#/server/routes/processing-ppps/sites/item
 import { getDistributePPPsAnswers } from '#/server/common/helpers/distribute-ppps-answers.js'
 import { distributeProductsItems } from '#/server/routes/distribute/products/items.js'
 import { distributeSitesItems } from '#/server/routes/distribute/sites/items.js'
-import {
-  additionalAddressLines,
-  addressLines,
-  labelsFor,
-  toLines
-} from '#/server/common/helpers/answer-lines.js'
+import { addressLines, labelsFor, toLines } from '#/server/common/helpers/answer-lines.js'
 
 function hasValue(value) {
   return Array.isArray(value) ? value.length > 0 : value !== undefined
@@ -83,8 +77,6 @@ export function buildAnswers(formData = {}) {
     processingQuantity: annualQuantityLines(processingPPPs['quantity']),
     distributeProducts: labelsFor(distributeProductsItems, distributePPPs['products']),
     distributeSites: labelsFor(distributeSitesItems, distributePPPs['sites']),
-    distributeQuantity: annualQuantityLines(distributePPPs['quantity']),
-    addressActivities: labelsFor(addressActivityItems, formData['addressActivities']),
-    additionalAddresses: (formData['additionalAddresses'] ?? []).map((entry) => withValues(additionalAddressLines(entry)))
+    distributeQuantity: annualQuantityLines(distributePPPs['quantity'])
   })
 }

@@ -8,7 +8,6 @@
 // display strings out of an API other consumers share.
 
 import { businessActivityItems } from '#/server/routes/qualifying-questions/business-activities/items.js'
-import { addressActivityItems } from '#/server/routes/qualifying-questions/address-activity/items.js'
 import { usingQuantityText } from '#/server/routes/using-ppps/quantity/items.js'
 import { regionItems } from '#/server/common/constants/regions.js'
 
@@ -33,7 +32,13 @@ const labelsByValue = (items) =>
   Object.fromEntries(items.map(({ value, text }) => [value, text]))
 
 const BUSINESS_ACTIVITY_LABELS = labelsByValue(businessActivityItems)
-const ADDRESS_ACTIVITY_LABELS = labelsByValue(addressActivityItems)
+// The journey no longer asks what happens at the address, but older
+// registrations still carry these codes.
+const ADDRESS_ACTIVITY_LABELS = {
+  use: 'Use plant protection products (PPPs) or adjuvants',
+  store: 'Store plant protection products (PPPs) or adjuvants',
+  records: 'Keep records of plant protection products (PPPs)'
+}
 const REGION_LABELS = labelsByValue(regionItems)
 
 const labelFor = (map) => (code) => map[code] ?? code

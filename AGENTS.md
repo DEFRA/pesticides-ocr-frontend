@@ -35,7 +35,8 @@ This file defines shared instructions for AI coding tools working in this reposi
 
 Each page (or group of related routes) lives in its own kebab-case folder under
 `src/server/routes/`, optionally nested in a journey folder
-(`qualifying-questions/`, `pro-users/`, `check-confirm/`). Top-level pages that
+(`qualifying-questions/`, `using-ppps/`, `processing-ppps/`, `distribute/`,
+`check-confirm/`). Top-level pages that
 aren't part of a journey (`home`, `cookies`, `dashboard`, `search`) sit directly
 under `src/server/routes/` rather than in a journey folder. Files inside a page
 folder have fixed names, so do not repeat the folder name in them:
@@ -60,8 +61,8 @@ and `health/` is registered directly by `router.js` rather than via
 `routes.js`.
 
 - Reference views by folder path ending in `index`, e.g.
-  `h.view('pro-users/member-schemes/index')` and
-  `viewFailAction('pro-users/member-schemes/index')`.
+  `h.view('using-ppps/member-schemes/index')` and
+  `viewFailAction('using-ppps/member-schemes/index')`.
 - Import the plugin from the folder's `index.js` in `src/server/routes/routes.js`
   (except `health`, which `router.js` registers directly).
 - Tests are co-located next to the file under test as `<file>.test.js`.

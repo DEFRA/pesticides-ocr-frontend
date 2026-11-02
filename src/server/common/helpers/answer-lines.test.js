@@ -1,5 +1,4 @@
 import {
-  additionalAddressLines,
   addressLines,
   labelsFor,
   toLines
@@ -62,38 +61,6 @@ describe('#answerLines', () => {
 
     test('Should return nothing when no address is held', () => {
       expect(addressLines()).toEqual([])
-    })
-  })
-
-  describe('#additionalAddressLines', () => {
-    test('Should describe every part of an additional address', () => {
-      expect(
-        additionalAddressLines({
-          address: { addressLine1: 'Highfield Farm', addressTown: 'Farm town' },
-          contact: {
-            contactName: 'John Smith',
-            contactEmail: 'john.smith@pesticides.co.uk',
-            contactTelephone: '01234 567890'
-          },
-          activity: ['store']
-        })
-      ).toEqual({
-        address: ['Highfield Farm', 'Farm town'],
-        contactName: ['John Smith'],
-        contactEmail: ['john.smith@pesticides.co.uk'],
-        contactTelephone: ['01234 567890'],
-        activity: ['Store plant protection products (PPPs) or adjuvants']
-      })
-    })
-
-    test('Should give every unanswered field an empty list', () => {
-      expect(additionalAddressLines()).toEqual({
-        address: [],
-        contactName: [],
-        contactEmail: [],
-        contactTelephone: [],
-        activity: []
-      })
     })
   })
 })

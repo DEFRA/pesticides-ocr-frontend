@@ -3,8 +3,7 @@ import { statusCodes } from '#/server/common/constants/status-codes.js'
 import Boom from '@hapi/boom'
 import { config } from '#/config/config.js'
 import { getSession } from '#/server/common/helpers/get-session.js'
-import { CHECK_ANSWERS_PAGE, findFirstMissingPage, isOnRoute } from '#/server/common/helpers/journey.js'
-import { removeUnfinishedAddresses } from '#/server/common/helpers/additional-addresses.js'
+import { CHECK_ANSWERS_PAGE, findFirstMissingPage } from '#/server/common/helpers/journey.js'
 import {
   ADDRESS_SEARCH_KEY,
   OWN_STORAGE_ADDRESS_SEARCH_KEY
@@ -12,37 +11,18 @@ import {
 
 export const get = {
   handler(request, h) {
-    const formData = removeUnfinishedAddresses(getSession(request, 'formSession'))
+    const formData = getSession(request, 'formSession')
     request.yar.set('formSession', formData)
 
     return h.view('check-confirm/check-answers/index', {
-      answers: buildAnswers(formData),
-      canAddAdditionalAddresses: isOnRoute('/additional-addresses', formData)
+      answers: buildAnswers(formData)
     })
-  }
-}
-
-export const deleteAdditionalAddress = {
-  handler(request, h) {
-    const formSession = getSession(request, 'formSession')
-    const additionalAddresses = formSession['additionalAddresses'] ?? []
-    const index = request.params.number - 1
-
-    if (index >= additionalAddresses.length) {
-      return Boom.notFound('Additional address not found')
-    }
-
-    additionalAddresses.splice(index, 1)
-    formSession['additionalAddresses'] = additionalAddresses
-    request.yar.set('formSession', formSession)
-
-    return h.redirect(CHECK_ANSWERS_PAGE)
   }
 }
 
 export const post = {
   async handler(request, h) {
-    const formSession = removeUnfinishedAddresses(getSession(request, 'formSession'))
+    const formSession = getSession(request, 'formSession')
     const missingPage = findFirstMissingPage(formSession)
 
     if (missingPage !== CHECK_ANSWERS_PAGE) {

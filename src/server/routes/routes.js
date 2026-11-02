@@ -29,15 +29,9 @@ import { processingQuantity } from './processing-ppps/quantity/index.js'
 import { distributeProducts } from './distribute/products/index.js'
 import { distributeSites } from './distribute/sites/index.js'
 import { distributeQuantity } from './distribute/quantity/index.js'
-import { addressActivity } from './qualifying-questions/address-activity/index.js'
 import { checkAnswers } from './check-confirm/check-answers/index.js'
 import { confirmation } from './check-confirm/confirmation/index.js'
 import { notEligible } from './qualifying-questions/not-eligible/index.js'
-import { additionalAddresses } from './pro-users/additional-addresses/index.js'
-import { additionalBusinessAddress } from './pro-users/additional-business-address/index.js'
-import { additionalBusinessContact } from './pro-users/additional-business-contact/index.js'
-import { additionalBusinessActivity } from './pro-users/additional-business-activity/index.js'
-import { checkAdditionalAddress } from './pro-users/check-additional-address/index.js'
 
 export const routes = [
   home,
@@ -71,15 +65,9 @@ export const routes = [
   distributeProducts,
   distributeSites,
   distributeQuantity,
-  addressActivity,
   checkAnswers,
   confirmation,
-  notEligible,
-  additionalAddresses,
-  additionalBusinessAddress,
-  additionalBusinessContact,
-  additionalBusinessActivity,
-  checkAdditionalAddress
+  notEligible
 ]
 
 export default routes

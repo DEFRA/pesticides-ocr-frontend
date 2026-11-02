@@ -42,7 +42,6 @@ function lift({ [USING_PPPS_KEY]: usingPPPs, ...others }) {
 const findFirstMissingPage = (answers) => journey.findFirstMissingPage(nest(answers))
 const getNextPage = (page, answers) => journey.getNextPage(page, nest(answers))
 const getPreviousPage = (page, answers) => journey.getPreviousPage(page, nest(answers))
-const isOnRoute = (page, answers) => journey.isOnRoute(page, nest(answers))
 const removeSkippedAnswers = (answers) => lift(journey.removeSkippedAnswers(nest(answers)))
 
 describe('#journey', () => {
@@ -50,16 +49,7 @@ describe('#journey', () => {
     businessActivities: [ONLY_STORING],
     businessName: 'Pesticides Ltd',
     address: { addressLine1: 'Lower Meadow Barn' },
-    primaryContact: { contactName: 'Jo Bloggs' },
-    addressActivities: ['store']
-  }
-
-  // Uses products at the address, which leads on to the optional additional
-  // addresses. The business activities stay as only storing: "using" would
-  // branch off to who applies PPPs instead.
-  const usesAtAddress = {
-    ...storesProducts,
-    addressActivities: ['use']
+    primaryContact: { contactName: 'Jo Bloggs' }
   }
 
   const contractor = {
@@ -101,9 +91,10 @@ describe('#journey', () => {
       ['/business-contact', { businessActivities: [USING] }, '/using-ppps/who-applies'],
       ['/business-contact', { businessActivities: [USING, SELLING] }, '/using-ppps/who-applies'],
       ['/business-contact', { businessActivities: [DISTRIBUTING] }, '/distribute/products'],
-      ['/business-contact', { businessActivities: ['manufacturing'] }, '/address-activity'],
-      ['/business-contact', { businessActivities: [ONLY_STORING] }, '/address-activity'],
-      ['/business-contact', {}, '/address-activity'],
+      ['/business-contact', { businessActivities: ['manufacturing'] }, '/check-answers'],
+      ['/business-contact', { businessActivities: ['importing'] }, '/check-answers'],
+      ['/business-contact', { businessActivities: [ONLY_STORING] }, '/check-answers'],
+      ['/business-contact', {}, '/check-answers'],
       ['/using-ppps/who-applies', { whoApplies: 'self' }, '/using-ppps/ppp-sectors'],
       ['/using-ppps/who-applies', { whoApplies: 'contractor' }, '/using-ppps/contractor-address'],
       ['/using-ppps/contractor-address', { whoApplies: 'contractor' }, '/using-ppps/ppp-sectors'],
@@ -154,9 +145,6 @@ describe('#journey', () => {
       ['/using-ppps/storing', { storing: 'no' }, '/using-ppps/quantity'],
       ['/using-ppps/quantity', { quantity: '1-29' }, '/check-answers'],
       ['/using-ppps/quantity', { quantity: '400-plus' }, '/check-answers'],
-      ['/address-activity', { addressActivities: ['use'] }, '/additional-addresses'],
-      ['/address-activity', { addressActivities: ['use', 'store'] }, '/additional-addresses'],
-      ['/address-activity', { addressActivities: ['store'] }, '/check-answers'],
       ['/using-ppps/member-schemes', {}, '/using-ppps/storing']
     ])('Should go from %s to the right page for %o', (page, formSession, nextPage) => {
       expect(getNextPage(page, formSession)).toBe(nextPage)
@@ -170,7 +158,6 @@ describe('#journey', () => {
 
     test('Should return check answers when every relevant page is answered', () => {
       expect(findFirstMissingPage(storesProducts)).toBe('/check-answers')
-      expect(findFirstMissingPage(usesAtAddress)).toBe('/check-answers')
       expect(findFirstMissingPage(usesPpps)).toBe('/check-answers')
     })
 
@@ -191,7 +178,7 @@ describe('#journey', () => {
     })
 
     test('Should ask who applies PPPs even when later answers are already held', () => {
-      expect(findFirstMissingPage({ ...usesAtAddress, businessActivities: [USING] })).toBe(
+      expect(findFirstMissingPage({ ...storesProducts, businessActivities: [USING] })).toBe(
         '/using-ppps/who-applies'
       )
     })
@@ -214,7 +201,7 @@ describe('#journey', () => {
 
     test('Should stop at the PPP sectors even when later answers are already held', () => {
       expect(
-        findFirstMissingPage({ ...usesAtAddress, businessActivities: [USING], whoApplies: 'self' })
+        findFirstMissingPage({ ...storesProducts, businessActivities: [USING], whoApplies: 'self' })
       ).toBe('/using-ppps/ppp-sectors')
     })
 
@@ -417,12 +404,6 @@ describe('#journey', () => {
       expect(findFirstMissingPage({ ...storesProducts, whoApplies: 'self' })).toBe('/check-answers')
     })
 
-    test('Should go to check answers when products are used at the address, as additional addresses are optional', () => {
-      expect(findFirstMissingPage({ ...storesProducts, addressActivities: ['use'] })).toBe(
-        '/check-answers'
-      )
-    })
-
     test('Should treat a member scheme answer with nothing selected as answered', () => {
       expect(
         findFirstMissingPage({
@@ -438,9 +419,8 @@ describe('#journey', () => {
 
   describe('#getPreviousPage', () => {
     test('Should return the page before on the route the answers take', () => {
-      expect(getPreviousPage('/business-name', usesAtAddress)).toBe('/business-activities')
       expect(getPreviousPage('/business-name', storesProducts)).toBe('/business-activities')
-      expect(getPreviousPage('/additional-addresses', usesAtAddress)).toBe('/address-activity')
+      expect(getPreviousPage('/check-answers', storesProducts)).toBe('/business-contact')
     })
 
     test('Should return the last answered page for the first unanswered page', () => {
@@ -526,7 +506,7 @@ describe('#journey', () => {
     })
 
     test('Should return nothing for the PPP sectors when the business does not use PPPs', () => {
-      expect(getPreviousPage('/using-ppps/ppp-sectors', usesAtAddress)).toBeUndefined()
+      expect(getPreviousPage('/using-ppps/ppp-sectors', storesProducts)).toBeUndefined()
     })
 
     test('Should return nothing for who applies PPPs when the business does not use PPPs', () => {
@@ -534,7 +514,7 @@ describe('#journey', () => {
     })
 
     test('Should return nothing for the first page', () => {
-      expect(getPreviousPage('/business-activities', usesAtAddress)).toBeUndefined()
+      expect(getPreviousPage('/business-activities', storesProducts)).toBeUndefined()
     })
 
     test('Should return nothing for a page the answers skip', () => {
@@ -543,49 +523,11 @@ describe('#journey', () => {
     })
   })
 
-  describe('#isOnRoute', () => {
-    test('Should include the additional addresses when products are used at the address', () => {
-      expect(isOnRoute('/additional-addresses', usesAtAddress)).toBe(true)
-    })
-
-    test('Should exclude the additional addresses when products are not used at the address', () => {
-      expect(isOnRoute('/additional-addresses', storesProducts)).toBe(false)
-    })
-  })
-
   describe('#removeSkippedAnswers', () => {
-    const additionalAddresses = [{ address: { addressLine1: 'Highfield Farm' } }]
-
     test('Should keep every answer on the route', () => {
-      const formSession = { ...usesAtAddress, additionalAddresses }
+      const formSession = { ...storesProducts }
 
       expect(removeSkippedAnswers(formSession)).toEqual(formSession)
-    })
-
-    test('Should remove the additional addresses once products are no longer used at the address', () => {
-      const formSession = removeSkippedAnswers({
-        ...usesAtAddress,
-        addressActivities: ['store'],
-        additionalAddresses
-      })
-
-      expect(Object.keys(formSession)).toEqual([
-        'businessActivities',
-        'businessName',
-        'address',
-        'primaryContact',
-        'addressActivities'
-      ])
-    })
-
-    test('Should keep the professional answers whatever the business activities are', () => {
-      const formSession = removeSkippedAnswers({
-        ...usesAtAddress,
-        businessActivities: [ONLY_STORING],
-        additionalAddresses
-      })
-
-      expect(formSession).toHaveProperty('additionalAddresses')
     })
 
     test('Should keep the later answers when the route leaves for the sell section', () => {
@@ -598,17 +540,6 @@ describe('#journey', () => {
       const formSession = removeSkippedAnswers({ ...storesProducts, whoApplies: 'self' })
 
       expect(formSession).toEqual(storesProducts)
-    })
-
-    test('Should remove who applies PPPs on the professional route when using PPPs is no longer ticked', () => {
-      const formSession = removeSkippedAnswers({
-        ...usesAtAddress,
-        whoApplies: 'contractor',
-        additionalAddresses
-      })
-
-      expect(formSession).not.toHaveProperty('whoApplies')
-      expect(formSession).toHaveProperty('additionalAddresses')
     })
 
     test('Should remove the contractor once who applies PPPs changes to self', () => {
@@ -637,15 +568,12 @@ describe('#journey', () => {
 
     test('Should remove the PPP sectors once using PPPs is no longer ticked', () => {
       const formSession = removeSkippedAnswers({
-        ...usesAtAddress,
+        ...storesProducts,
         whoApplies: 'self',
-        professionalSectors: ['amenity'],
-        additionalAddresses
+        professionalSectors: ['amenity']
       })
 
-      expect(formSession).not.toHaveProperty('whoApplies')
-      expect(formSession).not.toHaveProperty('professionalSectors')
-      expect(formSession).toHaveProperty('additionalAddresses')
+      expect(formSession).toEqual(storesProducts)
     })
 
     test('Should keep the contractor and the PPP sectors while another organisation applies PPPs', () => {
@@ -691,11 +619,10 @@ describe('#journey', () => {
       'Should keep the later answers when who applies PPPs (%s) leads to an unanswered page or off the journey map, given %o',
       (whoApplies, answers) => {
         const formSession = {
-          ...usesAtAddress,
+          ...storesProducts,
           businessActivities: [USING],
           whoApplies,
-          ...answers,
-          additionalAddresses
+          ...answers
         }
 
         expect(removeSkippedAnswers(formSession)).toEqual(formSession)
@@ -703,7 +630,7 @@ describe('#journey', () => {
     )
 
     test('Should keep the later answers while who applies PPPs is unanswered', () => {
-      const formSession = { ...usesAtAddress, businessActivities: [USING], additionalAddresses }
+      const formSession = { ...storesProducts, businessActivities: [USING], storing: 'no' }
 
       expect(removeSkippedAnswers(formSession)).toEqual(formSession)
     })
@@ -772,9 +699,9 @@ describe('#journey', () => {
     })
 
     test.each([
-      [ONLY_STORING, { addressActivities: ['store'] }],
       [ONLY_STORING, {}],
-      [ONLY_STORING, { addressActivities: ['use'] }]
+      ['manufacturing', {}],
+      [PROCESSING, {}]
     ])(
       'Should remove storing products and the quantity once using PPPs is no longer ticked (%s, %o)',
       (businessActivity, answers) => {
@@ -807,16 +734,6 @@ describe('#journey', () => {
         expect(removeSkippedAnswers(formSession)).toEqual(formSession)
       }
     )
-
-    test('Should remove the address activity answers once the PPP route reaches check answers', () => {
-      const formSession = removeSkippedAnswers({
-        ...usesPpps,
-        addressActivities: ['use'],
-        additionalAddresses
-      })
-
-      expect(formSession).toEqual(usesPpps)
-    })
 
     test('Should keep answers that do not belong to a journey page', () => {
       const formSession = { ...storesProducts, 'confirmation-reference': 'OCR-123' }
@@ -864,12 +781,11 @@ describe('#journey', () => {
       const formSession = journey.removeSkippedAnswers({
         ...answeredToContact,
         businessActivities: [ONLY_STORING],
-        addressActivities: ['store'],
         usingPPPs: { whoApplies: 'self', professionalSectors: ['forestry'] }
       })
 
       expect(formSession).not.toHaveProperty('usingPPPs')
-      expect(formSession.addressActivities).toEqual(['store'])
+      expect(formSession.businessName).toBe('Pesticides Ltd')
     })
   })
   describe('#processing PPPs', () => {

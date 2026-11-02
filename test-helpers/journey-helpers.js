@@ -30,7 +30,6 @@ export async function completeJourney(server, cookie) {
     contactTelephone: '01234 567890',
     contactEmail: 'jo@example.com'
   })
-  await answer('/address-activity', { addressActivities: ['store'] })
 
   return sessionCookie
 }

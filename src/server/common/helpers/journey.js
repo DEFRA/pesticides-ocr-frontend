@@ -77,8 +77,10 @@ function nextSectionPage({ businessActivities = [] }, afterActivity) {
     ?.firstPage
 }
 
+// Activities without a section of their own (manufacturing, importing, only
+// storing) ask nothing more, so with no section ticked it's on to check answers.
 const pageAfterBusinessContact = (formSession) =>
-  nextSectionPage(formSession) ?? '/address-activity'
+  nextSectionPage(formSession) ?? CHECK_ANSWERS_PAGE
 
 // The end of a section: on to the next ticked section, or check answers.
 const pageAfterSection = (activity) => (formSession) =>
@@ -270,16 +272,6 @@ export const JOURNEY = {
     section: DISTRIBUTE_PPPS_KEY,
     sessionKey: 'quantity',
     next: () => CHECK_ANSWERS_PAGE
-  },
-  '/address-activity': {
-    sessionKey: 'addressActivities',
-    next: (formSession) =>
-      formSession['addressActivities'].includes('use') ? '/additional-addresses' : CHECK_ANSWERS_PAGE
-  },
-  '/additional-addresses': {
-    sessionKey: 'additionalAddresses',
-    optional: true,
-    next: () => CHECK_ANSWERS_PAGE
   }
 }
 
@@ -292,8 +284,7 @@ const answersFor = (page, formSession) => {
 }
 
 const isAnswered = (page, formSession) =>
-  page in JOURNEY &&
-  (JOURNEY[page].optional || answersFor(page, formSession)[JOURNEY[page].sessionKey] !== undefined)
+  page in JOURNEY && answersFor(page, formSession)[JOURNEY[page].sessionKey] !== undefined
 
 export function getNextPage(page, formSession) {
   return JOURNEY[page].next(formSession)
@@ -321,10 +312,6 @@ export function getPreviousPage(page, formSession) {
   const position = route.indexOf(page)
 
   return position > 0 ? route[position - 1] : undefined
-}
-
-export function isOnRoute(page, formSession) {
-  return followRoute(formSession).answeredPages.includes(page)
 }
 
 // A route that leaves the journey map (e.g. into the sell section) gives no
