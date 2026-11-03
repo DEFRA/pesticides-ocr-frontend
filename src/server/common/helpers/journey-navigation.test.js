@@ -6,8 +6,7 @@ describe('#journeyNavigation', () => {
     businessActivities: ['manufacturing'],
     businessName: 'Pesticides Ltd',
     address: { addressLine1: 'Lower Meadow Barn' },
-    primaryContact: { contactName: 'Jo Bloggs' },
-    addressActivities: ['store']
+    primaryContact: { contactName: 'Jo Bloggs' }
   }
 
   const createRequest = ({ path = '/business-name', query = {}, store = {}, app = {} } = {}) => {
@@ -53,10 +52,10 @@ describe('#journeyNavigation', () => {
       const store = {
         formSession: {
           ...answeredJourney,
-          additionalAddresses: [{ address: { addressLine1: 'Highfield Farm' } }]
+          usingPPPs: { whoApplies: 'myself' }
         }
       }
-      const request = createRequest({ path: '/address-activity', store })
+      const request = createRequest({ path: '/business-contact', store })
 
       redirectToNextPage(request, h, '/check-answers')
 
@@ -82,13 +81,13 @@ describe('#journeyNavigation', () => {
 
     test('Should return the previous page on the route the answers take', () => {
       const businessName = createRequest({ store: { formSession: answeredJourney } })
-      const addressActivity = createRequest({
-        path: '/address-activity',
+      const checkAnswers = createRequest({
+        path: '/check-answers',
         store: { formSession: answeredJourney }
       })
 
       expect(getBackLink(businessName)).toBe('/business-activities')
-      expect(getBackLink(addressActivity)).toBe('/business-contact')
+      expect(getBackLink(checkAnswers)).toBe('/business-contact')
     })
 
     test('Should return nothing for a page the answers skip', () => {
@@ -105,7 +104,7 @@ describe('#journeyNavigation', () => {
 
     test('Should work out the back link from the answers when the route sets a function', () => {
       const request = createRequest({
-        path: '/additional-addresses/address',
+        path: '/business-contact',
         app: { backLink: (formSession) => formSession.businessName },
         store: { formSession: answeredJourney }
       })

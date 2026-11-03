@@ -52,7 +52,7 @@ describe('#businessContactController', () => {
   })
 
   describe('POST /business-contact', () => {
-    test('Should redirect to address activity page', async () => {
+    test('Should redirect to check answers page', async () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-contact',
@@ -64,7 +64,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/address-activity')
+      expect(headers.location).toBe('/check-answers')
     })
 
     test('Should redirect to who applies page when the business uses PPPs', async () => {
@@ -88,7 +88,7 @@ describe('#businessContactController', () => {
       expect(headers.location).toBe('/using-ppps/who-applies')
     })
 
-    test('Should redirect to address activity page when the business does not use PPPs', async () => {
+    test('Should redirect to check answers when the business has no activity section', async () => {
       const cookie = await answerStep(server, {
         url: '/business-activities',
         payload: { businessActivities: [SELLING, 'manufacturing'] }
@@ -106,7 +106,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/address-activity')
+      expect(headers.location).toBe('/check-answers')
     })
 
     test('Should return view with error message', async () => {
@@ -163,7 +163,7 @@ describe('#businessContactController', () => {
       expect(statusCode).toBe(statusCodes.ok)
     })
 
-    test('Should accept a job title or role and continue to address activity', async () => {
+    test('Should accept a job title or role and continue to check answers', async () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-contact',
@@ -176,7 +176,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/address-activity')
+      expect(headers.location).toBe('/check-answers')
     })
 
     test('Should continue when the job title or role is left empty', async () => {
@@ -192,7 +192,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/address-activity')
+      expect(headers.location).toBe('/check-answers')
     })
 
     test('Should show an error when the job title or role is over 100 characters', async () => {
@@ -228,7 +228,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/address-activity')
+      expect(headers.location).toBe('/check-answers')
     })
   })
 

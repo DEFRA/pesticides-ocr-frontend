@@ -140,16 +140,7 @@
             key: { text: "Quantity used in a typical year" },
             value: { html: appAnswerList({ values: answers.usingQuantity }) },
             actions: { items: [{ href: "/using-ppps/quantity?change=true", text: "Change", visuallyHiddenText: "quantity used in a typical year" }] }
-          } if answers.usingQuantity,
-          {
-            key: { text: "PPP activities at the address" },
-            value: { html: appAnswerList({ values: answers.addressActivities }) },
-            actions: { items: [{ href: "/address-activity?change=true", text: "Change", visuallyHiddenText: "PPP activities at the address" }] }
-          } if answers.addressActivities,
-          {
-            key: { text: "Additional addresses" },
-            value: { text: answers.additionalAddresses.length }
-          } if answers.additionalAddresses
+          } if answers.usingQuantity
         ]
       }) }}
 
@@ -218,51 +209,6 @@
             } if answers.storeQuantity
           ]
         }) }}
-      {% endif %}
-
-      {% if answers.additionalAddresses or canAddAdditionalAddresses %}
-        <h2 class="govuk-heading-m">Additional addresses</h2>
-
-        {% for entry in answers.additionalAddresses %}
-          {{ govukSummaryList({
-            card: {
-              title: { text: "Additional address " ~ loop.index }
-            },
-            rows: [
-              { 
-                key: { text: "Address" },
-                value: { html: appAnswerList({ values: entry.address }) }
-              } if entry.address,
-              { 
-                key: { text: "Name" },
-                value: { html: appAnswerList({ values: entry.contactName }) }
-              } if entry.contactName,
-              { 
-                key: { text: "Email" },
-                value: { html: appAnswerList({ values: entry.contactEmail }) }
-              } if entry.contactEmail,
-              { 
-                key: { text: "Telephone" },
-                value: { html: appAnswerList({ values: entry.contactTelephone }) }
-              } if entry.contactTelephone,
-              { 
-                key: { text: "PPP activity" },
-                value: { html: appAnswerList({ values: entry.activity }) }
-              } if entry.activity
-            ]
-          }) }}
-
-          <form method="post" action="/check-answers/additional-addresses/{{ loop.index }}/delete" novalidate>
-            {{ govukButton({
-              html: "Delete<span class=\"govuk-visually-hidden\"> (Additional address " ~ loop.index ~ ")</span>",
-              classes: "govuk-button--secondary"
-            }) }}
-          </form>
-        {% endfor %}
-
-        <p class="govuk-body">
-          <a class="govuk-link" href="/additional-addresses/address">Add another address</a>
-        </p>
       {% endif %}
 
       <form method="post" action="/check-answers" novalidate>
