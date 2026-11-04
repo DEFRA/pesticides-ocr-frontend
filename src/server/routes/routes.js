@@ -29,6 +29,9 @@ import { processingQuantity } from './processing-ppps/quantity/index.js'
 import { distributeProducts } from './distribute/products/index.js'
 import { distributeSites } from './distribute/sites/index.js'
 import { distributeQuantity } from './distribute/quantity/index.js'
+import { storeProducts } from './storing/products/index.js'
+import { storeSites } from './storing/sites/index.js'
+import { storeQuantity } from './storing/quantity/index.js'
 import { checkAnswers } from './check-confirm/check-answers/index.js'
 import { confirmation } from './check-confirm/confirmation/index.js'
 import { notEligible } from './qualifying-questions/not-eligible/index.js'
@@ -65,6 +68,9 @@ export const routes = [
   distributeProducts,
   distributeSites,
   distributeQuantity,
+  storeProducts,
+  storeSites,
+  storeQuantity,
   checkAnswers,
   confirmation,
   notEligible
