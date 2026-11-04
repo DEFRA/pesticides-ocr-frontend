@@ -1,3 +1,4 @@
+import { load } from 'cheerio'
 import { createServer } from '#/server/server.js'
 import { answerStep, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
@@ -6,6 +7,8 @@ import { injectWithSession } from '#/test-helpers/session-helpers.js'
 const url = '/storing/quantity'
 const question =
   'What is the overall volume of PPPs, ingredients and adjuvants your business stores in a typical year?'
+const tooLargeMessage = 'Estimated annual quantity is too large. Check you have entered it correctly'
+const decimalPlacesMessage = 'Estimated annual quantity must have no more than 2 decimal places'
 
 describe('#storeQuantityController', () => {
   let server
@@ -33,6 +36,15 @@ describe('#storeQuantityController', () => {
       expect(page('.govuk-input__suffix').text().trim()).toBe('Kilograms or litres')
     })
 
+    // GOV.UK advises a plain text input for decimals, as inputmode="decimal"
+    // shows a keypad with no decimal point on some devices.
+    test('Should use a plain text input for the quantity, with spellcheck off', async () => {
+      const page = await revisitStep(server, { url })
+
+      expect(page('#quantity').attr('inputmode')).toBeUndefined()
+      expect(page('#quantity').attr('spellcheck')).toBe('false')
+    })
+
     test('Should tell the browser not to store the page', async () => {
       const { headers } = await server.inject({ method: 'GET', url })
 
@@ -41,7 +53,7 @@ describe('#storeQuantityController', () => {
   })
 
   describe('POST /storing/quantity', () => {
-    test.each([['250'], ['0.5'], [' 1200 ']])('Should go on to check answers for %o', async (quantity) => {
+    test.each([['250'], ['0.5'], [' 1200 '], ['0.07']])('Should go on to check answers for %o', async (quantity) => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url,
@@ -57,12 +69,19 @@ describe('#storeQuantityController', () => {
       [{ quantity: '' }, 'Enter the estimated annual quantity'],
       [{ quantity: 'lots' }, 'Estimated annual quantity must be a number greater than 0'],
       [{ quantity: '0' }, 'Estimated annual quantity must be a number greater than 0'],
-      [{ quantity: '-5' }, 'Estimated annual quantity must be a number greater than 0']
+      [{ quantity: '-5' }, 'Estimated annual quantity must be a number greater than 0'],
+      [{ quantity: '   ' }, 'Enter the estimated annual quantity'],
+      [{ quantity: '9007199254740993' }, tooLargeMessage],
+      [{ quantity: '1e308' }, tooLargeMessage],
+      [{ quantity: '0.0000001' }, decimalPlacesMessage],
+      [{ quantity: '12.345' }, decimalPlacesMessage]
     ])('Should show an error for %o', async (payload, message) => {
       const { result, statusCode } = await server.inject({ method: 'POST', url, payload })
+      const page = load(result)
 
       expect(statusCode).toBe(statusCodes.ok)
-      expect(result).toEqual(expect.stringContaining(message))
+      expect(page('.govuk-error-summary__list a[href="#quantity"]').text().trim()).toBe(message)
+      expect(page('#quantity-error').text()).toEqual(expect.stringContaining(message))
     })
 
     test('Should keep what was typed when it is not valid', async () => {

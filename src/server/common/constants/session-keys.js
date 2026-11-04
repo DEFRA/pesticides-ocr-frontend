@@ -9,5 +9,5 @@ export const OWN_STORAGE_ADDRESS_SEARCH_KEY = 'ownStorageAddressSearch'
 // storing PPPs answers.
 export const USING_PPPS_KEY = 'usingPPPs'
 export const PROCESSING_PPPS_KEY = 'processingPPPs'
-export const DISTRIBUTE_PPPS_KEY = 'distributePPPs'
-export const STORE_PPPS_KEY = 'storePPPs'
+export const DISTRIBUTING_PPPS_KEY = 'distributingPPPs'
+export const STORING_PPPS_KEY = 'storingPPPs'

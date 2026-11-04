@@ -1,8 +1,5 @@
-import Joi from 'joi'
+import { annualQuantityPayload } from '#/server/common/helpers/annual-quantity.js'
 import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
-
-const ENTER_QUANTITY_MESSAGE = 'Enter the estimated annual quantity'
-const QUANTITY_NOT_POSITIVE_MESSAGE = 'Estimated annual quantity must be a number greater than 0'
 
 export const app = {
   pageTitle:
@@ -10,12 +7,6 @@ export const app = {
 }
 
 export const validate = {
-  payload: Joi.object({
-    quantity: Joi.number().empty('').positive().required().messages({
-      'any.required': ENTER_QUANTITY_MESSAGE,
-      'number.base': QUANTITY_NOT_POSITIVE_MESSAGE,
-      'number.positive': QUANTITY_NOT_POSITIVE_MESSAGE
-    })
-  }).messages({ 'any.required': ENTER_QUANTITY_MESSAGE }),
+  payload: annualQuantityPayload(),
   failAction: viewFailAction('distribute/quantity/index')
 }

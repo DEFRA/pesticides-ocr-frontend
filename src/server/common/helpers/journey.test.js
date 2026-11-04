@@ -853,7 +853,7 @@ describe('#journey', () => {
     }
     const usingPPPs = { whoApplies: 'self', professionalSectors: ['forestry'], storing: 'no', quantity: '1-29' }
     const processingPPPs = { products: 'ppps', sites: '1-10', quantity: 50 }
-    const distributePPPs = { products: 'both', sites: '400-plus', quantity: 900 }
+    const distributingPPPs = { products: 'both', sites: '400-plus', quantity: 900 }
     const answering = (businessActivities, answers = {}) => ({
       ...answeredToContact,
       businessActivities,
@@ -868,16 +868,16 @@ describe('#journey', () => {
       expect(journey.getPreviousPage('/distribute/products', formSession)).toBe('/business-contact')
     })
 
-    test('Should walk the distribute pages to check answers, keeping the answers under distributePPPs', () => {
+    test('Should walk the distribute pages to check answers, keeping the answers under distributingPPPs', () => {
       expect(
-        journey.findFirstMissingPage(answering([DISTRIBUTING], { distributePPPs: { products: 'ppps' } }))
+        journey.findFirstMissingPage(answering([DISTRIBUTING], { distributingPPPs: { products: 'ppps' } }))
       ).toBe('/distribute/sites')
       expect(
         journey.findFirstMissingPage(
-          answering([DISTRIBUTING], { distributePPPs: { products: 'ppps', sites: '1-10' } })
+          answering([DISTRIBUTING], { distributingPPPs: { products: 'ppps', sites: '1-10' } })
         )
       ).toBe('/distribute/quantity')
-      expect(journey.findFirstMissingPage(answering([DISTRIBUTING], { distributePPPs }))).toBe(
+      expect(journey.findFirstMissingPage(answering([DISTRIBUTING], { distributingPPPs }))).toBe(
         '/check-answers'
       )
     })
@@ -905,10 +905,10 @@ describe('#journey', () => {
 
     test('Should remove the distribute answers once distributing is no longer ticked', () => {
       const formSession = journey.removeSkippedAnswers(
-        answering([PROCESSING], { processingPPPs, distributePPPs })
+        answering([PROCESSING], { processingPPPs, distributingPPPs })
       )
 
-      expect(formSession).not.toHaveProperty('distributePPPs')
+      expect(formSession).not.toHaveProperty('distributingPPPs')
       expect(formSession.processingPPPs).toEqual(processingPPPs)
     })
   })
@@ -919,7 +919,7 @@ describe('#journey', () => {
       address: { addressLine1: 'Lower Meadow Barn' },
       primaryContact: { contactName: 'Jo Bloggs' }
     }
-    const storePPPs = { products: 'both', sites: '11-50', quantity: 300 }
+    const storingPPPs = { products: 'both', sites: '11-50', quantity: 300 }
 
     test('Should go from the business contact to the store pages when only storing', () => {
       expect(journey.getNextPage('/business-contact', onlyStoring)).toBe('/storing/products')
@@ -927,24 +927,24 @@ describe('#journey', () => {
       expect(journey.getPreviousPage('/storing/products', onlyStoring)).toBe('/business-contact')
     })
 
-    test('Should walk the store pages to check answers, keeping the answers under storePPPs', () => {
-      expect(journey.findFirstMissingPage({ ...onlyStoring, storePPPs: { products: 'ppps' } })).toBe(
+    test('Should walk the store pages to check answers, keeping the answers under storingPPPs', () => {
+      expect(journey.findFirstMissingPage({ ...onlyStoring, storingPPPs: { products: 'ppps' } })).toBe(
         '/storing/sites'
       )
       expect(
-        journey.findFirstMissingPage({ ...onlyStoring, storePPPs: { products: 'ppps', sites: '1-10' } })
+        journey.findFirstMissingPage({ ...onlyStoring, storingPPPs: { products: 'ppps', sites: '1-10' } })
       ).toBe('/storing/quantity')
-      expect(journey.findFirstMissingPage({ ...onlyStoring, storePPPs })).toBe('/check-answers')
+      expect(journey.findFirstMissingPage({ ...onlyStoring, storingPPPs })).toBe('/check-answers')
     })
 
     test('Should remove the store answers once only storing is no longer ticked', () => {
       const formSession = journey.removeSkippedAnswers({
         ...onlyStoring,
         businessActivities: ['manufacturing'],
-        storePPPs
+        storingPPPs
       })
 
-      expect(formSession).not.toHaveProperty('storePPPs')
+      expect(formSession).not.toHaveProperty('storingPPPs')
     })
   })
 })

@@ -67,6 +67,7 @@ describe('#processingQuantityController', () => {
     test.each([
       [{}, 'Enter the estimated annual quantity'],
       [{ quantity: '' }, 'Enter the estimated annual quantity'],
+      [{ quantity: '   ' }, 'Enter the estimated annual quantity'],
       [{ quantity: 'lots' }, 'Estimated annual quantity must be a number greater than 0'],
       [{ quantity: '0' }, 'Estimated annual quantity must be a number greater than 0'],
       [{ quantity: '-5' }, 'Estimated annual quantity must be a number greater than 0'],

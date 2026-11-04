@@ -1,8 +1,8 @@
 import { ADDRESS_SEARCH_PAGE } from '#/server/common/constants/address-pages.js'
 import {
-  DISTRIBUTE_PPPS_KEY,
+  DISTRIBUTING_PPPS_KEY,
   PROCESSING_PPPS_KEY,
-  STORE_PPPS_KEY,
+  STORING_PPPS_KEY,
   USING_PPPS_KEY
 } from '#/server/common/constants/session-keys.js'
 import {
@@ -50,13 +50,13 @@ export const PROCESSING_QUANTITY_PAGE = '/processing-ppps/quantity'
 
 // The distribute pages, for an organisation that distributes PPPs, after any
 // earlier activity sections it needs (see ACTIVITY_SECTIONS). Their answers are
-// under formSession.distributePPPs (see routes/distribute).
+// under formSession.distributingPPPs (see routes/distribute).
 export const DISTRIBUTE_PRODUCTS_PAGE = '/distribute/products'
 export const DISTRIBUTE_SITES_PAGE = '/distribute/sites'
 export const DISTRIBUTE_QUANTITY_PAGE = '/distribute/quantity'
 
 // The storing pages, for an organisation that only stores PPPs for other
-// businesses. Their answers are under formSession.storePPPs (see routes/storing).
+// businesses. Their answers are under formSession.storingPPPs (see routes/storing).
 export const STORE_PRODUCTS_PAGE = '/storing/products'
 export const STORE_SITES_PAGE = '/storing/sites'
 export const STORE_QUANTITY_PAGE = '/storing/quantity'
@@ -269,33 +269,33 @@ export const JOURNEY = {
     next: pageAfterSection(PROCESSING)
   },
   [DISTRIBUTE_PRODUCTS_PAGE]: {
-    section: DISTRIBUTE_PPPS_KEY,
+    section: DISTRIBUTING_PPPS_KEY,
     sessionKey: 'products',
     next: () => DISTRIBUTE_SITES_PAGE
   },
   [DISTRIBUTE_SITES_PAGE]: {
-    section: DISTRIBUTE_PPPS_KEY,
+    section: DISTRIBUTING_PPPS_KEY,
     sessionKey: 'sites',
     next: () => DISTRIBUTE_QUANTITY_PAGE
   },
   // Where the journey goes after the distribute pages isn't defined yet.
   [DISTRIBUTE_QUANTITY_PAGE]: {
-    section: DISTRIBUTE_PPPS_KEY,
+    section: DISTRIBUTING_PPPS_KEY,
     sessionKey: 'quantity',
     next: () => CHECK_ANSWERS_PAGE
   },
   [STORE_PRODUCTS_PAGE]: {
-    section: STORE_PPPS_KEY,
+    section: STORING_PPPS_KEY,
     sessionKey: 'products',
     next: () => STORE_SITES_PAGE
   },
   [STORE_SITES_PAGE]: {
-    section: STORE_PPPS_KEY,
+    section: STORING_PPPS_KEY,
     sessionKey: 'sites',
     next: () => STORE_QUANTITY_PAGE
   },
   [STORE_QUANTITY_PAGE]: {
-    section: STORE_PPPS_KEY,
+    section: STORING_PPPS_KEY,
     sessionKey: 'quantity',
     next: () => CHECK_ANSWERS_PAGE
   }
