@@ -81,14 +81,16 @@
     "stylelint-config-gds": "2.0.0",
     "vite": "8.3.4",
     "vitest": "4.1.11",
-    "vitest-fetch-mock": "0.4.5"
+    "vitest-fetch-mock": "0.4.5",
+    "joi": "18.3.1"
   },
   "overrides": {
     "tmp": "0.2.5",
-    "joi": "18.2.9",
+    "joi": "$joi",
     "undici": "8.12.3",
     "nunjucks": {
       "chokidar": "$chokidar"
-    }
+    },
+    "@hapi/joi": "npm:joi@18.3.1"
   }
 }
