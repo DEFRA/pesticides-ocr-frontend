@@ -296,11 +296,18 @@ describe('#buildAnswers', () => {
   })
   test('Should give the distribute answers with their labels and the quantity unit', () => {
     const answers = buildAnswers({
-      distributePPPs: { products: 'ppps', sites: '11-50', quantity: 75 }
+      distributingPPPs: { products: 'ppps', sites: '11-50', quantity: 75 }
     })
 
     expect(answers.distributeProducts).toEqual(['Plant protection products (PPPs) only'])
     expect(answers.distributeSites).toEqual(['11 to 50'])
     expect(answers.distributeQuantity).toEqual(['75 kilograms or litres'])
+  })
+  test('Should give the store answers with their labels and the quantity unit', () => {
+    const answers = buildAnswers({ storingPPPs: { products: 'both', sites: '1-10', quantity: 12 } })
+
+    expect(answers.storeProducts).toEqual(['Both PPPs and ingredients or adjuvants'])
+    expect(answers.storeSites).toEqual(['1 to 10'])
+    expect(answers.storeQuantity).toEqual(['12 kilograms or litres'])
   })
 })
