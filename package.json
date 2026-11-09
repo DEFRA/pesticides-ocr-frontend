@@ -61,7 +61,8 @@
     "ioredis": "5.11.1",
     "lodash": "4.18.1",
     "nunjucks": "3.2.4",
-    "pino": "10.4.0"
+    "pino": "10.4.0",
+    "joi": "18.3.1"
   },
   "devDependencies": {
     "@babel/preset-env": "7.29.7",
@@ -85,10 +86,11 @@
   },
   "overrides": {
     "tmp": "0.2.5",
-    "joi": "18.2.9",
+    "joi": "$joi",
     "undici": "8.12.3",
     "nunjucks": {
       "chokidar": "$chokidar"
-    }
+    },
+    "@hapi/joi": "npm:joi@18.3.1"
   }
 }
