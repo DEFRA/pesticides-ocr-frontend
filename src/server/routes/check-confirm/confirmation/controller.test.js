@@ -1,7 +1,6 @@
 import { vi } from 'vitest'
 
 import { createServer } from '#/server/server.js'
-import { config } from '#/config/config.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { completeJourney } from '#/test-helpers/journey-helpers.js'
 
@@ -81,7 +80,7 @@ describe('#confirmationController', () => {
 
       expect(result).toEqual(
         expect.stringContaining(
-          `href="${config.get('feedbackSurveyUrl')}" target="_blank" rel="noopener noreferrer">What did you think of this service? (opens in new tab)</a>`
+          'href="/feedback" target="_blank" rel="noopener noreferrer">What did you think of this service? (opens in new tab)</a>'
         )
       )
     })

@@ -69,7 +69,7 @@
 
   {% set phaseBannerHtml -%}
     This is a new service.
-    {%- if feedbackSurveyUrl %} Help us improve it and <a class="govuk-link" href="{{ feedbackSurveyUrl }}" target="_blank" rel="noopener noreferrer">give your feedback (opens in new tab)</a>.{% endif %}
+    {%- if feedbackSurveyUrl %} Help us improve it and <a class="govuk-link" href="/feedback" target="_blank" rel="noopener noreferrer">give your feedback (opens in new tab)</a>.{% endif %}
   {%- endset %}
   {{ govukPhaseBanner({
     tag: {

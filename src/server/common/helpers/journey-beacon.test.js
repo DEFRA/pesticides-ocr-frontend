@@ -4,6 +4,8 @@ import { config } from '#/config/config.js'
 import {
   recordJourneyStart,
   recordJourneyNotEligible,
+  recordFeedbackStart,
+  recordFeedbackCompletion,
   recordOncePerSession
 } from './journey-beacon.js'
 
@@ -29,6 +31,31 @@ afterEach(() => {
 })
 
 describe('#journeyBeacon', () => {
+  test.each([
+    [recordFeedbackStart, '/metrics/feedback-starts'],
+    [recordFeedbackCompletion, '/metrics/feedback-completions']
+  ])('feedback beacons send only the signed token to %s', async (record, path) => {
+    config.set('journeyToken.secret', 'feedback-secret')
+    fetch.mockResolvedValue({ ok: true, status: 204 })
+    const store = {}
+    const req = {
+      ...request,
+      yar: {
+        get: (key) => store[key],
+        set: (key, value) => { store[key] = value }
+      }
+    }
+    await record(req)
+    const [url, options] = fetch.mock.calls[0]
+    expect(url.toString()).toBe(`${BACKEND_URL}${path}`)
+    expect(options).toEqual({
+      method: 'POST',
+      headers: { 'x-journey-token': store.journeyToken },
+      signal: expect.any(AbortSignal)
+    })
+    expect(store.journeyToken).toMatch(/^[^.]+\.[a-f0-9]{64}$/)
+  })
+
   test('recordJourneyStart POSTs to /metrics/journey-starts', async () => {
     vi.mocked(fetch).mockResolvedValue({ ok: true, status: 204 })
 

@@ -110,6 +110,35 @@ REFERENCE_PREFIX='PPP'
 
 `/dashboard/metrics` shows the journey metrics from the backend's `GET /metrics/journeys` (EQ-472): starts, registrations, not-eligible exits, finished, drop-outs and the completion rate, all time and by month. It is in the case-officer area, so it needs the case-officer role, and like the other case-officer pages it sends nothing to Google Analytics. Locally it uses the same `OCR_BACKEND_URL` as the search.
 
+#### Feedback survey metrics (EQ-706)
+
+Configure `FEEDBACK_SURVEY_URL` with the environment's Qualtrics survey URL.
+Applicant phase-banner and confirmation links open `/feedback` in a new tab.
+The server records a feedback start, then redirects to that configured URL without
+forwarding request query data. `/feedback/thank-you` records a completion and
+shows a thank-you page with a link to `/`; it does not require applicant answers.
+An unset survey URL hides the links and direct `/feedback` visits return 503.
+
+Both beacons are best-effort, independent of analytics consent and recorded once
+per session using the existing signed journey token. Configure the same
+`JOURNEY_TOKEN_SECRET` on both services and `OCR_BACKEND_URL` on the frontend.
+Visitors without a session get a session and signed token; the backend's
+missing/invalid-token rejection is unchanged. Clearing cookies or starting a new
+session can count again. Direct thank-you visits also count, so this is not
+proof that Qualtrics was completed. No survey scores or answers are collected.
+
+Before enabling the return flow, the survey owner must set Qualtrics'
+end-of-survey redirect to `https://<frontend-host>/feedback/thank-you`. Confirm
+ownership and whether the survey is shared; do not change a shared survey's
+redirect globally. Use a dedicated survey copy or service-specific flow, with
+separate copies for dev/test. Do not pass applicant, session or journey values to
+Qualtrics. Scores stay in Qualtrics reports.
+
+The backend's case-officer `GET /metrics/journeys` response now exposes
+`feedbackStarted` and `feedbackCompleted` in totals, `byYear` and `byMonth`,
+with the existing `from` / `to` filters. EQ-385 owns their dashboard presentation.
+No feedback events are sent to GA4.
+
 #### Journey events in Google Analytics
 
 To line GA up with the journey metrics (EQ-533), three GTM events are pushed at the same points and with the same once-per-session rule as the server-side counts:

@@ -86,6 +86,14 @@ export function recordJourneyNotEligible(request) {
   return fireBeacon(request, '/metrics/journey-not-eligible')
 }
 
+export function recordFeedbackStart(request) {
+  return fireBeacon(request, '/metrics/feedback-starts')
+}
+
+export function recordFeedbackCompletion(request) {
+  return fireBeacon(request, '/metrics/feedback-completions')
+}
+
 // Record a journey event at most once per session: the first call in a session
 // sets its flag, logs it (one line per session — the log demonstrates the
 // de-duplication), and fires the beacon; later calls no-op, so refreshes /
