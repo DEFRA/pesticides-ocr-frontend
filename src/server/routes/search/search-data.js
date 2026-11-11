@@ -15,11 +15,10 @@ import { toOperatorView } from './registration-mapper.js'
  * @property {string} reference          registration reference (e.g. PPP-1A2-B3C)
  * @property {string} businessName
  * @property {string[]} activities       business PPP activities
- * @property {string} mainCustomer
- * @property {{ line1: string, town: string, postcode: string, country: string }} address
+ * @property {{ line1: string, town: string, postcode: string, region: string }} address
  * @property {{ name: string, email: string, telephone: string }} contact
  * @property {string[]} addressActivities
- * @property {string} quantity
+ * @property {string} quantity           quantity used in a typical year (e.g. '60 to 149 litres or kilograms')
  * @property {string} registeredDate     ISO date (yyyy-mm-dd)
  * @property {string} status             'Registered' | 'Pending' | 'Suspended'
  */

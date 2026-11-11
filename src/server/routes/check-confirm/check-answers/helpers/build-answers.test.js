@@ -1,48 +1,100 @@
 import { buildAnswers } from './build-answers.js'
+import { ONLY_STORING, SELLING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 describe('#buildAnswers', () => {
   test('Should map coded answers to the labels used on the question pages', () => {
     const answers = buildAnswers({
-      businessActivities: ['seller-amateur', 'manufacture'],
-      addressActivities: ['store'],
-      mainCustomer: 'both'
+      businessActivities: [SELLING, 'manufacturing']
     })
 
     expect(answers.businessActivities).toEqual([
-      'Sell amateur PPPs',
-      'Manufacture, process or import'
+      'Selling PPPs',
+      'Manufacturing PPPs'
     ])
-    expect(answers.addressActivities).toEqual([
-      'Store plant protection products (PPPs) or adjuvants'
+  })
+
+  test('Should label the exclusive only storing activity', () => {
+    expect(buildAnswers({ businessActivities: [ONLY_STORING] }).businessActivities).toEqual([
+      'Only storing PPPs for other businesses'
     ])
-    expect(answers.mainCustomer).toEqual(['Both professional and amateur users'])
   })
 
   test('Should fall back to the raw value when it is not a known option', () => {
-    const answers = buildAnswers({ mainCustomer: 'unknown' })
+    const answers = buildAnswers({ businessActivities: ['unknown'] })
 
-    expect(answers.mainCustomer).toEqual(['unknown'])
+    expect(answers.businessActivities).toEqual(['unknown'])
   })
 
-  test('Should read the quantity back in the unit it was given in', () => {
-    const area = buildAnswers({
-      quantity: { quantityType: 'area', quantity: '67' }
-    })
-    const amount = buildAnswers({
-      quantity: { quantityType: 'amount', quantity: '80000' }
-    })
-
-    expect(area.quantity).toEqual(['67 hectares'])
-    expect(amount.quantity).toEqual(['80000 litres or kilograms'])
+  test.each([
+    ['own', 'Yes, at sites we own'],
+    ['third-party', 'Yes, a third party stores them for us'],
+    ['no', 'No, we don’t store PPPs']
+  ])('Should map storing products %s to the label used on the question page', (storing, label) => {
+    expect(buildAnswers({ usingPPPs: { storing } }).storing).toEqual([label])
   })
 
-  test('Should pass the quantity type through for the page to title the row by', () => {
-    const area = buildAnswers({
-      quantity: { quantityType: 'area', quantity: '67' }
+  test.each([
+    ['main-address', 'Only at the main business address'],
+    ['main-and-other', 'At the main business address and other locations']
+  ])('Should map where products are stored %s to the label used on the question page', (storageLocation, label) => {
+    expect(buildAnswers({ usingPPPs: { storageLocation } }).storageLocation).toEqual([label])
+  })
+
+  test('Should give the own storage address one line per address line', () => {
+    expect(
+      buildAnswers({
+        usingPPPs: {
+          ownStorageAddress: {
+            addressLine1: '1 Barn Lane',
+            addressTown: 'York',
+            addressPostcode: 'YO1 7HH',
+            addressRegion: 'wales'
+          }
+        }
+      }).ownStorageAddress
+    ).toEqual(['1 Barn Lane', 'York', 'YO1 7HH', 'Wales'])
+  })
+
+  test('Should give each of the storage contact details, leaving out an empty job title', () => {
+    const answers = buildAnswers({
+      usingPPPs: {
+        storageContact: {
+          contactName: 'Sam Store',
+          businessName: 'Safe Storage Ltd',
+          contactJobTitle: '',
+          contactTelephone: '01234 567890',
+          contactEmail: 'sam@example.com'
+        }
+      }
     })
 
-    expect(area.quantityType).toBe('area')
-    expect(buildAnswers({}).quantityType).toBeUndefined()
+    expect(answers.storageContactName).toEqual(['Sam Store'])
+    expect(answers.storageBusinessName).toEqual(['Safe Storage Ltd'])
+    expect(answers).not.toHaveProperty('storageContactJobTitle')
+    expect(answers.storageContactTelephone).toEqual(['01234 567890'])
+    expect(answers.storageContactEmail).toEqual(['sam@example.com'])
+  })
+
+  test('Should leave out where products are stored when it was not given', () => {
+    expect(buildAnswers({ usingPPPs: { storing: 'no' } })).not.toHaveProperty('storageLocation')
+  })
+
+  test('Should leave out storing products when it was not given', () => {
+    expect(buildAnswers({ usingPPPs: { whoApplies: 'self' } })).not.toHaveProperty('storing')
+  })
+
+  test.each([
+    ['1-29', '1 to 29 litres or kilograms'],
+    ['30-59', '30 to 59 litres or kilograms'],
+    ['60-149', '60 to 149 litres or kilograms'],
+    ['150-399', '150 to 399 litres or kilograms'],
+    ['400-plus', '400 and over litres or kilograms']
+  ])('Should read the quantity band %s back with its unit', (quantity, line) => {
+    expect(buildAnswers({ usingPPPs: { quantity } }).usingQuantity).toEqual([line])
+  })
+
+  test('Should leave out the quantity when it was not given', () => {
+    expect(buildAnswers({ usingPPPs: { storing: 'no' } })).not.toHaveProperty('usingQuantity')
   })
 
   test('Should flatten an address into one line per part, skipping the optional ones', () => {
@@ -59,6 +111,20 @@ describe('#buildAnswers', () => {
     expect(answers.address).toEqual(['Highfield Farm', 'Farm town', 'PH1 1FT'])
   })
 
+  test('Should end an address with its region', () => {
+    const answers = buildAnswers({
+      address: {
+        addressLine1: '1 High Street',
+        addressLine2: '',
+        addressTown: 'Edinburgh',
+        addressPostcode: 'EH1 1AA',
+        addressRegion: 'scotland'
+      }
+    })
+
+    expect(answers.address).toEqual(['1 High Street', 'Edinburgh', 'EH1 1AA', 'Scotland'])
+  })
+
   test('Should split the contact details into separate answers', () => {
     const answers = buildAnswers({
       primaryContact: {
@@ -71,6 +137,23 @@ describe('#buildAnswers', () => {
     expect(answers.contactName).toEqual(['John Smith'])
     expect(answers.contactTelephone).toEqual(['01234 567890'])
     expect(answers.contactEmail).toEqual(['john.smith@pesticides.co.uk'])
+  })
+
+  test('Should include the contact job title or role when one was given', () => {
+    const answers = buildAnswers({
+      primaryContact: { contactName: 'John Smith', contactJobTitle: 'Farm manager' }
+    })
+
+    expect(answers.contactJobTitle).toEqual(['Farm manager'])
+  })
+
+  test('Should leave out the contact job title or role when it was left empty or not given', () => {
+    expect(
+      buildAnswers({ primaryContact: { contactName: 'John Smith', contactJobTitle: '' } })
+    ).not.toHaveProperty('contactJobTitle')
+    expect(
+      buildAnswers({ primaryContact: { contactName: 'John Smith' } })
+    ).not.toHaveProperty('contactJobTitle')
   })
 
   test('Should leave out every unanswered question', () => {
@@ -86,88 +169,138 @@ describe('#buildAnswers', () => {
     expect(answers).toEqual({ businessName: ['Pesticides Ltd'] })
   })
 
+  test('Should map who applies PPPs to the label used on the question page', () => {
+    expect(buildAnswers({ usingPPPs: { whoApplies: 'self' } }).whoApplies).toEqual([
+      'We apply PPPs ourselves or on behalf of other organisations'
+    ])
+    expect(buildAnswers({ usingPPPs: { whoApplies: 'contractor' } }).whoApplies).toEqual([
+      'Another organisation applies PPPs on our behalf'
+    ])
+    expect(buildAnswers({})).not.toHaveProperty('whoApplies')
+  })
+
+  test('Should give the contractor name and address, the address ending with its region', () => {
+    const answers = buildAnswers({
+      usingPPPs: {
+        whoApplies: 'contractor',
+        contractor: {
+          contractorName: 'Spray Contractors Ltd',
+          address: {
+            addressLine1: '1 High Street',
+            addressLine2: '',
+            addressTown: 'York',
+            addressPostcode: 'YO1 7HH',
+            addressRegion: 'scotland'
+          }
+        }
+      }
+    })
+
+    expect(answers.contractorName).toEqual(['Spray Contractors Ltd'])
+    expect(answers.contractorAddress).toEqual(['1 High Street', 'York', 'YO1 7HH', 'Scotland'])
+  })
+
+  test('Should leave out the contractor when none was given', () => {
+    const answers = buildAnswers({ usingPPPs: { whoApplies: 'self' } })
+
+    expect(answers).not.toHaveProperty('contractorName')
+    expect(answers).not.toHaveProperty('contractorAddress')
+  })
+
   test('Should show None when no member scheme was chosen', () => {
-    expect(buildAnswers({ memberSchemes: [] }).memberSchemes).toEqual(['None'])
+    expect(buildAnswers({ usingPPPs: { memberSchemes: [] } }).memberSchemes).toEqual(['None'])
   })
 
   test('Should show None for an older session that saved an empty scheme', () => {
-    expect(buildAnswers({ memberSchemes: [undefined] }).memberSchemes).toEqual(['None'])
+    expect(buildAnswers({ usingPPPs: { memberSchemes: [undefined] } }).memberSchemes).toEqual(['None'])
   })
 
-  test('Should map the professional answers to the labels used on the question pages', () => {
+  test('Should map the PPP sectors to the labels used on the question page', () => {
     const answers = buildAnswers({
-      professionalSectors: ['agriculture-horticulture', 'forestry'],
-      memberSchemes: ['red-tractor', 'sqc']
+      usingPPPs: { professionalSectors: ['agriculture', 'business-premises', 'public-services'] }
     })
 
     expect(answers.professionalSectors).toEqual([
-      'Agriculture and horticulture',
-      'Forestry'
+      'Agriculture',
+      'Business premises',
+      'Public Services and Local Authorities'
     ])
+  })
+
+  test('Should give the Other text as the PPP sectors when no sector was chosen', () => {
+    expect(
+      buildAnswers({ usingPPPs: { professionalSectors: ['Vineyard management'] } }).professionalSectors
+    ).toEqual(['Vineyard management'])
+  })
+
+  test('Should map the agricultural sectors to the labels used on the question page', () => {
+    expect(
+      buildAnswers({ usingPPPs: { agriSubsectors: ['arable', 'grasslands-fodder'] } }).agriSubsectors
+    ).toEqual(['Arable', 'Grasslands and fodder crops'])
+  })
+
+  test('Should give the Other text as the agricultural sectors when none was chosen', () => {
+    expect(buildAnswers({ usingPPPs: { agriSubsectors: ['Hops'] } }).agriSubsectors).toEqual([
+      'Hops'
+    ])
+  })
+
+  test('Should map the amenity sectors to the labels used on the question page', () => {
+    expect(
+      buildAnswers({ usingPPPs: { amenitySubsectors: ['parks', 'utilities'] } }).amenitySubsectors
+    ).toEqual(['Parks', 'Utilities, such as transport and water companies'])
+  })
+
+  test('Should map the horticultural sectors to the labels used on the question page', () => {
+    expect(
+      buildAnswers({ usingPPPs: { hortiSubsectors: ['edible-protected', 'ornamentals'] } })
+        .hortiSubsectors
+    ).toEqual(['Edible protected crops', 'Ornamentals'])
+  })
+
+  test('Should leave out the agricultural sectors when they were not given', () => {
+    expect(buildAnswers({ usingPPPs: { whoApplies: 'self' } })).not.toHaveProperty('agriSubsectors')
+  })
+
+  test('Should leave out the PPP sectors when they were not given', () => {
+    expect(buildAnswers({ usingPPPs: { whoApplies: 'self' } })).not.toHaveProperty('professionalSectors')
+  })
+
+  test('Should map the member schemes to the labels used on the question page', () => {
+    const answers = buildAnswers({
+      usingPPPs: { memberSchemes: ['red-tractor', 'sqc'] }
+    })
+
     expect(answers.memberSchemes).toEqual([
       'Red Tractor',
       'Scottish Quality Crops (SQC)'
     ])
   })
 
-  test('Should shape every additional address the same way as the main one', () => {
+  test('Should give the processing answers with their labels and the quantity unit', () => {
     const answers = buildAnswers({
-      additionalAddresses: [
-        {
-          address: {
-            addressLine1: 'Lowfield Farm',
-            addressLine2: '',
-            addressTown: 'Leeds',
-            addressCounty: '',
-            addressPostcode: 'LS1 1AA'
-          },
-          contact: {
-            contactName: 'Jane Doe',
-            contactTelephone: '01111 222333',
-            contactEmail: 'jane.doe@pesticides.co.uk'
-          },
-          activity: ['store', 'records']
-        }
-      ]
+      processingPPPs: { products: 'ingredients', sites: '401-plus', quantity: 1200 }
     })
 
-    expect(answers.additionalAddresses).toEqual([
-      {
-        address: ['Lowfield Farm', 'Leeds', 'LS1 1AA'],
-        contactName: ['Jane Doe'],
-        contactTelephone: ['01111 222333'],
-        contactEmail: ['jane.doe@pesticides.co.uk'],
-        activity: [
-          'Store plant protection products (PPPs) or adjuvants',
-          'Keep records of plant protection products (PPPs)'
-        ]
-      }
-    ])
+    expect(answers.processingProducts).toEqual(['Ingredients or adjuvants only'])
+    expect(answers.processingSites).toEqual(['401 and over'])
+    expect(answers.processingQuantity).toEqual(['1200 kilograms or litres'])
   })
 
-  test('Should keep the additional addresses in the order they were added', () => {
+  test('Should leave out the processing answers when there are none', () => {
+    const answers = buildAnswers({})
+
+    expect(answers).not.toHaveProperty('processingProducts')
+    expect(answers).not.toHaveProperty('processingSites')
+    expect(answers).not.toHaveProperty('processingQuantity')
+  })
+  test('Should give the distribute answers with their labels and the quantity unit', () => {
     const answers = buildAnswers({
-      additionalAddresses: [
-        { address: { addressLine1: 'Highfield Farm' } },
-        { address: { addressLine1: 'Lowfield Farm' } }
-      ]
+      distributePPPs: { products: 'ppps', sites: '11-50', quantity: 75 }
     })
 
-    expect(answers.additionalAddresses).toHaveLength(2)
-    expect(answers.additionalAddresses[0].address).toEqual(['Highfield Farm'])
-    expect(answers.additionalAddresses[1].address).toEqual(['Lowfield Farm'])
-  })
-
-  test('Should leave out every unanswered part of an additional address', () => {
-    const answers = buildAnswers({
-      additionalAddresses: [{}, { contact: { contactName: 'Jane Doe' } }]
-    })
-
-    expect(answers.additionalAddresses).toEqual([{}, { contactName: ['Jane Doe'] }])
-  })
-
-  test('Should leave out the additional addresses when none were added', () => {
-    expect(buildAnswers({}).additionalAddresses).toBeUndefined()
-    expect(buildAnswers({ additionalAddresses: [] }).additionalAddresses).toBeUndefined()
+    expect(answers.distributeProducts).toEqual(['Plant protection products (PPPs) only'])
+    expect(answers.distributeSites).toEqual(['11 to 50'])
+    expect(answers.distributeQuantity).toEqual(['75 kilograms or litres'])
   })
 })

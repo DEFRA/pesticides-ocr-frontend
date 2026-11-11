@@ -8,9 +8,8 @@
 // display strings out of an API other consumers share.
 
 import { businessActivityItems } from '#/server/routes/qualifying-questions/business-activities/items.js'
-import { addressActivityItems } from '#/server/routes/qualifying-questions/address-activity/items.js'
-import { mainCustomerItems } from '#/server/routes/qualifying-questions/main-customer/items.js'
-import { quantityTypeItems } from '#/server/routes/qualifying-questions/quantity/items.js'
+import { usingQuantityText } from '#/server/routes/using-ppps/quantity/items.js'
+import { regionItems } from '#/server/common/constants/regions.js'
 
 // --- POC mapping defaults --------------------------------------------------
 // Fields the Operator contract needs but the register journey does not (yet)
@@ -18,13 +17,10 @@ import { quantityTypeItems } from '#/server/routes/qualifying-questions/quantity
 // with HSE/Yankui before production. Isolated here so a decision changes one
 // place.
 //   - status:       no approval/status workflow exists; treated as Registered.
-//   - country:      the register journey captures postcode/county but not a
-//                   country; left blank until the field is added.
-//   - mainCustomer: the backend now requires and stores this, so the fallback
-//                   only covers records written before the field was added.
+//   - region:       registrations made before the journey captured a region
+//                   (England, Scotland or Wales) have none; left blank.
 const DEFAULT_STATUS = 'Registered'
-const DEFAULT_COUNTRY = ''
-const DEFAULT_MAIN_CUSTOMER = 'N/A'
+const DEFAULT_REGION = ''
 
 const ISO_DATE_LENGTH = 10
 
@@ -36,40 +32,22 @@ const labelsByValue = (items) =>
   Object.fromEntries(items.map(({ value, text }) => [value, text]))
 
 const BUSINESS_ACTIVITY_LABELS = labelsByValue(businessActivityItems)
-const ADDRESS_ACTIVITY_LABELS = labelsByValue(addressActivityItems)
-const MAIN_CUSTOMER_LABELS = labelsByValue(mainCustomerItems)
-
-const QUANTITY_UNITS = Object.fromEntries(
-  quantityTypeItems.map(({ value, unit }) => [value, unit])
-)
+// The journey no longer asks what happens at the address, but older
+// registrations still carry these codes.
+const ADDRESS_ACTIVITY_LABELS = {
+  use: 'Use plant protection products (PPPs) or adjuvants',
+  store: 'Store plant protection products (PPPs) or adjuvants',
+  records: 'Keep records of plant protection products (PPPs)'
+}
+const REGION_LABELS = labelsByValue(regionItems)
 
 const labelFor = (map) => (code) => map[code] ?? code
 
-// A quantity may be stored as a number (the backend's /register validation
-// converts it) or as a numeric string (records written straight to the
-// database, such as the seed data). Strings must be plain decimals, so forms
-// Number() would otherwise accept, like '0x10' or '1e3', don't slip through.
-// Anything else is treated as absent.
-const DECIMAL_PATTERN = /^\s*\d+(\.\d+)?\s*$/
-
-function toQuantityNumber(value) {
-  const number =
-    typeof value === 'string' && DECIMAL_PATTERN.test(value)
-      ? Number(value)
-      : value
-  return typeof number === 'number' && Number.isFinite(number) ? number : null
-}
-
-// Format the structured stored quantity into its display string, using
-// the journey's unit for the quantity type (amount -> "litres or kilograms",
-// area -> "hectares"). An unrecognised type falls back to the amount unit.
+// The quantity used in a typical year is stored as a band code; show its label
+// with the unit, as check answers does. An unknown code falls back to the raw
+// value, like the other labels.
 function formatQuantity(quantity) {
-  const amount = toQuantityNumber(quantity?.quantity)
-  if (amount === null) {
-    return ''
-  }
-  const unit = QUANTITY_UNITS[quantity.quantityType] ?? QUANTITY_UNITS.amount
-  return `${amount.toLocaleString('en-GB')} ${unit}`
+  return usingQuantityText(quantity) ?? quantity ?? ''
 }
 
 // `submittedAt` (a Date, or its JSON string over the wire) -> yyyy-mm-dd,
@@ -81,14 +59,14 @@ function toIsoDate(value) {
     : ''
 }
 
-// The Operator contract carries only line1/town/postcode/country; the stored
+// The Operator contract carries only line1/town/postcode/region; the stored
 // address.line2/county are intentionally dropped (not shown in the results).
 function mapAddress(address = {}) {
   return {
     line1: address.addressLine1 ?? '',
     town: address.addressTown ?? '',
     postcode: address.addressPostcode ?? '',
-    country: address.addressCountry ?? DEFAULT_COUNTRY
+    region: labelFor(REGION_LABELS)(address.addressRegion ?? DEFAULT_REGION)
   }
 }
 
@@ -117,15 +95,12 @@ export function toOperatorView(doc = {}) {
     activities: (doc.businessActivities ?? []).map(
       labelFor(BUSINESS_ACTIVITY_LABELS)
     ),
-    mainCustomer: doc.mainCustomer
-      ? labelFor(MAIN_CUSTOMER_LABELS)(doc.mainCustomer)
-      : DEFAULT_MAIN_CUSTOMER,
     address: mapAddress(doc.address),
     contact: mapContact(doc.primaryContact),
     addressActivities: (doc.addressActivities ?? []).map(
       labelFor(ADDRESS_ACTIVITY_LABELS)
     ),
-    quantity: formatQuantity(doc.quantity),
+    quantity: formatQuantity(doc.usingPPPs?.quantity),
     registeredDate: toIsoDate(doc.submittedAt),
     status: doc.status ?? DEFAULT_STATUS
   }

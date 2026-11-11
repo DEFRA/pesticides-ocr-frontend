@@ -1,12 +1,12 @@
 import { getBackLink, getFormAction, redirectToNextPage } from './journey-navigation.js'
+import { USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 describe('#journeyNavigation', () => {
   const answeredJourney = {
-    businessActivities: ['seller-amateur'],
+    businessActivities: ['only-storing'],
     businessName: 'Pesticides Ltd',
     address: { addressLine1: 'Lower Meadow Barn' },
-    primaryContact: { contactName: 'Jo Bloggs' },
-    addressActivities: ['store']
+    primaryContact: { contactName: 'Jo Bloggs' }
   }
 
   const createRequest = ({ path = '/business-name', query = {}, store = {}, app = {} } = {}) => {
@@ -50,9 +50,12 @@ describe('#journeyNavigation', () => {
 
     test('Should remove answers to pages the route now skips', () => {
       const store = {
-        formSession: { ...answeredJourney, quantity: { quantityType: 'amount', quantity: '80000' } }
+        formSession: {
+          ...answeredJourney,
+          usingPPPs: { whoApplies: 'myself' }
+        }
       }
-      const request = createRequest({ path: '/address-activity', store })
+      const request = createRequest({ path: '/business-contact', store })
 
       redirectToNextPage(request, h, '/check-answers')
 
@@ -60,11 +63,11 @@ describe('#journeyNavigation', () => {
     })
 
     test('Should go to the first missing page in change mode when an answer opens a branch', () => {
-      const store = { formSession: { ...answeredJourney, addressActivities: ['use'] } }
-      const request = createRequest({ path: '/address-activity', query: { change: 'true' }, store })
+      const store = { formSession: { ...answeredJourney, businessActivities: [USING] } }
+      const request = createRequest({ path: '/business-activities', query: { change: 'true' }, store })
 
-      expect(redirectToNextPage(request, h, '/quantity')).toEqual({
-        location: '/quantity?change=true'
+      expect(redirectToNextPage(request, h, '/business-name')).toEqual({
+        location: '/using-ppps/who-applies?change=true'
       })
     })
   })
@@ -77,17 +80,18 @@ describe('#journeyNavigation', () => {
     })
 
     test('Should return the previous page on the route the answers take', () => {
-      const professional = createRequest({
-        store: { formSession: { businessActivities: ['manufacture'], mainCustomer: 'both' } }
+      const businessName = createRequest({ store: { formSession: answeredJourney } })
+      const checkAnswers = createRequest({
+        path: '/check-answers',
+        store: { formSession: answeredJourney }
       })
-      const amateur = createRequest({ store: { formSession: answeredJourney } })
 
-      expect(getBackLink(professional)).toBe('/main-customer')
-      expect(getBackLink(amateur)).toBe('/business-activities')
+      expect(getBackLink(businessName)).toBe('/business-activities')
+      expect(getBackLink(checkAnswers)).toBe('/business-contact')
     })
 
     test('Should return nothing for a page the answers skip', () => {
-      const request = createRequest({ path: '/main-customer', store: { formSession: answeredJourney } })
+      const request = createRequest({ path: '/using-ppps/member-schemes', store: { formSession: answeredJourney } })
 
       expect(getBackLink(request)).toBeUndefined()
     })
@@ -100,7 +104,7 @@ describe('#journeyNavigation', () => {
 
     test('Should work out the back link from the answers when the route sets a function', () => {
       const request = createRequest({
-        path: '/additional-addresses/address',
+        path: '/business-contact',
         app: { backLink: (formSession) => formSession.businessName },
         store: { formSession: answeredJourney }
       })

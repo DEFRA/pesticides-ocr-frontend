@@ -1,0 +1,43 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <h1 class="govuk-heading-l">What is the overall volume of PPPs, ingredients and adjuvants your business distributes in a typical year?</h1>
+
+    <p class="govuk-body">Give an estimate of the total amount of undiluted product you distribute. If you distribute both liquid and solid products, combine them using 1 litre as roughly equal to 1 kilogram.</p>
+
+    <form method="post" action="{{ formAction }}" novalidate>
+
+      {{ govukInput({
+        label: {
+          text: "Estimated annual quantity"
+        },
+        id: "quantity",
+        name: "quantity",
+        inputmode: "decimal",
+        spellcheck: false,
+        classes: "govuk-input--width-5",
+        suffix: {
+          text: "Kilograms or litres"
+        },
+        value: values["quantity"] if values,
+        errorMessage: errors["quantity"] if errors["quantity"]
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        type: "submit"
+      }) }}
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}
