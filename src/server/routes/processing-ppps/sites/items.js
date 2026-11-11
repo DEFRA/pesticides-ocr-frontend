@@ -3,7 +3,7 @@ export const processingSitesItems = [
   { value: '11-50', text: '11 to 50' },
   { value: '51-200', text: '51 to 200' },
   { value: '201-400', text: '201 to 400' },
-  { value: '400-plus', text: '400 and over' }
+  { value: '401-plus', text: '401 and over' }
 ]
 
 export const processingSitesValues = processingSitesItems.map((item) => item.value)

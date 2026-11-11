@@ -34,7 +34,7 @@ describe('#processingSitesController', () => {
         '11 to 50',
         '51 to 200',
         '201 to 400',
-        '400 and over'
+        '401 and over'
       ])
     })
 
@@ -57,7 +57,18 @@ describe('#processingSitesController', () => {
       expect(headers.location).toBe('/processing-ppps/quantity')
     })
 
-    test.each([[{}], [{ sites: 'something-else' }]])('Should show an error for %o', async (payload) => {
+    test('Should accept the top band, which starts above 400', async () => {
+      const { headers } = await injectWithSession(server, {
+        method: 'POST',
+        url,
+        payload: { sites: '401-plus' }
+      })
+
+      expect(headers.location).toBe('/processing-ppps/quantity')
+    })
+
+    // 400 used to be in two bands, so its old top band value is no longer accepted.
+    test.each([[{}], [{ sites: 'something-else' }], [{ sites: '400-plus' }]])('Should show an error for %o', async (payload) => {
       const { result, statusCode } = await server.inject({ method: 'POST', url, payload })
 
       expect(statusCode).toBe(statusCodes.ok)

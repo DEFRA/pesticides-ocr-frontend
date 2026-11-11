@@ -891,7 +891,7 @@ describe('#journey', () => {
     }
     const usingPPPs = { whoApplies: 'self', professionalSectors: ['forestry'], storing: 'no', quantity: '1-29' }
     const processingPPPs = { products: 'ppps', sites: '1-10', quantity: 50 }
-    const distributePPPs = { products: 'both', sites: '400-plus', quantity: 900 }
+    const distributePPPs = { products: 'both', sites: '401-plus', quantity: 900 }
     const answering = (businessActivities, answers = {}) => ({
       ...answeredToContact,
       businessActivities,

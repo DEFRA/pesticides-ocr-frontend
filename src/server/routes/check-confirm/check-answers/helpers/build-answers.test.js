@@ -279,11 +279,11 @@ describe('#buildAnswers', () => {
 
   test('Should give the processing answers with their labels and the quantity unit', () => {
     const answers = buildAnswers({
-      processingPPPs: { products: 'ingredients', sites: '400-plus', quantity: 1200 }
+      processingPPPs: { products: 'ingredients', sites: '401-plus', quantity: 1200 }
     })
 
     expect(answers.processingProducts).toEqual(['Ingredients or adjuvants only'])
-    expect(answers.processingSites).toEqual(['400 and over'])
+    expect(answers.processingSites).toEqual(['401 and over'])
     expect(answers.processingQuantity).toEqual(['1200 kilograms or litres'])
   })
 
