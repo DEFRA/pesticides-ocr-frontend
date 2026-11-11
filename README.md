@@ -117,7 +117,8 @@ Applicant phase-banner and confirmation links open `/feedback` in a new tab.
 The server records a feedback start, then redirects to that configured URL without
 forwarding request query data. `/feedback/thank-you` records a completion and
 shows a thank-you page with a link to `/`; it does not require applicant answers.
-An unset survey URL hides the links and direct `/feedback` visits return 503.
+When `FEEDBACK_SURVEY_URL` is unset, the default Qualtrics URL in
+`src/config/config.js` is used; unsetting it does not disable feedback.
 
 Both beacons are best-effort, independent of analytics consent and recorded once
 per session using the existing signed journey token. Configure the same
