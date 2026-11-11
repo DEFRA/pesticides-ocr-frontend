@@ -3,6 +3,15 @@ import { load } from 'cheerio'
 import { getSessionCookie } from './session-helpers.js'
 import { USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
+// No address lookup is connected, so the business address is typed in by hand.
+export const MANUAL_BUSINESS_ADDRESS = {
+  addressLine1: 'Lower Meadow Barn',
+  addressLine2: '',
+  addressTown: 'Leeds',
+  addressPostcode: 'LS1 1AA',
+  addressRegion: 'england'
+}
+
 export async function answerStep(server, { url, payload, cookie }) {
   const sessionCookie = cookie ?? (await getSessionCookie(server, url))
 
@@ -23,8 +32,7 @@ export async function completeJourney(server, cookie) {
 
   await answer('/business-activities', { businessActivities: ['only-storing'] })
   await answer('/business-name', { businessName: 'Pesticides Ltd' })
-  await answer('/business-address', { addressPostcode: 'LS1 1AA', addressBuilding: 'Lower Meadow Barn' })
-  await answer('/business-address/select', { address: '0' })
+  await answer('/business-address/manual', MANUAL_BUSINESS_ADDRESS)
   await answer('/business-contact', {
     contactName: 'Jo Bloggs',
     contactTelephone: '01234 567890',
@@ -43,8 +51,7 @@ export async function answerUpToStoring(server, cookie) {
 
   await answer('/business-activities', { businessActivities: [USING] })
   await answer('/business-name', { businessName: 'Pesticides Ltd' })
-  await answer('/business-address', { addressPostcode: 'LS1 1AA', addressBuilding: 'Lower Meadow Barn' })
-  await answer('/business-address/select', { address: '0' })
+  await answer('/business-address/manual', MANUAL_BUSINESS_ADDRESS)
   await answer('/business-contact', {
     contactName: 'Jo Bloggs',
     contactTelephone: '01234 567890',

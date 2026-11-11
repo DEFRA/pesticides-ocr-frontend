@@ -3,6 +3,13 @@ import { answerStep, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie } from '#/test-helpers/session-helpers.js'
 
+// The real lookup finds nothing, so these tests use made-up addresses.
+vi.mock('#/server/common/helpers/address-lookup.js', async () => {
+  const { findTestAddresses } = await import('#/test-helpers/address-lookup-helpers.js')
+
+  return { findAddresses: vi.fn(findTestAddresses) }
+})
+
 const heading = 'What is the location where you store PPPs?'
 const searchUrl = '/using-ppps/own-storage-address'
 const selectUrl = '/using-ppps/own-storage-address/select'
@@ -113,13 +120,14 @@ describe('#ownStorageAddress', () => {
       expect(page('a:contains("enter an address manually")').attr('href')).toBe(manualUrl)
     })
 
-    test('Should say when no address was found', async () => {
+    test('Should say when no address was found, offering to enter one manually', async () => {
       const cookie = await search({ addressPostcode: 'AA3 1AB', addressBuilding: 'Nowhere' })
 
       const page = await revisitStep(server, { url: selectUrl, cookie })
 
       expect(page('h1').text().trim()).toBe('No address found')
       expect(page('a:contains("Search again")').attr('href')).toBe(searchUrl)
+      expect(page('a:contains("enter an address manually")').attr('href')).toBe(manualUrl)
     })
 
     test('Should send someone who has not searched to the search', async () => {

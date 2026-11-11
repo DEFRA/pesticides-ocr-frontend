@@ -1,7 +1,7 @@
 import { load } from 'cheerio'
 
 import { createServer } from '#/server/server.js'
-import { answerStep, revisitStep } from '#/test-helpers/journey-helpers.js'
+import { answerStep, MANUAL_BUSINESS_ADDRESS, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { injectWithSession } from '#/test-helpers/session-helpers.js'
 
@@ -130,6 +130,41 @@ describe('#businessAddressController', () => {
       expect(load(result)('a:contains("enter an address manually")').attr('href')).toBe(
         '/business-address/manual?change=true'
       )
+    })
+  })
+
+  // No lookup service is connected, so every search finds nothing and the
+  // address can only be entered by hand.
+  describe('Without an address lookup', () => {
+    test('Should find no address and send the user on to manual entry', async () => {
+      const cookie = await answerStep(server, {
+        url: '/business-address',
+        payload: { addressPostcode: 'AA3 1AB' }
+      })
+
+      const page = await revisitStep(server, { url: '/business-address/select', cookie })
+
+      expect(page('h1').text()).toBe('No address found')
+      expect(page('select')).toHaveLength(0)
+      expect(page('a:contains("enter an address manually")').attr('href')).toBe(
+        '/business-address/manual'
+      )
+    })
+
+    test('Should carry on to business contact once the address is entered by hand', async () => {
+      const cookie = await answerStep(server, {
+        url: '/business-address',
+        payload: { addressPostcode: 'AA3 1AB' }
+      })
+
+      const { headers } = await server.inject({
+        method: 'POST',
+        url: '/business-address/manual',
+        headers: { cookie },
+        payload: MANUAL_BUSINESS_ADDRESS
+      })
+
+      expect(headers.location).toBe('/business-contact')
     })
   })
 

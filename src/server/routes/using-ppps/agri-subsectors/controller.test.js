@@ -1,7 +1,12 @@
 import { load } from 'cheerio'
 
 import { createServer } from '#/server/server.js'
-import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
+import {
+  answerStep,
+  revisitStep,
+  checkedValues,
+  MANUAL_BUSINESS_ADDRESS
+} from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie, injectWithSession } from '#/test-helpers/session-helpers.js'
 import { USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
@@ -68,11 +73,7 @@ describe('#agriSubsectorsController', () => {
 
       await answer('/business-activities', { businessActivities: [USING] })
       await answer('/business-name', { businessName: 'Pesticides Ltd' })
-      await answer('/business-address', {
-        addressPostcode: 'LS1 1AA',
-        addressBuilding: 'Lower Meadow Barn'
-      })
-      await answer('/business-address/select', { address: '0' })
+      await answer('/business-address/manual', MANUAL_BUSINESS_ADDRESS)
       await answer('/business-contact', {
         contactName: 'Jo Bloggs',
         contactTelephone: '01234 567890',

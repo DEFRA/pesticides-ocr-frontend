@@ -5,11 +5,12 @@ import { answerStep, completeJourney, revisitStep } from '#/test-helpers/journey
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { findAddresses } from '#/server/common/helpers/address-lookup.js'
 
-// Uses the stub lookup unless a test says otherwise.
-vi.mock('#/server/common/helpers/address-lookup.js', async (importOriginal) => {
-  const actual = await importOriginal()
+// The real lookup finds nothing, so these tests use made-up addresses unless a
+// test says otherwise.
+vi.mock('#/server/common/helpers/address-lookup.js', async () => {
+  const { findTestAddresses } = await import('#/test-helpers/address-lookup-helpers.js')
 
-  return { findAddresses: vi.fn(actual.findAddresses) }
+  return { findAddresses: vi.fn(findTestAddresses) }
 })
 
 describe('#businessAddressSelectController', () => {
@@ -91,7 +92,7 @@ describe('#businessAddressSelectController', () => {
       expect(page('#address-search-summary')).toHaveLength(0)
     })
 
-    test('Should say when no address was found and offer to search again', async () => {
+    test('Should say when no address was found and offer to search again or enter one manually', async () => {
       const cookie = await searchFor({ addressPostcode: 'AA3 1AB', addressBuilding: 'Nowhere' })
 
       const { result } = await server.inject({ method: 'GET', url, headers: { cookie } })
@@ -103,8 +104,23 @@ describe('#businessAddressSelectController', () => {
         'We could not find an address for Nowhere and AA3 1AB.'
       )
       expect(page('a:contains("Search again")').attr('href')).toBe('/business-address')
+      expect(page('a:contains("enter an address manually")').attr('href')).toBe(
+        '/business-address/manual'
+      )
       expect(page('select[name="address"]')).toHaveLength(0)
-      expect(page('main').text()).not.toEqual(expect.stringContaining('manually'))
+      expect(page('form')).toHaveLength(0)
+    })
+
+    test('Should keep change mode on the links when no address was found', async () => {
+      const cookie = await completeJourney(server)
+      await searchFor({ addressPostcode: 'AA3 1AB', addressBuilding: 'Nowhere' }, cookie)
+
+      const page = await revisitStep(server, { url: `${url}?change=true`, cookie })
+
+      expect(page('a:contains("Search again")').attr('href')).toBe('/business-address?change=true')
+      expect(page('a:contains("enter an address manually")').attr('href')).toBe(
+        '/business-address/manual?change=true'
+      )
     })
 
     test('Should escape the building that was searched for', async () => {
@@ -297,8 +313,8 @@ describe('#businessAddressSelectController', () => {
     })
 
     test('Should leave the building out of the summary when none was searched for', async () => {
-      // The stub finds several addresses for a postcode on its own, so a real
-      // lookup is needed to find exactly one without a building.
+      // The test lookup finds several addresses for a postcode on its own, so
+      // it's faked to find exactly one without a building.
       const cookie = await searchFor({ addressPostcode: 'aa31ab' })
       vi.mocked(findAddresses).mockResolvedValueOnce([
         { addressLine1: '1 Mill Lane', addressTown: 'Farm town', addressPostcode: 'AA3 1AB' }
@@ -394,7 +410,7 @@ describe('#businessAddressSelectController', () => {
     })
 
     test('Should escape the building that was searched for', async () => {
-      // The stub matches no building with markup in it, so the lookup is faked.
+      // The test lookup matches no building with markup in it, so it's faked.
       const cookie = await searchFor({ addressPostcode: 'AA3 1AB', addressBuilding: '<i>Barn</i>' })
       vi.mocked(findAddresses).mockResolvedValueOnce([
         { addressLine1: '<i>Barn</i>', addressTown: 'Farm town', addressPostcode: 'AA3 1AB' }
