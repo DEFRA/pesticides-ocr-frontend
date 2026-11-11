@@ -5,7 +5,12 @@ import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getSessionCookie } from '#/test-helpers/session-helpers.js'
 import { config } from '#/config/config.js'
-import { answerUpToStoring, completeJourney, revisitStep } from '#/test-helpers/journey-helpers.js'
+import {
+  answerUpToStoring,
+  completeJourney,
+  MANUAL_BUSINESS_ADDRESS,
+  revisitStep
+} from '#/test-helpers/journey-helpers.js'
 import { ADDRESS_SEARCH_PAGE, ADDRESS_SELECT_PAGE } from '#/server/common/constants/address-pages.js'
 import {
   OWN_STORAGE_ADDRESS_PAGE,
@@ -41,6 +46,29 @@ describe('#checkAnswersController', () => {
     const quantity = await answer('/using-ppps/quantity', { quantity: '60-149' })
 
     return { cookie, quantity }
+  }
+
+  const sellerContact = {
+    contactName: 'Jo Bloggs',
+    contactTelephone: '01234 567890',
+    contactEmail: 'jo@example.com'
+  }
+
+  // An organisation that only sells PPPs: selling has no section of its own, so
+  // it answers the qualifying questions and goes on to check answers. Returns
+  // where each answer sent the user.
+  const completeSellingJourney = async () => {
+    const cookie = await getSessionCookie(server, '/business-activities')
+    const answer = answerAs(cookie)
+
+    const responses = [
+      await answer('/business-activities', { businessActivities: [SELLING] }),
+      await answer('/business-name', { businessName: 'Pesticides Ltd' }),
+      await answer('/business-address/manual', MANUAL_BUSINESS_ADDRESS),
+      await answer('/business-contact', sellerContact)
+    ]
+
+    return { cookie, locations: responses.map(({ headers }) => headers.location) }
   }
 
   describe('GET /check-answers', () => {
@@ -717,6 +745,23 @@ describe('#checkAnswersController', () => {
       expect(registerCalls(fetchSpy)).toHaveLength(0)
     })
 
+    test('Should submit the address and contact for an organisation that only sells PPPs', async () => {
+      const fetchSpy = stubBackend(created())
+      const { cookie } = await completeSellingJourney()
+
+      const { headers } = await submit(cookie)
+
+      const [, options] = registerCalls(fetchSpy).at(-1)
+
+      expect(headers.location).toBe('/confirmation')
+      expect(JSON.parse(options.body)).toEqual({
+        businessActivities: [SELLING],
+        businessName: 'Pesticides Ltd',
+        address: MANUAL_BUSINESS_ADDRESS,
+        primaryContact: expect.objectContaining(sellerContact)
+      })
+    })
+
     test('Should send storing products and the quantity band for an organisation that uses PPPs', async () => {
       const fetchSpy = stubBackend(created())
       const { cookie } = await completeUsingJourney()
@@ -983,6 +1028,52 @@ describe('#checkAnswersController', () => {
       const { headers } = await submit('/business-name', cookie, { businessName: 'Crop Care Ltd' })
 
       expect(headers.location).toBe('/business-address')
+    })
+
+    test('Should ask the business address and contact before check answers when only selling', async () => {
+      const { cookie, locations } = await completeSellingJourney()
+
+      const contact = await visit('/business-contact', cookie)
+      const address = await visit('/business-address', cookie)
+
+      expect(locations).toEqual([
+        '/business-name',
+        '/business-address',
+        '/business-contact',
+        '/check-answers'
+      ])
+      expect(locations).not.toContain('/sell')
+      expect(backLinkOf(contact.result)).toBe('/business-address')
+      expect(backLinkOf(address.result)).toBe('/business-name')
+    })
+
+    test('Should show the address and contact on check answers when only selling', async () => {
+      const { cookie } = await completeSellingJourney()
+
+      const page = load((await loadAnswers(cookie)).result)
+      const rowKeys = page('.govuk-summary-list__row dt')
+        .map((_index, element) => page(element).text().trim())
+        .get()
+      const main = page('main').text()
+
+      expect(rowKeys).toEqual(expect.arrayContaining(['Main address', 'Name', 'Email', 'Telephone']))
+      expect(main).toEqual(expect.stringContaining('Selling PPPs'))
+      expect(main).toEqual(expect.stringContaining('Lower Meadow Barn'))
+      expect(main).toEqual(expect.stringContaining('Jo Bloggs'))
+    })
+
+    test('Should keep the address and contact once an existing journey changes to only selling', async () => {
+      const cookie = await completeJourney(server)
+
+      const { headers } = await submit('/business-activities?change=true', cookie, {
+        businessActivities: [SELLING]
+      })
+      const { result } = await loadAnswers(cookie)
+
+      expect(headers.location).toBe('/check-answers')
+      expect(result).toEqual(expect.stringContaining('Selling PPPs'))
+      expect(result).toEqual(expect.stringContaining('Lower Meadow Barn'))
+      expect(result).toEqual(expect.stringContaining('Jo Bloggs'))
     })
   })
 })

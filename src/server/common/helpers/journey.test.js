@@ -1,6 +1,7 @@
 import * as journey from './journey.js'
 import { USING_PPPS_KEY } from '#/server/common/constants/session-keys.js'
 import {
+  businessActivityValues,
   DISTRIBUTING,
   ONLY_STORING,
   PROCESSING,
@@ -85,7 +86,7 @@ describe('#journey', () => {
       ['/business-activities', { businessActivities: [SELLING] }, '/business-name'],
       ['/business-activities', { businessActivities: ['manufacturing', 'importing'] }, '/business-name'],
       ['/business-activities', { businessActivities: [ONLY_STORING] }, '/business-name'],
-      ['/business-name', { businessActivities: [SELLING] }, '/sell'],
+      ['/business-name', { businessActivities: [SELLING] }, '/business-address'],
       ['/business-name', { businessActivities: [SELLING, 'manufacturing'] }, '/business-address'],
       ['/business-name', { businessActivities: [ONLY_STORING] }, '/business-address'],
       ['/business-contact', { businessActivities: [USING] }, '/using-ppps/who-applies'],
@@ -94,6 +95,7 @@ describe('#journey', () => {
       ['/business-contact', { businessActivities: ['manufacturing'] }, '/check-answers'],
       ['/business-contact', { businessActivities: ['importing'] }, '/check-answers'],
       ['/business-contact', { businessActivities: [ONLY_STORING] }, '/check-answers'],
+      ['/business-contact', { businessActivities: [SELLING] }, '/check-answers'],
       ['/business-contact', {}, '/check-answers'],
       ['/using-ppps/who-applies', { whoApplies: 'self' }, '/using-ppps/ppp-sectors'],
       ['/using-ppps/who-applies', { whoApplies: 'contractor' }, '/using-ppps/contractor-address'],
@@ -167,10 +169,24 @@ describe('#journey', () => {
       )
     })
 
-    test('Should go to the sell section after the business name when only selling', () => {
+    test('Should ask the business address and contact before check answers when only selling', () => {
+      const { address, primaryContact } = storesProducts
+      const sellsProducts = { businessActivities: [SELLING], businessName: 'Pesticides Ltd' }
+
+      expect(findFirstMissingPage(sellsProducts)).toBe('/business-address')
+      expect(findFirstMissingPage({ ...sellsProducts, address })).toBe('/business-contact')
+      expect(findFirstMissingPage({ ...sellsProducts, address, primaryContact })).toBe(
+        '/check-answers'
+      )
+    })
+
+    test('Should ask for the business address after the business name when selling with other activities', () => {
       expect(
-        findFirstMissingPage({ businessActivities: [SELLING], businessName: 'Pesticides Ltd' })
-      ).toBe('/sell')
+        findFirstMissingPage({
+          businessActivities: [SELLING, 'manufacturing'],
+          businessName: 'Pesticides Ltd'
+        })
+      ).toBe('/business-address')
     })
 
     test('Should ask who applies PPPs after the business contact when the business uses PPPs', () => {
@@ -417,10 +433,32 @@ describe('#journey', () => {
     })
   })
 
+  // The sell section isn't built, so nothing may route to a /sell page.
+  test.each([...businessActivityValues.map((activity) => [[activity]]), [businessActivityValues]])(
+    'Should only route to journey pages or check answers for the activities %o',
+    (businessActivities) => {
+      const nextPages = Object.keys(journey.JOURNEY).map((page) =>
+        getNextPage(page, { ...usesPpps, businessActivities })
+      )
+
+      nextPages.forEach((page) => {
+        expect([...Object.keys(journey.JOURNEY), '/check-answers']).toContain(page)
+      })
+    }
+  )
+
   describe('#getPreviousPage', () => {
     test('Should return the page before on the route the answers take', () => {
       expect(getPreviousPage('/business-name', storesProducts)).toBe('/business-activities')
       expect(getPreviousPage('/check-answers', storesProducts)).toBe('/business-contact')
+    })
+
+    test('Should return the business contact before check answers when only selling', () => {
+      const sellsProducts = { ...storesProducts, businessActivities: [SELLING] }
+
+      expect(getPreviousPage('/check-answers', sellsProducts)).toBe('/business-contact')
+      expect(getPreviousPage('/business-contact', sellsProducts)).toBe('/business-address')
+      expect(getPreviousPage('/business-address', sellsProducts)).toBe('/business-name')
     })
 
     test('Should return the last answered page for the first unanswered page', () => {
@@ -530,7 +568,7 @@ describe('#journey', () => {
       expect(removeSkippedAnswers(formSession)).toEqual(formSession)
     })
 
-    test('Should keep the later answers when the route leaves for the sell section', () => {
+    test('Should keep the address and contact once only selling is ticked', () => {
       const formSession = { ...storesProducts, businessActivities: [SELLING] }
 
       expect(removeSkippedAnswers(formSession)).toEqual(formSession)

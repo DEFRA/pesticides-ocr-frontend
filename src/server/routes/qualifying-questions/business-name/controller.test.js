@@ -49,7 +49,7 @@ describe('#businessNameController', () => {
       expect(headers.location).toBe('/business-address')
     })
 
-    test('Should redirect to the sell section when only selling PPPs', async () => {
+    test('Should redirect to business address when only selling PPPs', async () => {
       const cookie = await answerStep(server, {
         url: '/business-activities',
         payload: { businessActivities: [SELLING] }
@@ -63,7 +63,7 @@ describe('#businessNameController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/sell')
+      expect(headers.location).toBe('/business-address')
     })
 
     test('Should redirect to business address when selling alongside other activities', async () => {

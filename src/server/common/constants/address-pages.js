@@ -10,5 +10,5 @@ export const ADDRESS_SELECT_PAGE = '/business-address/select'
 export const ADDRESS_MANUAL_PAGE = '/business-address/manual'
 
 // The page for an address outside Great Britain isn't built yet, so this
-// route doesn't exist and the link 404s, like the sell section.
+// route doesn't exist and the link 404s.
 export const INTERNATIONAL_ADDRESS_PAGE = '/business-address/international'

@@ -7,17 +7,12 @@ import {
 import {
   DISTRIBUTING,
   PROCESSING,
-  SELLING,
   USING
 } from '#/server/routes/qualifying-questions/business-activities/items.js'
 import { getUsingPPPsAnswers } from './using-ppps-answers.js'
 
 const FIRST_PAGE = '/business-activities'
 export const CHECK_ANSWERS_PAGE = '/check-answers'
-
-// The sell section isn't built yet, so this route doesn't exist and the
-// journey stops here for anyone who only sells PPPs.
-export const SELL_SECTION_PAGE = '/sell'
 
 // Every using PPPs page sits under /using-ppps, and its answer under
 // formSession.usingPPPs.
@@ -53,9 +48,6 @@ export const DISTRIBUTE_PRODUCTS_PAGE = '/distribute/products'
 export const DISTRIBUTE_SITES_PAGE = '/distribute/sites'
 export const DISTRIBUTE_QUANTITY_PAGE = '/distribute/quantity'
 
-const onlySellsProducts = ({ businessActivities = [] }) =>
-  businessActivities.length === 1 && businessActivities[0] === SELLING
-
 // The activity sections, in the order the journey asks them: each is shown when
 // its business activity is ticked, after the earlier ones. The Manufacture,
 // Import and Sell sections will slot in here (Using, Manufacture, Import,
@@ -77,8 +69,8 @@ function nextSectionPage({ businessActivities = [] }, afterActivity) {
     ?.firstPage
 }
 
-// Activities without a section of their own (manufacturing, importing, only
-// storing) ask nothing more, so with no section ticked it's on to check answers.
+// Activities without a section of their own (manufacturing, importing, selling,
+// only storing) ask nothing more, so with no section ticked it's on to check answers.
 const pageAfterBusinessContact = (formSession) =>
   nextSectionPage(formSession) ?? CHECK_ANSWERS_PAGE
 
@@ -169,8 +161,7 @@ export const JOURNEY = {
   },
   '/business-name': {
     sessionKey: 'businessName',
-    next: (formSession) =>
-      onlySellsProducts(formSession) ? SELL_SECTION_PAGE : ADDRESS_SEARCH_PAGE
+    next: () => ADDRESS_SEARCH_PAGE
   },
   [ADDRESS_SEARCH_PAGE]: {
     sessionKey: 'address',
@@ -314,17 +305,10 @@ export function getPreviousPage(page, formSession) {
   return position > 0 ? route[position - 1] : undefined
 }
 
-// A route that leaves the journey map (e.g. into the sell section) gives no
-// view of the pages after it, so only pages up to the last answered one count.
-function routeEnd(answeredPages, stoppedAt) {
-  if (stoppedAt === CHECK_ANSWERS_PAGE) {
-    return JOURNEY_PAGES.length
-  }
-
-  return stoppedAt in JOURNEY
-    ? JOURNEY_PAGES.indexOf(stoppedAt)
-    : JOURNEY_PAGES.indexOf(answeredPages.at(-1)) + 1
-}
+// Pages after an unanswered one could still be asked, so only those before it
+// count as skipped. Once the route reaches check answers, every page counts.
+const routeEnd = (stoppedAt) =>
+  stoppedAt === CHECK_ANSWERS_PAGE ? JOURNEY_PAGES.length : JOURNEY_PAGES.indexOf(stoppedAt)
 
 const withoutKeys = (answers, keys) =>
   Object.fromEntries(Object.entries(answers).filter(([key]) => !keys.has(key)))
@@ -347,9 +331,7 @@ function withoutSectionKeys(formSession, section, keys) {
 
 export function removeSkippedAnswers(formSession) {
   const { answeredPages, stoppedAt } = followRoute(formSession)
-  const knownRouteEnd = routeEnd(answeredPages, stoppedAt)
-
-  const skippedPages = JOURNEY_PAGES.slice(0, knownRouteEnd).filter(
+  const skippedPages = JOURNEY_PAGES.slice(0, routeEnd(stoppedAt)).filter(
     (page) => !answeredPages.includes(page)
   )
   const sections = new Set(skippedPages.map((page) => JOURNEY[page].section).filter(Boolean))
