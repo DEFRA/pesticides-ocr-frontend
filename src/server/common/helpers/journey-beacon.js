@@ -90,8 +90,8 @@ export function recordFeedbackStart(request) {
   return fireBeacon(request, '/metrics/feedback-starts')
 }
 
-export function recordFeedbackCompletion(request) {
-  return fireBeacon(request, '/metrics/feedback-completions')
+export function recordFeedbackReturn(request) {
+  return fireBeacon(request, '/metrics/feedback-returns')
 }
 
 // Record a journey event at most once per session: the first call in a session

@@ -115,7 +115,7 @@ REFERENCE_PREFIX='PPP'
 Configure `FEEDBACK_SURVEY_URL` with the environment's Qualtrics survey URL.
 Applicant phase-banner and confirmation links open `/feedback` in a new tab.
 The server records a feedback start, then redirects to that configured URL without
-forwarding request query data. `/feedback/thank-you` records a completion and
+forwarding request query data. `/feedback/thank-you` records a return and
 shows a thank-you page with a link to `/`; it does not require applicant answers.
 When `FEEDBACK_SURVEY_URL` is unset, the default Qualtrics URL in
 `src/config/config.js` is used; unsetting it does not disable feedback.
@@ -136,7 +136,7 @@ separate copies for dev/test. Do not pass applicant, session or journey values t
 Qualtrics. Scores stay in Qualtrics reports.
 
 The backend's case-officer `GET /metrics/journeys` response now exposes
-`feedbackStarted` and `feedbackCompleted` in totals, `byYear` and `byMonth`,
+`feedbackStarted` and `feedbackReturned` in totals, `byYear` and `byMonth`,
 with the existing `from` / `to` filters. EQ-385 owns their dashboard presentation.
 No feedback events are sent to GA4.
 

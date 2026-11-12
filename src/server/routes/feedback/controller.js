@@ -2,7 +2,7 @@ import Boom from '@hapi/boom'
 import { config } from '#/config/config.js'
 import {
   recordFeedbackStart,
-  recordFeedbackCompletion,
+  recordFeedbackReturn,
   recordOncePerSession
 } from '#/server/common/helpers/journey-beacon.js'
 
@@ -30,9 +30,9 @@ export const getThankYou = {
   options: { app: { pageTitle: 'Thank you for your feedback' } },
   handler(request, h) {
     recordOncePerSession(request, {
-      sessionKey: 'feedbackCompleted',
-      record: recordFeedbackCompletion,
-      logMessage: 'Feedback completion recorded for this session (EQ-706)'
+      sessionKey: 'feedbackReturned',
+      record: recordFeedbackReturn,
+      logMessage: 'Feedback return recorded for this session (EQ-706)'
     })
 
     return h.view('feedback/index').header('Cache-Control', 'no-store')

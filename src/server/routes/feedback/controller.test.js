@@ -40,7 +40,7 @@ describe('feedback routes', () => {
 
   const cookieFrom = (response) => response.headers['set-cookie'][0].split(';')[0]
 
-  test('opens the survey without forwarding request query data; counts starts and completions once with the same signed session token', async () => {
+  test('opens the survey without forwarding request query data; counts starts and returns once with the same signed session token', async () => {
     const first = await server.inject({ method: 'GET', url: '/feedback?journey=must-not-forward' })
     expect(first.statusCode).toBe(302)
     expect(first.headers.location).toBe('https://survey.test/satisfaction')
@@ -58,7 +58,7 @@ describe('feedback routes', () => {
     expect(fetch).toHaveBeenCalledTimes(2)
     expect(fetch.mock.calls.map(([url]) => url.toString())).toEqual([
       'https://backend.test/metrics/feedback-starts',
-      'https://backend.test/metrics/feedback-completions'
+      'https://backend.test/metrics/feedback-returns'
     ])
     const firstToken = fetch.mock.calls[0][1].headers['x-journey-token']
     expect(fetch.mock.calls[1][1].headers['x-journey-token']).toBe(firstToken)

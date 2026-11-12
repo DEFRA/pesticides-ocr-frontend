@@ -5,7 +5,7 @@ import {
   recordJourneyStart,
   recordJourneyNotEligible,
   recordFeedbackStart,
-  recordFeedbackCompletion,
+  recordFeedbackReturn,
   recordOncePerSession
 } from './journey-beacon.js'
 
@@ -33,7 +33,7 @@ afterEach(() => {
 describe('#journeyBeacon', () => {
   test.each([
     [recordFeedbackStart, '/metrics/feedback-starts'],
-    [recordFeedbackCompletion, '/metrics/feedback-completions']
+    [recordFeedbackReturn, '/metrics/feedback-returns']
   ])('feedback beacons send only the signed token to %s', async (record, path) => {
     config.set('journeyToken.secret', 'feedback-secret')
     fetch.mockResolvedValue({ ok: true, status: 204 })
