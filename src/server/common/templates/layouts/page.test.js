@@ -95,7 +95,7 @@ describe('#pageLayout feedback link', () => {
   })
 
   const surveyLink = () =>
-    `<a class="govuk-link" href="${config.get('feedbackSurveyUrl')}" target="_blank" rel="noopener noreferrer">give your feedback (opens in new tab)</a>`
+    '<a class="govuk-link" href="/feedback" target="_blank" rel="noopener noreferrer">give your feedback (opens in new tab)</a>'
 
   test('links the phase banner to the survey on applicant pages', async () => {
     const { result } = await server.inject({ method: 'GET', url: '/' })

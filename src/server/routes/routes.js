@@ -1,5 +1,6 @@
 import { home } from './home/index.js'
 import { cookies } from './cookies/index.js'
+import { feedback } from './feedback/index.js'
 import { dashboard } from './dashboard/index.js'
 import { search } from './search/index.js'
 import { serviceMetrics } from './service-metrics/index.js'
@@ -24,6 +25,7 @@ import { checkAdditionalAddress } from './pro-users/check-additional-address/ind
 export const routes = [
   home,
   cookies,
+  feedback,
   dashboard,
   search,
   serviceMetrics,
