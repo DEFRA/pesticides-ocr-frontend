@@ -1,6 +1,7 @@
 import { ADDRESS_SEARCH_PAGE } from '#/server/common/constants/address-pages.js'
 import { USING_PPPS_KEY } from '#/server/common/constants/session-keys.js'
 import { USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
+import { STORES_OWN, STORES_THIRD_PARTY } from '#/server/routes/using-ppps/storing/items.js'
 import { getUsingPPPsAnswers } from './using-ppps-answers.js'
 
 // The /start page (register or update) comes before this, but its choice isn't
@@ -95,24 +96,27 @@ function pageAfterSectors(formSession) {
   return STORING_PAGE
 }
 
+// storing holds the ticked options. Each one ticked has its own pages, asked in
+// this order: own sites, then the third party. "We do not store PPPs" has none.
+function stores(option) {
+  return (formSession) => [getUsingPPPsAnswers(formSession)['storing'] ?? []].flat().includes(option)
+}
+
+const storesAtOwnSites = stores(STORES_OWN)
+const storesWithThirdParty = stores(STORES_THIRD_PARTY)
+
+// After the own sites' pages, the third party's contact if ticked, otherwise the quantity.
+const pageAfterOwnStorage = (formSession) =>
+  storesWithThirdParty(formSession) ? STORAGE_CONTACT_PAGE : USING_QUANTITY_PAGE
+
 function pageAfterStorageLocation(formSession) {
   return getUsingPPPsAnswers(formSession)['storageLocation'] === 'main-address'
-    ? USING_QUANTITY_PAGE
+    ? pageAfterOwnStorage(formSession)
     : OWN_STORAGE_ADDRESS_PAGE
 }
 
 function pageAfterStoring(formSession) {
-  const { storing } = getUsingPPPsAnswers(formSession)
-
-  if (storing === 'own') {
-    return STORAGE_LOCATION_PAGE
-  }
-
-  if (storing === 'third-party') {
-    return STORAGE_CONTACT_PAGE
-  }
-
-  return USING_QUANTITY_PAGE
+  return storesAtOwnSites(formSession) ? STORAGE_LOCATION_PAGE : pageAfterOwnStorage(formSession)
 }
 
 export const JOURNEY = {
@@ -182,7 +186,7 @@ export const JOURNEY = {
   [OWN_STORAGE_ADDRESS_PAGE]: {
     usingPPPs: true,
     sessionKey: 'ownStorageAddress',
-    next: () => USING_QUANTITY_PAGE
+    next: pageAfterOwnStorage
   },
   [STORAGE_CONTACT_PAGE]: {
     usingPPPs: true,

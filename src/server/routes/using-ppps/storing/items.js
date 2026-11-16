@@ -1,15 +1,20 @@
+export const STORES_OWN = 'own'
+export const STORES_THIRD_PARTY = 'third-party'
+export const STORES_NOTHING = 'no'
+
 export const storingItems = [
   {
-    value: 'own',
-    text: 'Yes, at sites we own'
+    value: STORES_OWN,
+    text: 'At sites we own'
   },
   {
-    value: 'third-party',
-    text: 'Yes, a third party stores them for us'
+    value: STORES_THIRD_PARTY,
+    text: 'By a third party on our behalf'
   },
   {
-    value: 'no',
-    text: 'No, we don’t store PPPs'
+    value: STORES_NOTHING,
+    text: 'We do not store PPPs',
+    behaviour: 'exclusive'
   }
 ]
 

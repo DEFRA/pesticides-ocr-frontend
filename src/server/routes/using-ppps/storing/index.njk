@@ -1,29 +1,34 @@
 {% extends 'layouts/page.njk' %}
 
-{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
 {% block content %}
+{% set question = "Where are the products stored?" %}
+
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-full">
 
     {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
 
+    <h1 class="govuk-heading-l">{{ question }}</h1>
+
+    <p class="govuk-body">Only include sites where more than 50 litres or 50 kilograms of PPPs are stored at any one time.</p>
+
     <form method="post" action="{{ formAction }}" novalidate>
 
-      {{ govukRadios({
+      {{ govukCheckboxes({
         name: "storing",
-        value: values["storing"] if values,
+        values: values["storing"] | asList if values,
         fieldset: {
           legend: {
-            text: "Do you store products you apply?",
-            isPageHeading: true,
-            classes: "govuk-fieldset__legend--l"
+            text: question,
+            classes: "govuk-visually-hidden"
           }
         },
         hint: {
-          text: "Select an option",
+          text: "Select all that apply",
           classes: "govuk-!-margin-bottom-6"
         },
         errorMessage: errors["storing"] if errors["storing"],

@@ -102,6 +102,16 @@
             actions: { items: [{ href: "/using-ppps/storing?change=true", text: "Change", visuallyHiddenText: "storing products" }] }
           } if answers.storing,
           {
+            key: { text: "Where products are stored" },
+            value: { html: appAnswerList({ values: answers.storageLocation }) },
+            actions: { items: [{ href: "/using-ppps/storage-location?change=true", text: "Change", visuallyHiddenText: "where products are stored" }] }
+          } if answers.storageLocation,
+          {
+            key: { text: "Other storage address" },
+            value: { html: appAnswerList({ values: answers.ownStorageAddress }) },
+            actions: { items: [{ href: "/using-ppps/own-storage-address?change=true", text: "Change", visuallyHiddenText: "other storage address" }] }
+          } if answers.ownStorageAddress,
+          {
             key: { text: "Storage contact name" },
             value: { html: appAnswerList({ values: answers.storageContactName }) },
             actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact name" }] }
@@ -126,16 +136,6 @@
             value: { html: appAnswerList({ values: answers.storageContactEmail }) },
             actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact email" }] }
           } if answers.storageContactEmail,
-          {
-            key: { text: "Where products are stored" },
-            value: { html: appAnswerList({ values: answers.storageLocation }) },
-            actions: { items: [{ href: "/using-ppps/storage-location?change=true", text: "Change", visuallyHiddenText: "where products are stored" }] }
-          } if answers.storageLocation,
-          {
-            key: { text: "Other storage address" },
-            value: { html: appAnswerList({ values: answers.ownStorageAddress }) },
-            actions: { items: [{ href: "/using-ppps/own-storage-address?change=true", text: "Change", visuallyHiddenText: "other storage address" }] }
-          } if answers.ownStorageAddress,
           {
             key: { text: "Quantity used in a typical year" },
             value: { html: appAnswerList({ values: answers.usingQuantity }) },

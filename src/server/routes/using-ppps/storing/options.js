@@ -1,25 +1,41 @@
 import Joi from 'joi'
 import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
-import { storingItems, storingValues } from './items.js'
+import { STORES_NOTHING, storingItems, storingValues } from './items.js'
 
-const selectStoring = 'Select if you store the products you apply'
+const selectStoring = 'Select where PPPs are stored, or that you do not store them'
+
+// "We do not store PPPs" is exclusive. JavaScript unticks the others, but
+// without it they can still be posted together.
+function notStoringAlone(storing, helpers) {
+  return storing.includes(STORES_NOTHING) && storing.length > 1
+    ? helpers.error('any.invalid')
+    : storing
+}
 
 export const app = {
-  pageTitle: 'Do you store products you apply?',
+  pageTitle: 'Where Are The Products Stored',
   items: storingItems
 }
 
 export const validate = {
   payload: Joi.object({
-    storing: Joi.string()
-      .valid(...storingValues)
+    storing: Joi.array()
+      .items(Joi.string().valid(...storingValues))
+      .single()
+      .unique()
+      .min(1)
       .required()
-      .messages({
-        'any.only': selectStoring,
-        'any.required': selectStoring,
-        'string.base': selectStoring,
-        'string.empty': selectStoring
-      })
-  }),
+      .custom(notStoringAlone)
+  })
+    .required()
+    .messages({
+      'any.required': selectStoring,
+      'any.only': selectStoring,
+      'any.invalid': selectStoring,
+      'array.base': selectStoring,
+      'array.min': selectStoring,
+      'array.unique': selectStoring,
+      'object.base': selectStoring
+    }),
   failAction: viewFailAction('using-ppps/storing/index')
 }
