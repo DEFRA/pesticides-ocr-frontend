@@ -54,6 +54,15 @@
       }) }}
 
       <h2 class="govuk-heading-m">PPP activity details</h2>
+      {# One row per own storage address, so they're added to the rows in a loop. #}
+      {% set storageAddressRows = [] %}
+      {% for lines in answers.ownStorageAddresses %}
+        {% set _ = storageAddressRows.push({
+          key: { text: "Storage address " + loop.index },
+          value: { html: appAnswerList({ values: lines }) },
+          actions: { items: [{ href: "/using-ppps/storage-addresses?change=true", text: "Change", visuallyHiddenText: "storage address " + loop.index }] }
+        }) %}
+      {% endfor %}
       {{ govukSummaryList({
         rows: [
           {
@@ -105,12 +114,8 @@
             key: { text: "Where products are stored" },
             value: { html: appAnswerList({ values: answers.storageLocation }) },
             actions: { items: [{ href: "/using-ppps/storage-location?change=true", text: "Change", visuallyHiddenText: "where products are stored" }] }
-          } if answers.storageLocation,
-          {
-            key: { text: "Other storage address" },
-            value: { html: appAnswerList({ values: answers.ownStorageAddress }) },
-            actions: { items: [{ href: "/using-ppps/own-storage-address?change=true", text: "Change", visuallyHiddenText: "other storage address" }] }
-          } if answers.ownStorageAddress,
+          } if answers.storageLocation
+        ].concat(storageAddressRows, [
           {
             key: { text: "Storage contact name" },
             value: { html: appAnswerList({ values: answers.storageContactName }) },
@@ -141,7 +146,7 @@
             value: { html: appAnswerList({ values: answers.usingQuantity }) },
             actions: { items: [{ href: "/using-ppps/quantity?change=true", text: "Change", visuallyHiddenText: "quantity used in a typical year" }] }
           } if answers.usingQuantity
-        ]
+        ])
       }) }}
 
 

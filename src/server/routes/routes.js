@@ -25,6 +25,7 @@ import { storageLocation } from './using-ppps/storage-location/index.js'
 import { ownStorageAddress } from './using-ppps/own-storage-address/index.js'
 import { ownStorageAddressSelect } from './using-ppps/own-storage-address/select/index.js'
 import { ownStorageAddressManual } from './using-ppps/own-storage-address/manual/index.js'
+import { storageAddresses } from './using-ppps/storage-addresses/index.js'
 import { storageContact } from './using-ppps/third-party-storage-contact/index.js'
 import { usingQuantity } from './using-ppps/quantity/index.js'
 import { checkAnswers } from './check-confirm/check-answers/index.js'
@@ -59,6 +60,7 @@ export const routes = [
   ownStorageAddress,
   ownStorageAddressSelect,
   ownStorageAddressManual,
+  storageAddresses,
   storageContact,
   usingQuantity,
   checkAnswers,

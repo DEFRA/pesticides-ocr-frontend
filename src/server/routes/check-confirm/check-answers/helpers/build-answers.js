@@ -53,7 +53,7 @@ export function buildAnswers(formData = {}) {
     memberSchemes: memberSchemeLines(usingPPPs['memberSchemes']),
     storing: labelsFor(storingItems, usingPPPs['storing']),
     storageLocation: labelsFor(storageLocationItemsFor(formData), usingPPPs['storageLocation']),
-    ownStorageAddress: addressLines(usingPPPs['ownStorageAddress']),
+    ownStorageAddresses: (usingPPPs['ownStorageAddresses'] ?? []).map((address) => addressLines(address)),
     storageContactName: toLines(usingPPPs.storageContact?.['contactName']),
     storageBusinessName: toLines(usingPPPs.storageContact?.['businessName']),
     storageContactJobTitle: toLines(usingPPPs.storageContact?.['contactJobTitle']),

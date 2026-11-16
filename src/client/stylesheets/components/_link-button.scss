@@ -1,0 +1,14 @@
+@use "govuk-frontend" as *;
+
+.app-link-button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: govuk-functional-colour(link);
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  appearance: none;
+}

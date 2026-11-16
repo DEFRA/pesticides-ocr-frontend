@@ -33,6 +33,10 @@ export const STORAGE_LOCATION_PAGE = '/using-ppps/storage-location'
 export const OWN_STORAGE_ADDRESS_PAGE = '/using-ppps/own-storage-address'
 export const OWN_STORAGE_ADDRESS_SELECT_PAGE = '/using-ppps/own-storage-address/select'
 export const OWN_STORAGE_ADDRESS_MANUAL_PAGE = '/using-ppps/own-storage-address/manual'
+// Lists the own storage addresses added so far and asks whether to add another.
+// It's the addresses' JOURNEY entry: the search, select and manual pages are a
+// loop outside the map that always comes back to it.
+export const STORAGE_ADDRESSES_PAGE = '/using-ppps/storage-addresses'
 export const STORAGE_CONTACT_PAGE = '/using-ppps/third-party-storage-contact'
 export const USING_QUANTITY_PAGE = '/using-ppps/quantity'
 
@@ -114,7 +118,7 @@ const pageAfterOwnStorage = (formSession) =>
 // the main address is already known.
 function pageAfterStorageLocation(formSession) {
   return [getUsingPPPsAnswers(formSession)['storageLocation'] ?? []].flat().includes(ANOTHER_ADDRESS)
-    ? OWN_STORAGE_ADDRESS_PAGE
+    ? STORAGE_ADDRESSES_PAGE
     : pageAfterOwnStorage(formSession)
 }
 
@@ -186,9 +190,9 @@ export const JOURNEY = {
     sessionKey: 'storageLocation',
     next: pageAfterStorageLocation
   },
-  [OWN_STORAGE_ADDRESS_PAGE]: {
+  [STORAGE_ADDRESSES_PAGE]: {
     usingPPPs: true,
-    sessionKey: 'ownStorageAddress',
+    sessionKey: 'ownStorageAddresses',
     next: pageAfterOwnStorage
   },
   [STORAGE_CONTACT_PAGE]: {

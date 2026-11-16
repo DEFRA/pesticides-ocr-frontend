@@ -12,8 +12,15 @@
 //   readAddress(formSession) / saveAddress(formSession, address)
 //                 where the chosen address lives in formSession
 //
-// The search page is the address's JOURNEY entry, so once an address is
-// chosen the journey carries on from it.
+// and optionally:
+//
+//   intro         a paragraph under the search page's heading
+//   backLink      the search page's back link (see journey-navigation.js)
+//   afterSave(request, h)
+//                 where to go once an address is chosen
+//
+// Without afterSave the search page is the address's JOURNEY entry, so once an
+// address is chosen the journey carries on from it.
 
 import Joi from 'joi'
 import { findAddresses } from './address-lookup.js'
@@ -58,11 +65,12 @@ const lookUpAddresses = (addressSearch) =>
 export function addressSearchPage(lookup) {
   const searchContext = (request) => ({
     heading: lookup.heading,
+    intro: lookup.intro,
     manualAddressPage: withQuery(lookup.manualPage, request)
   })
 
   return {
-    app: { pageTitle: lookup.titles.search },
+    app: { pageTitle: lookup.titles.search, backLink: lookup.backLink },
 
     validate: {
       payload: Joi.object({
@@ -217,7 +225,9 @@ export function addressSelectPage(lookup) {
         // The search was only needed to find the address, so it isn't kept.
         request.yar.clear(lookup.searchKey)
 
-        return redirectToNextPage(request, h, getNextPage(lookup.searchPage, formSession))
+        return lookup.afterSave
+          ? lookup.afterSave(request, h)
+          : redirectToNextPage(request, h, getNextPage(lookup.searchPage, formSession))
       }
     }
   }
