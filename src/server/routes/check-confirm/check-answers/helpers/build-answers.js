@@ -6,7 +6,7 @@ import { agriSubsectorsItems } from '#/server/routes/using-ppps/agri-subsectors/
 import { amenitySubsectorsItems } from '#/server/routes/using-ppps/amenity-subsectors/items.js'
 import { hortiSubsectorsItems } from '#/server/routes/using-ppps/horti-subsectors/items.js'
 import { storingItems } from '#/server/routes/using-ppps/storing/items.js'
-import { storageLocationItems } from '#/server/routes/using-ppps/storage-location/items.js'
+import { storageLocationItemsFor } from '#/server/routes/using-ppps/storage-location/items.js'
 import { usingQuantityText } from '#/server/routes/using-ppps/quantity/items.js'
 import { getUsingPPPsAnswers } from '#/server/common/helpers/using-ppps-answers.js'
 import { addressLines, labelsFor, toLines } from '#/server/common/helpers/answer-lines.js'
@@ -52,7 +52,7 @@ export function buildAnswers(formData = {}) {
     hortiSubsectors: labelsFor(hortiSubsectorsItems, usingPPPs['hortiSubsectors']),
     memberSchemes: memberSchemeLines(usingPPPs['memberSchemes']),
     storing: labelsFor(storingItems, usingPPPs['storing']),
-    storageLocation: labelsFor(storageLocationItems, usingPPPs['storageLocation']),
+    storageLocation: labelsFor(storageLocationItemsFor(formData), usingPPPs['storageLocation']),
     ownStorageAddress: addressLines(usingPPPs['ownStorageAddress']),
     storageContactName: toLines(usingPPPs.storageContact?.['contactName']),
     storageBusinessName: toLines(usingPPPs.storageContact?.['businessName']),

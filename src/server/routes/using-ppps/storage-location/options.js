@@ -1,25 +1,33 @@
 import Joi from 'joi'
+import { getSession } from '#/server/common/helpers/get-session.js'
 import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
-import { storageLocationItems, storageLocationValues } from './items.js'
+import { storageLocationItemsFor, storageLocationValues } from './items.js'
 
-const selectStorageLocation = 'Select where you store the products you apply'
+const selectStorageLocation = 'Select which of your sites store PPPs'
 
 export const app = {
-  pageTitle: 'Where do you store products you apply?',
-  items: storageLocationItems
+  pageTitle: 'Which Of Your Sites Store PPPs'
 }
 
 export const validate = {
   payload: Joi.object({
-    storageLocation: Joi.string()
-      .valid(...storageLocationValues)
+    storageLocation: Joi.array()
+      .items(Joi.string().valid(...storageLocationValues))
+      .single()
+      .unique()
+      .min(1)
       .required()
-      .messages({
-        'any.only': selectStorageLocation,
-        'any.required': selectStorageLocation,
-        'string.base': selectStorageLocation,
-        'string.empty': selectStorageLocation
-      })
-  }),
-  failAction: viewFailAction('using-ppps/storage-location/index')
+  })
+    .required()
+    .messages({
+      'any.required': selectStorageLocation,
+      'any.only': selectStorageLocation,
+      'array.base': selectStorageLocation,
+      'array.min': selectStorageLocation,
+      'array.unique': selectStorageLocation,
+      'object.base': selectStorageLocation
+    }),
+  failAction: viewFailAction('using-ppps/storage-location/index', (request) => ({
+    items: storageLocationItemsFor(getSession(request, 'formSession'))
+  }))
 }

@@ -2,6 +2,7 @@ import { ADDRESS_SEARCH_PAGE } from '#/server/common/constants/address-pages.js'
 import { USING_PPPS_KEY } from '#/server/common/constants/session-keys.js'
 import { USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 import { STORES_OWN, STORES_THIRD_PARTY } from '#/server/routes/using-ppps/storing/items.js'
+import { ANOTHER_ADDRESS } from '#/server/routes/using-ppps/storage-location/items.js'
 import { getUsingPPPsAnswers } from './using-ppps-answers.js'
 
 // The /start page (register or update) comes before this, but its choice isn't
@@ -109,10 +110,12 @@ const storesWithThirdParty = stores(STORES_THIRD_PARTY)
 const pageAfterOwnStorage = (formSession) =>
   storesWithThirdParty(formSession) ? STORAGE_CONTACT_PAGE : USING_QUANTITY_PAGE
 
+// storageLocation holds the ticked sites. Another address needs looking up;
+// the main address is already known.
 function pageAfterStorageLocation(formSession) {
-  return getUsingPPPsAnswers(formSession)['storageLocation'] === 'main-address'
-    ? pageAfterOwnStorage(formSession)
-    : OWN_STORAGE_ADDRESS_PAGE
+  return [getUsingPPPsAnswers(formSession)['storageLocation'] ?? []].flat().includes(ANOTHER_ADDRESS)
+    ? OWN_STORAGE_ADDRESS_PAGE
+    : pageAfterOwnStorage(formSession)
 }
 
 function pageAfterStoring(formSession) {

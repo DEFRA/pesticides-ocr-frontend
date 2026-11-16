@@ -5,6 +5,7 @@ import {
   getUsingPPPsAnswers,
   setUsingPPPsAnswer
 } from '#/server/common/helpers/using-ppps-answers.js'
+import { storageLocationItemsFor } from './items.js'
 
 export const get = {
   handler(request, h) {
@@ -13,6 +14,7 @@ export const get = {
     const formSession = getSession(request, 'formSession')
 
     return h.view('using-ppps/storage-location/index', {
+      items: storageLocationItemsFor(formSession),
       values: { storageLocation: getUsingPPPsAnswers(formSession)['storageLocation'] }
     })
   }
