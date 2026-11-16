@@ -26,7 +26,9 @@
         { text: "Not eligible", format: "numeric" },
         { text: "Finished", format: "numeric" },
         { text: "Drop-outs", format: "numeric" },
-        { text: "Completion rate", format: "numeric" }
+        { text: "Completion rate", format: "numeric" },
+        { text: "Feedback started", format: "numeric" },
+        { text: "Feedback returned", format: "numeric" }
       ],
       rows: rows
     }) }}
@@ -40,7 +42,9 @@
         { key: { text: "Not eligible" }, value: { text: "Journeys that ended on the ‘You do not need to use this service’ page." } },
         { key: { text: "Finished" }, value: { text: "Registrations plus not eligible." } },
         { key: { text: "Drop-outs" }, value: { text: "Starts that have not finished." } },
-        { key: { text: "Completion rate" }, value: { text: "Finished as a percentage of starts." } }
+        { key: { text: "Completion rate" }, value: { text: "Finished as a percentage of starts." } },
+        { key: { text: "Feedback started" }, value: { text: "Applicants sent to the feedback survey." } },
+        { key: { text: "Feedback returned" }, value: { text: "Applicants who came back from the survey to the thank-you page. This is not a verified survey completion." } }
       ]
     }) }}
     <p class="govuk-body">Each browser session counts once. A journey can start in one month and finish in the next, and a few starts may not be recorded, so the figures are approximate.</p>

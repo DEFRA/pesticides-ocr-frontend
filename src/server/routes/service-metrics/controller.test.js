@@ -13,11 +13,15 @@ const figures = (
   registrations,
   notEligible,
   dropOuts,
-  completionRate
+  completionRate,
+  feedbackStarted = 0,
+  feedbackReturned = 0
 ) => ({
   starts,
   registrations,
   notEligible,
+  feedbackStarted,
+  feedbackReturned,
   finished: registrations + notEligible,
   dropOuts,
   completionRate,
@@ -25,11 +29,11 @@ const figures = (
 })
 
 const METRICS = {
-  ...figures(12, 2, 1, 9, 0.25),
-  byYear: [{ year: '2026', ...figures(12, 2, 1, 9, 0.25) }],
+  ...figures(12, 2, 1, 9, 0.25, 4, 3),
+  byYear: [{ year: '2026', ...figures(12, 2, 1, 9, 0.25, 4, 3) }],
   byMonth: [
-    { month: '2026-09', ...figures(5, 2, 0, 3, 0.4) },
-    { month: '2026-10', ...figures(7, 0, 1, 6, 0.1429) },
+    { month: '2026-09', ...figures(5, 2, 0, 3, 0.4, 3, 2) },
+    { month: '2026-10', ...figures(7, 0, 1, 6, 0.1429, 1, 1) },
     { month: '2026-11', ...figures(0, 0, 0, 0, null) },
     { month: '2026-12', ...figures(100, 29, 0, 71, 0.29) }
   ]
@@ -114,11 +118,11 @@ describe('#serviceMetrics (EQ-472)', () => {
     expect(statusCode).toBe(statusCodes.ok)
     expect(load(result)('h1').text()).toContain('Service metrics')
     expect(tableRows(result)).toEqual([
-      ['All time', '12', '2', '1', '3', '9', '25%'],
-      ['September 2026', '5', '2', '0', '2', '3', '40%'],
-      ['October 2026', '7', '0', '1', '1', '6', '14%'],
-      ['November 2026', '0', '0', '0', '0', '0', 'No starts'],
-      ['December 2026', '100', '29', '0', '29', '71', '29%']
+      ['All time', '12', '2', '1', '3', '9', '25%', '4', '3'],
+      ['September 2026', '5', '2', '0', '2', '3', '40%', '3', '2'],
+      ['October 2026', '7', '0', '1', '1', '6', '14%', '1', '1'],
+      ['November 2026', '0', '0', '0', '0', '0', 'No starts', '0', '0'],
+      ['December 2026', '100', '29', '0', '29', '71', '29%', '0', '0']
     ])
   })
 
@@ -159,7 +163,16 @@ describe('#serviceMetrics (EQ-472)', () => {
     ['an empty month', { ...METRICS, byMonth: [null] }],
     ['a month without figures', { ...METRICS, byMonth: [{ month: '2026-09' }] }],
     ['a malformed month', { ...METRICS, byMonth: [{ ...METRICS.byMonth[0], month: 'Sept' }] }],
-    ['missing all-time figures', { byMonth: [] }]
+    ['missing all-time figures', { byMonth: [] }],
+    ['missing feedback figures', { ...METRICS, feedbackReturned: undefined }],
+    ['a negative feedback figure', { ...METRICS, feedbackStarted: -1 }],
+    [
+      'a month without feedback figures',
+      {
+        ...METRICS,
+        byMonth: [{ ...METRICS.byMonth[0], feedbackStarted: undefined }]
+      }
+    ]
   ])('treats %s as a bad gateway', async (_case, body) => {
     respondWith(statusCodes.ok, body)
 

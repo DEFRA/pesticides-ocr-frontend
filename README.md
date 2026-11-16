@@ -108,7 +108,7 @@ REFERENCE_PREFIX='PPP'
 
 #### Service metrics
 
-`/dashboard/metrics` shows the journey metrics from the backend's `GET /metrics/journeys` (EQ-472): starts, registrations, not-eligible exits, finished, drop-outs and the completion rate, all time and by month. It is in the case-officer area, so it needs the case-officer role, and like the other case-officer pages it sends nothing to Google Analytics. Locally it uses the same `OCR_BACKEND_URL` as the search.
+`/dashboard/metrics` shows the journey metrics from the backend's `GET /metrics/journeys` (EQ-472): starts, registrations, not-eligible exits, finished, drop-outs, the completion rate, feedback started and feedback returned (EQ-706), all time and by month. It is in the case-officer area, so it needs the case-officer role, and like the other case-officer pages it sends nothing to Google Analytics. Locally it uses the same `OCR_BACKEND_URL` as the search.
 
 #### Feedback survey metrics (EQ-706)
 
