@@ -33,7 +33,9 @@ const toRow = (label, figures) => [
   numeric(figures.notEligible),
   numeric(figures.finished),
   numeric(figures.dropOuts),
-  numeric(percentage(figures.completionRate))
+  numeric(percentage(figures.completionRate)),
+  numeric(figures.feedbackStarted),
+  numeric(figures.feedbackReturned)
 ]
 
 const toRows = (metrics) => [

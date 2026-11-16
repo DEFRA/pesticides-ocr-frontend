@@ -13,6 +13,8 @@ const figures = {
   starts: count,
   registrations: count,
   notEligible: count,
+  feedbackStarted: count,
+  feedbackReturned: count,
   finished: count,
   dropOuts: count,
   completionRate: Joi.number().min(0).max(1).allow(null).required()
