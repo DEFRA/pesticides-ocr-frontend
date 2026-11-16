@@ -1,6 +1,5 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
-import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
-import { getNextPage } from '#/server/common/helpers/journey.js'
+import { VERIFY_EMAIL_PAGE } from '#/server/common/helpers/journey.js'
 
 export const get = {
   handler(request, h) {
@@ -12,6 +11,8 @@ export const get = {
   }
 }
 
+// Always on to check your email, even from check answers (?change=true), so a
+// changed email address is verified too.
 export const post = {
   handler(request, h) {
     const payload = request.payload
@@ -20,6 +21,6 @@ export const post = {
     formSession['primaryContact'] = payload
     request.yar.set('formSession', formSession)
 
-    return redirectToNextPage(request, h, getNextPage('/business-contact', formSession))
+    return h.redirect(VERIFY_EMAIL_PAGE)
   }
 }

@@ -8,6 +8,11 @@ import { getUsingPPPsAnswers } from './using-ppps-answers.js'
 const FIRST_PAGE = '/business-contact'
 export const CHECK_ANSWERS_PAGE = '/check-answers'
 
+// Check your email, after the business contact. It isn't an answer, so it sits
+// outside the map: business contact always redirects to it, and business name's
+// back link points to it.
+export const VERIFY_EMAIL_PAGE = '/verify-email'
+
 // Every using PPPs page sits under /using-ppps, and its answer under
 // formSession.usingPPPs.
 export const WHO_APPLIES_PAGE = '/using-ppps/who-applies'

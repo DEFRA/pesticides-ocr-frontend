@@ -12,6 +12,7 @@ import { businessAddress } from './qualifying-questions/business-address/index.j
 import { businessAddressSelect } from './qualifying-questions/business-address/select/index.js'
 import { businessAddressManual } from './qualifying-questions/business-address/manual/index.js'
 import { businessContact } from './qualifying-questions/business-contact/index.js'
+import { verifyEmail } from './qualifying-questions/verify-email/index.js'
 import { whoApplies } from './using-ppps/who-applies/index.js'
 import { contractorAddress } from './using-ppps/contractor-address/index.js'
 import { pppSectors } from './using-ppps/ppp-sectors/index.js'
@@ -45,6 +46,7 @@ export const routes = [
   businessAddressSelect,
   businessAddressManual,
   businessContact,
+  verifyEmail,
   whoApplies,
   contractorAddress,
   pppSectors,

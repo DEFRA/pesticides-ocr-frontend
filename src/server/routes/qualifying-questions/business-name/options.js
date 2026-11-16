@@ -1,6 +1,7 @@
 import Joi from 'joi'
 import { requiredText } from '#/server/common/helpers/address-fields.js'
 import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
+import { VERIFY_EMAIL_PAGE } from '#/server/common/helpers/journey.js'
 
 const ENTER_BUSINESS_NAME_MESSAGE = 'Enter a business name'
 
@@ -8,7 +9,9 @@ const ENTER_BUSINESS_NAME_MESSAGE = 'Enter a business name'
 const BUSINESS_NAME_MAX_LENGTH = 200
 
 export const app = {
-  pageTitle: 'Business Name'
+  pageTitle: 'Business Name',
+  // After check your email, which is outside the journey map.
+  backLink: VERIFY_EMAIL_PAGE
 }
 
 export const validate = {

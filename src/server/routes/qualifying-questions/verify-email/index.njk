@@ -1,0 +1,37 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    <h1 class="govuk-heading-l">Check your email</h1>
+
+    <p class="govuk-body">We've sent an email to <strong>{{ contactEmail }}</strong> containing a verification link.</p>
+
+    <p class="govuk-body">The link expires in 15 minutes.</p>
+
+    {% call govukDetails({ summaryText: "Not received an email?" }) %}
+      <p class="govuk-body">It can take a few minutes for the email to arrive.</p>
+      <p class="govuk-body">If you have not received the email after 10 minutes:</p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>check your spam or junk folder</li>
+        <li>check that the email address shown is correct</li>
+      </ul>
+      {# There's no resend yet, so this just reloads the page. #}
+      <p class="govuk-body">You can <a class="govuk-link" href="/verify-email">request a new verification link</a>.</p>
+    {% endcall %}
+
+    {# Temporary: lets people carry on until email verification exists. Remove it then. #}
+    {{ govukButton({
+      text: "I have already verified",
+      href: "/business-name",
+      classes: "govuk-button--secondary"
+    }) }}
+
+  </div>
+</div>
+
+{% endblock %}
