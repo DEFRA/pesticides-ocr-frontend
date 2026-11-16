@@ -1,9 +1,14 @@
 import { load } from 'cheerio'
 
 import { createServer } from '#/server/server.js'
-import { answerStep, revisitStep, checkedValues } from '#/test-helpers/journey-helpers.js'
+import {
+  answerStep,
+  revisitStep,
+  checkedValues,
+  MANUAL_BUSINESS_ADDRESS
+} from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
-import { injectWithSession } from '#/test-helpers/session-helpers.js'
+import { getSessionCookie, injectWithSession } from '#/test-helpers/session-helpers.js'
 import { SELLING, USING } from './items.js'
 
 describe('#businessActivitiesController', () => {
@@ -55,6 +60,24 @@ describe('#businessActivitiesController', () => {
       ])
     })
 
+    test('Should link back to the business address once the earlier pages are answered', async () => {
+      const cookie = await getSessionCookie(server, '/business-contact')
+      const answer = (url, payload) =>
+        server.inject({ method: 'POST', url, headers: { cookie }, payload })
+
+      await answer('/business-contact', {
+        contactName: 'Jo Bloggs',
+        contactTelephone: '01234 567890',
+        contactEmail: 'jo@example.com'
+      })
+      await answer('/business-name', { businessName: 'Pesticides Ltd' })
+      await answer('/business-address/manual', MANUAL_BUSINESS_ADDRESS)
+
+      const page = await revisitStep(server, { url: '/business-activities', cookie })
+
+      expect(page('.govuk-back-link').attr('href')).toBe('/business-address')
+    })
+
     test('Should link to the not eligible page for home and garden users', async () => {
       const { result } = await server.inject({ method: 'GET', url: '/business-activities' })
       const link = load(result)('a[href="/not-eligible"]')
@@ -89,10 +112,10 @@ describe('#businessActivitiesController', () => {
 
   describe('POST /business-activities', () => {
     test.each([
-      [[USING]],
-      [[SELLING]],
-      [[USING, SELLING]]
-    ])('Should redirect to the business name page for %o', async (businessActivities) => {
+      [[USING], '/using-ppps/who-applies'],
+      [[USING, SELLING], '/using-ppps/who-applies'],
+      [[SELLING], '/check-answers']
+    ])('Should redirect %o to %s', async (businessActivities, nextPage) => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-activities',
@@ -100,7 +123,7 @@ describe('#businessActivitiesController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/business-name')
+      expect(headers.location).toBe(nextPage)
     })
 
     test('Should return view with error message', async () => {

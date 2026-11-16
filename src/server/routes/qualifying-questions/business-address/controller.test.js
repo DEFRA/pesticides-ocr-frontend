@@ -151,7 +151,7 @@ describe('#businessAddressController', () => {
       )
     })
 
-    test('Should carry on to business contact once the address is entered by hand', async () => {
+    test('Should carry on to business activities once the address is entered by hand', async () => {
       const cookie = await answerStep(server, {
         url: '/business-address',
         payload: { addressPostcode: 'AA3 1AB' }
@@ -164,7 +164,7 @@ describe('#businessAddressController', () => {
         payload: MANUAL_BUSINESS_ADDRESS
       })
 
-      expect(headers.location).toBe('/business-contact')
+      expect(headers.location).toBe('/business-activities')
     })
   })
 

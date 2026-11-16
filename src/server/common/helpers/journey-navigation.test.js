@@ -86,8 +86,8 @@ describe('#journeyNavigation', () => {
         store: { formSession: answeredJourney }
       })
 
-      expect(getBackLink(businessName)).toBe('/business-activities')
-      expect(getBackLink(checkAnswers)).toBe('/business-contact')
+      expect(getBackLink(businessName)).toBe('/business-contact')
+      expect(getBackLink(checkAnswers)).toBe('/business-activities')
     })
 
     test('Should return nothing for a page the answers skip', () => {

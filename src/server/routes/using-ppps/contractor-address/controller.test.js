@@ -45,18 +45,18 @@ describe('#contractorAddressController', () => {
   // Answers the journey up to this page: a business that uses PPPs and has
   // another organisation apply them.
   const answerUpToContractor = async () => {
-    const cookie = await getSessionCookie(server, '/business-activities')
+    const cookie = await getSessionCookie(server, '/business-contact')
     const answer = (path, payload) =>
       server.inject({ method: 'POST', url: path, headers: { cookie }, payload })
 
-    await answer('/business-activities', { businessActivities: [USING] })
-    await answer('/business-name', { businessName: 'Pesticides Ltd' })
-    await answer('/business-address/manual', MANUAL_BUSINESS_ADDRESS)
     await answer('/business-contact', {
       contactName: 'Jo Bloggs',
       contactTelephone: '01234 567890',
       contactEmail: 'jo@example.com'
     })
+    await answer('/business-name', { businessName: 'Pesticides Ltd' })
+    await answer('/business-address/manual', MANUAL_BUSINESS_ADDRESS)
+    await answer('/business-activities', { businessActivities: [USING] })
     await answer('/using-ppps/who-applies', { whoApplies: 'contractor' })
 
     return cookie

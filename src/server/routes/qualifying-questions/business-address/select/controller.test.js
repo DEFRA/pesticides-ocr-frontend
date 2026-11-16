@@ -172,13 +172,13 @@ describe('#businessAddressSelectController', () => {
   })
 
   describe('POST /business-address/select', () => {
-    test('Should redirect to business contact page', async () => {
+    test('Should redirect to business activities page', async () => {
       const cookie = await searchFor({ addressPostcode: 'AA3 1AB' })
 
       const { statusCode, headers } = await choose(cookie, '1')
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/business-contact')
+      expect(headers.location).toBe('/business-activities')
     })
 
     test('Should save the chosen address from the lookup', async () => {
@@ -425,13 +425,13 @@ describe('#businessAddressSelectController', () => {
       expect(load(result)('main i')).toHaveLength(0)
     })
 
-    test('Should save the address and continue to business contact', async () => {
+    test('Should save the address and continue to business activities', async () => {
       const cookie = await searchFor({ addressPostcode: 'AA3 1AB', addressBuilding: 'Highfield' })
 
       const { statusCode, headers } = await choose(cookie, '0')
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/business-contact')
+      expect(headers.location).toBe('/business-activities')
     })
 
     test('Should save the single address found', async () => {

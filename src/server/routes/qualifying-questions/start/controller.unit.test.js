@@ -32,7 +32,7 @@ beforeEach(() => {
   h.view.mockReset()
 })
 
-describe('#businessActivities GET', () => {
+describe('#start GET', () => {
   test('seeds the form session', () => {
     const request = fakeRequest()
 

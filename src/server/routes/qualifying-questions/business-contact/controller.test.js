@@ -3,7 +3,6 @@ import { load } from 'cheerio'
 import { answerStep, revisitStep } from '#/test-helpers/journey-helpers.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { injectWithSession } from '#/test-helpers/session-helpers.js'
-import { SELLING, USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 describe('#businessContactController', () => {
   let server
@@ -49,10 +48,16 @@ describe('#businessContactController', () => {
       expect(labelFor('contactTelephone')).toBe('Telephone number')
       expect(labelFor('contactEmail')).toBe('Email address')
     })
+
+    test('Should link back to the start page', async () => {
+      const page = await revisitStep(server, { url: '/business-contact' })
+
+      expect(page('.govuk-back-link').attr('href')).toBe('/start')
+    })
   })
 
   describe('POST /business-contact', () => {
-    test('Should redirect to check answers page', async () => {
+    test('Should redirect to business name page', async () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-contact',
@@ -64,49 +69,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/check-answers')
-    })
-
-    test('Should redirect to who applies page when the business uses PPPs', async () => {
-      const cookie = await answerStep(server, {
-        url: '/business-activities',
-        payload: { businessActivities: [USING, SELLING] }
-      })
-
-      const { statusCode, headers } = await server.inject({
-        method: 'POST',
-        url: '/business-contact',
-        headers: { cookie },
-        payload: {
-          contactName: 'John Smith',
-          contactTelephone: '01234 567890',
-          contactEmail: 'John.Smith@pesticides.co.uk'
-        }
-      })
-
-      expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/using-ppps/who-applies')
-    })
-
-    test('Should redirect to check answers when the business only sells PPPs', async () => {
-      const cookie = await answerStep(server, {
-        url: '/business-activities',
-        payload: { businessActivities: [SELLING] }
-      })
-
-      const { statusCode, headers } = await server.inject({
-        method: 'POST',
-        url: '/business-contact',
-        headers: { cookie },
-        payload: {
-          contactName: 'John Smith',
-          contactTelephone: '01234 567890',
-          contactEmail: 'John.Smith@pesticides.co.uk'
-        }
-      })
-
-      expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/check-answers')
+      expect(headers.location).toBe('/business-name')
     })
 
     test('Should return view with error message', async () => {
@@ -163,7 +126,7 @@ describe('#businessContactController', () => {
       expect(statusCode).toBe(statusCodes.ok)
     })
 
-    test('Should accept a job title or role and continue to check answers', async () => {
+    test('Should accept a job title or role and continue to business name', async () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-contact',
@@ -176,7 +139,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/check-answers')
+      expect(headers.location).toBe('/business-name')
     })
 
     test('Should continue when the job title or role is left empty', async () => {
@@ -192,7 +155,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/check-answers')
+      expect(headers.location).toBe('/business-name')
     })
 
     test('Should show an error when the job title or role is over 100 characters', async () => {
@@ -228,7 +191,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/check-answers')
+      expect(headers.location).toBe('/business-name')
     })
   })
 

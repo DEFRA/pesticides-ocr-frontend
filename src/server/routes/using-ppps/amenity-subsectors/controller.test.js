@@ -74,17 +74,17 @@ describe('#amenitySubsectorsController', () => {
     })
 
     test('Should link back to the PPP sectors once the route up to it is answered', async () => {
-      const cookie = await getSessionCookie(server, '/business-activities')
+      const cookie = await getSessionCookie(server, '/business-contact')
       const answer = (path, payload) => answerStep(server, { url: path, payload, cookie })
 
-      await answer('/business-activities', { businessActivities: [USING] })
-      await answer('/business-name', { businessName: 'Pesticides Ltd' })
-      await answer('/business-address/manual', MANUAL_BUSINESS_ADDRESS)
       await answer('/business-contact', {
         contactName: 'Jo Bloggs',
         contactTelephone: '01234 567890',
         contactEmail: 'jo@example.com'
       })
+      await answer('/business-name', { businessName: 'Pesticides Ltd' })
+      await answer('/business-address/manual', MANUAL_BUSINESS_ADDRESS)
+      await answer('/business-activities', { businessActivities: [USING] })
       await answer('/using-ppps/who-applies', { whoApplies: 'self' })
       await answer('/using-ppps/ppp-sectors', {
         professionalSectors: ['amenity'],

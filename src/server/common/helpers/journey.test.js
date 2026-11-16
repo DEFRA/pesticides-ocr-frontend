@@ -60,7 +60,7 @@ describe('#journey', () => {
     }
   }
 
-  // Uses PPPs as part of its work, answered up to the business contact.
+  // Uses PPPs as part of its work, answered up to the business activities.
   const appliesProducts = {
     businessActivities: [USING],
     businessName: 'Pesticides Ltd',
@@ -80,14 +80,16 @@ describe('#journey', () => {
 
   describe('#getNextPage', () => {
     test.each([
-      ['/business-activities', { businessActivities: [SELLING] }, '/business-name'],
-      ['/business-activities', { businessActivities: [USING, SELLING] }, '/business-name'],
+      ['/business-contact', {}, '/business-name'],
+      ['/business-contact', { businessActivities: [USING] }, '/business-name'],
       ['/business-name', { businessActivities: [SELLING] }, '/business-address'],
       ['/business-name', { businessActivities: [SELLING, USING] }, '/business-address'],
-      ['/business-contact', { businessActivities: [USING] }, '/using-ppps/who-applies'],
-      ['/business-contact', { businessActivities: [USING, SELLING] }, '/using-ppps/who-applies'],
-      ['/business-contact', { businessActivities: [SELLING] }, '/check-answers'],
-      ['/business-contact', {}, '/check-answers'],
+      ['/business-address', {}, '/business-activities'],
+      ['/business-address', { businessActivities: [USING] }, '/business-activities'],
+      ['/business-activities', { businessActivities: [USING] }, '/using-ppps/who-applies'],
+      ['/business-activities', { businessActivities: [USING, SELLING] }, '/using-ppps/who-applies'],
+      ['/business-activities', { businessActivities: [SELLING] }, '/check-answers'],
+      ['/business-activities', {}, '/check-answers'],
       ['/using-ppps/who-applies', { whoApplies: 'self' }, '/using-ppps/ppp-sectors'],
       ['/using-ppps/who-applies', { whoApplies: 'contractor' }, '/using-ppps/contractor-address'],
       ['/using-ppps/contractor-address', { whoApplies: 'contractor' }, '/using-ppps/ppp-sectors'],
@@ -146,7 +148,7 @@ describe('#journey', () => {
 
   describe('#findFirstMissingPage', () => {
     test('Should start at the first page when nothing has been answered', () => {
-      expect(findFirstMissingPage({})).toBe('/business-activities')
+      expect(findFirstMissingPage({})).toBe('/business-contact')
     })
 
     test('Should return check answers when every relevant page is answered', () => {
@@ -154,24 +156,32 @@ describe('#journey', () => {
       expect(findFirstMissingPage(usesPpps)).toBe('/check-answers')
     })
 
-    test('Should go straight from the business activities to the business name', () => {
-      expect(findFirstMissingPage({ businessActivities: [SELLING] })).toBe(
+    test('Should go straight from the business contact to the business name', () => {
+      expect(findFirstMissingPage({ primaryContact: sellsPpps.primaryContact })).toBe(
         '/business-name'
       )
     })
 
-    test('Should ask the business address and contact before check answers when only selling', () => {
-      const { address, primaryContact } = sellsPpps
-      const sellsProducts = { businessActivities: [SELLING], businessName: 'Pesticides Ltd' }
+    test('Should ask the business address and activities before check answers when only selling', () => {
+      const { address, businessActivities } = sellsPpps
+      const sellsProducts = { primaryContact: sellsPpps.primaryContact, businessName: 'Pesticides Ltd' }
 
       expect(findFirstMissingPage(sellsProducts)).toBe('/business-address')
-      expect(findFirstMissingPage({ ...sellsProducts, address })).toBe('/business-contact')
-      expect(findFirstMissingPage({ ...sellsProducts, address, primaryContact })).toBe(
+      expect(findFirstMissingPage({ ...sellsProducts, address })).toBe('/business-activities')
+      expect(findFirstMissingPage({ ...sellsProducts, address, businessActivities })).toBe(
         '/check-answers'
       )
     })
 
-    test('Should ask who applies PPPs after the business contact when the business uses PPPs', () => {
+    test('Should stop at the business activities even when using PPPs answers are already held', () => {
+      const { businessActivities, ...beforeActivities } = appliesProducts
+
+      expect(findFirstMissingPage({ ...beforeActivities, whoApplies: 'self' })).toBe(
+        '/business-activities'
+      )
+    })
+
+    test('Should ask who applies PPPs after the business activities when the business uses PPPs', () => {
       expect(findFirstMissingPage(appliesProducts)).toBe('/using-ppps/who-applies')
     })
 
@@ -431,13 +441,19 @@ describe('#journey', () => {
 
   describe('#getPreviousPage', () => {
     test('Should return the page before on the route the answers take', () => {
-      expect(getPreviousPage('/business-name', sellsPpps)).toBe('/business-activities')
-      expect(getPreviousPage('/check-answers', sellsPpps)).toBe('/business-contact')
+      expect(getPreviousPage('/business-name', sellsPpps)).toBe('/business-contact')
+      expect(getPreviousPage('/check-answers', sellsPpps)).toBe('/business-activities')
     })
 
-    test('Should return the business contact before check answers when only selling', () => {
-      expect(getPreviousPage('/business-contact', sellsPpps)).toBe('/business-address')
+    test('Should return the business activities before check answers when only selling', () => {
+      expect(getPreviousPage('/business-activities', sellsPpps)).toBe('/business-address')
       expect(getPreviousPage('/business-address', sellsPpps)).toBe('/business-name')
+    })
+
+    test('Should return the business address before the business activities once the route up to it is answered', () => {
+      const { businessActivities, ...beforeActivities } = sellsPpps
+
+      expect(getPreviousPage('/business-activities', beforeActivities)).toBe('/business-address')
     })
 
     test('Should return the last answered page for the first unanswered page', () => {
@@ -479,10 +495,10 @@ describe('#journey', () => {
       expect(getPreviousPage('/using-ppps/quantity', { ...usesPpps, storing: 'own' })).toBeUndefined()
     })
 
-    test('Should return the business contact before who applies PPPs', () => {
-      expect(getPreviousPage('/using-ppps/who-applies', appliesProducts)).toBe('/business-contact')
+    test('Should return the business activities before who applies PPPs', () => {
+      expect(getPreviousPage('/using-ppps/who-applies', appliesProducts)).toBe('/business-activities')
       expect(getPreviousPage('/using-ppps/who-applies', { ...appliesProducts, whoApplies: 'self' })).toBe(
-        '/business-contact'
+        '/business-activities'
       )
     })
 
@@ -531,7 +547,7 @@ describe('#journey', () => {
     })
 
     test('Should return nothing for the first page', () => {
-      expect(getPreviousPage('/business-activities', sellsPpps)).toBeUndefined()
+      expect(getPreviousPage('/business-contact', sellsPpps)).toBeUndefined()
     })
 
     test('Should return nothing for a page the answers skip', () => {
@@ -644,6 +660,12 @@ describe('#journey', () => {
       const formSession = { ...sellsPpps, businessActivities: [USING], storing: 'no' }
 
       expect(removeSkippedAnswers(formSession)).toEqual(formSession)
+    })
+
+    test('Should keep the using PPPs answers while the business activities are unanswered', () => {
+      const { businessActivities, ...beforeActivities } = usesPpps
+
+      expect(removeSkippedAnswers(beforeActivities)).toEqual(beforeActivities)
     })
 
     test('Should keep answers beyond the first unanswered page', () => {

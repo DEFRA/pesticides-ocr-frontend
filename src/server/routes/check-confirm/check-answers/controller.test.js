@@ -58,14 +58,14 @@ describe('#checkAnswersController', () => {
   // it answers the qualifying questions and goes on to check answers. Returns
   // where each answer sent the user.
   const completeSellingJourney = async () => {
-    const cookie = await getSessionCookie(server, '/business-activities')
+    const cookie = await getSessionCookie(server, '/business-contact')
     const answer = answerAs(cookie)
 
     const responses = [
-      await answer('/business-activities', { businessActivities: [SELLING] }),
+      await answer('/business-contact', sellerContact),
       await answer('/business-name', { businessName: 'Pesticides Ltd' }),
       await answer('/business-address/manual', MANUAL_BUSINESS_ADDRESS),
-      await answer('/business-contact', sellerContact)
+      await answer('/business-activities', { businessActivities: [SELLING] })
     ]
 
     return { cookie, locations: responses.map(({ headers }) => headers.location) }
@@ -659,9 +659,9 @@ describe('#checkAnswersController', () => {
 
     test('Should send the user to the first unanswered question instead of submitting', async () => {
       const fetchSpy = stubBackend(created())
-      const cookie = await getSessionCookie(server, '/business-activities')
+      const cookie = await getSessionCookie(server, '/business-contact')
 
-      await answerAs(cookie)('/business-activities', { businessActivities: [SELLING] })
+      await answerAs(cookie)('/business-contact', sellerContact)
       const { statusCode, headers } = await submit(cookie)
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -761,7 +761,7 @@ describe('#checkAnswersController', () => {
       const { headers } = await submit(cookie)
 
       expect(registerCalls(fetchSpy)).toHaveLength(1)
-      expect(headers.location).toBe('/business-activities?change=true')
+      expect(headers.location).toBe('/business-contact?change=true')
     })
 
     test('Should register a second business in the same session without the first reference', async () => {
@@ -932,10 +932,10 @@ describe('#checkAnswersController', () => {
       const name = await visit('/business-name', cookie)
       const activities = await visit('/business-activities', cookie)
 
-      expect(backLinkOf(contact.result)).toBe('/business-address')
+      expect(backLinkOf(activities.result)).toBe('/business-address')
       expect(backLinkOf(address.result)).toBe('/business-name')
-      expect(backLinkOf(name.result)).toBe('/business-activities')
-      expect(backLinkOf(activities.result)).toBe('/')
+      expect(backLinkOf(name.result)).toBe('/business-contact')
+      expect(backLinkOf(contact.result)).toBe('/start')
     })
 
     test('Should not show a back link on check answers', async () => {
@@ -954,20 +954,20 @@ describe('#checkAnswersController', () => {
       expect(headers.location).toBe('/business-address')
     })
 
-    test('Should ask the business address and contact before check answers when only selling', async () => {
+    test('Should ask the business address and activities before check answers when only selling', async () => {
       const { cookie, locations } = await completeSellingJourney()
 
-      const contact = await visit('/business-contact', cookie)
+      const activities = await visit('/business-activities', cookie)
       const address = await visit('/business-address', cookie)
 
       expect(locations).toEqual([
         '/business-name',
         '/business-address',
-        '/business-contact',
+        '/business-activities',
         '/check-answers'
       ])
       expect(locations).not.toContain('/sell')
-      expect(backLinkOf(contact.result)).toBe('/business-address')
+      expect(backLinkOf(activities.result)).toBe('/business-address')
       expect(backLinkOf(address.result)).toBe('/business-name')
     })
 
@@ -984,6 +984,26 @@ describe('#checkAnswersController', () => {
       expect(main).toEqual(expect.stringContaining('Selling PPPs'))
       expect(main).toEqual(expect.stringContaining('Lower Meadow Barn'))
       expect(main).toEqual(expect.stringContaining('Jo Bloggs'))
+    })
+
+    test('Should list the business details in the order they are asked', async () => {
+      const { cookie } = await completeSellingJourney()
+
+      const page = load((await loadAnswers(cookie)).result)
+      const rowKeys = page('.govuk-summary-list')
+        .first()
+        .find('.govuk-summary-list__row dt')
+        .map((_index, element) => page(element).text().trim())
+        .get()
+
+      expect(rowKeys).toEqual([
+        'Name',
+        'Email',
+        'Telephone',
+        'Business name',
+        'Main address',
+        'Business PPP activities'
+      ])
     })
 
     test('Should keep the address and contact once an existing journey changes to only selling', async () => {

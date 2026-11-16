@@ -3,7 +3,9 @@ import { USING_PPPS_KEY } from '#/server/common/constants/session-keys.js'
 import { USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 import { getUsingPPPsAnswers } from './using-ppps-answers.js'
 
-const FIRST_PAGE = '/business-activities'
+// The /start page (register or update) comes before this, but its choice isn't
+// an answer, so it's kept out of formSession and out of the map.
+const FIRST_PAGE = '/business-contact'
 export const CHECK_ANSWERS_PAGE = '/check-answers'
 
 // Every using PPPs page sits under /using-ppps, and its answer under
@@ -29,7 +31,7 @@ export const USING_QUANTITY_PAGE = '/using-ppps/quantity'
 
 // Only using PPPs has pages of its own. The other activities ask nothing
 // more, so without it it's on to check answers.
-const pageAfterBusinessContact = ({ businessActivities = [] }) =>
+const pageAfterBusinessActivities = ({ businessActivities = [] }) =>
   businessActivities.includes(USING) ? WHO_APPLIES_PAGE : CHECK_ANSWERS_PAGE
 
 // professionalSectors holds the chosen sector values, or just the Other text.
@@ -109,8 +111,8 @@ function pageAfterStoring(formSession) {
 }
 
 export const JOURNEY = {
-  '/business-activities': {
-    sessionKey: 'businessActivities',
+  '/business-contact': {
+    sessionKey: 'primaryContact',
     next: () => '/business-name'
   },
   '/business-name': {
@@ -119,11 +121,11 @@ export const JOURNEY = {
   },
   [ADDRESS_SEARCH_PAGE]: {
     sessionKey: 'address',
-    next: () => '/business-contact'
+    next: () => '/business-activities'
   },
-  '/business-contact': {
-    sessionKey: 'primaryContact',
-    next: pageAfterBusinessContact
+  '/business-activities': {
+    sessionKey: 'businessActivities',
+    next: pageAfterBusinessActivities
   },
   // A `usingPPPs` page keeps its answer under formSession.usingPPPs rather
   // than at the top level.

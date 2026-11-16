@@ -107,7 +107,7 @@ describe('#businessAddressManualController', () => {
       [address],
       [{ ...address, addressLine2: '' }],
       [{ ...address, addressPostcode: 'yo17hh', addressRegion: 'wales' }]
-    ])('Should redirect to business contact page for %o', async (payload) => {
+    ])('Should redirect to business activities page for %o', async (payload) => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url,
@@ -115,7 +115,7 @@ describe('#businessAddressManualController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/business-contact')
+      expect(headers.location).toBe('/business-activities')
     })
 
     test('Should return to check answers in change mode', async () => {

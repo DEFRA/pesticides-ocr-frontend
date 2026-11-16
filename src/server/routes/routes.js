@@ -4,6 +4,8 @@ import { feedback } from './feedback/index.js'
 import { dashboard } from './dashboard/index.js'
 import { search } from './search/index.js'
 import { serviceMetrics } from './service-metrics/index.js'
+import { start } from './qualifying-questions/start/index.js'
+import { update } from './qualifying-questions/update/index.js'
 import { businessActivities } from './qualifying-questions/business-activities/index.js'
 import { businessName } from './qualifying-questions/business-name/index.js'
 import { businessAddress } from './qualifying-questions/business-address/index.js'
@@ -35,6 +37,8 @@ export const routes = [
   dashboard,
   search,
   serviceMetrics,
+  start,
+  update,
   businessActivities,
   businessName,
   businessAddress,

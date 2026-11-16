@@ -7,3 +7,7 @@ export const OWN_STORAGE_ADDRESS_SEARCH_KEY = 'ownStorageAddressSearch'
 
 // The key in `formSession` that holds the using PPPs answers.
 export const USING_PPPS_KEY = 'usingPPPs'
+
+// The /start choice: register for the first time or update a registration. It
+// isn't an answer for the backend, so it's kept out of `formSession`.
+export const REGISTRATION_CHOICE_KEY = 'registrationChoice'

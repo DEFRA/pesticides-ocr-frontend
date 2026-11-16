@@ -16,21 +16,6 @@
       {{ govukSummaryList({
         rows: [
           {
-            key: { text: "Business PPP activities" },
-            value: { html: appAnswerList({ values: answers.businessActivities }) },
-            actions: { items: [{ href: "/business-activities?change=true", text: "Change", visuallyHiddenText: "business PPP activities" }] }
-          } if answers.businessActivities,
-          {
-            key: { text: "Business name" },
-            value: { html: appAnswerList({ values: answers.businessName }) },
-            actions: { items: [{ href: "/business-name?change=true", text: "Change", visuallyHiddenText: "business name" }] }
-          } if answers.businessName,
-          {
-            key: { text: "Main address" },
-            value: { html: appAnswerList({ values: answers.address }) },
-            actions: { items: [{ href: "/business-address?change=true", text: "Change", visuallyHiddenText: "main address" }] }
-          } if answers.address,
-          {
             key: { text: "Name" },
             value: { html: appAnswerList({ values: answers.contactName }) },
             actions: { items: [{ href: "/business-contact?change=true", text: "Change", visuallyHiddenText: "name" }] }
@@ -49,7 +34,22 @@
             key: { text: "Telephone" },
             value: { html: appAnswerList({ values: answers.contactTelephone }) },
             actions: { items: [{ href: "/business-contact?change=true", text: "Change", visuallyHiddenText: "telephone" }] }
-          } if answers.contactTelephone
+          } if answers.contactTelephone,
+          {
+            key: { text: "Business name" },
+            value: { html: appAnswerList({ values: answers.businessName }) },
+            actions: { items: [{ href: "/business-name?change=true", text: "Change", visuallyHiddenText: "business name" }] }
+          } if answers.businessName,
+          {
+            key: { text: "Main address" },
+            value: { html: appAnswerList({ values: answers.address }) },
+            actions: { items: [{ href: "/business-address?change=true", text: "Change", visuallyHiddenText: "main address" }] }
+          } if answers.address,
+          {
+            key: { text: "Business PPP activities" },
+            value: { html: appAnswerList({ values: answers.businessActivities }) },
+            actions: { items: [{ href: "/business-activities?change=true", text: "Change", visuallyHiddenText: "business PPP activities" }] }
+          } if answers.businessActivities
         ]
       }) }}
 
