@@ -1,4 +1,5 @@
 import { toOperatorView } from './registration-mapper.js'
+import { SELLING, USING } from '#/server/routes/qualifying-questions/business-activities/items.js'
 
 // A representative stored registration, as the backend's /search returns it.
 // Dates arrive as ISO strings over the wire rather than as Date objects.
@@ -6,7 +7,7 @@ const storedDoc = {
   reference: 'PPP-A1B-2C3',
   submittedAt: '2026-03-11T09:30:00.000Z',
   businessName: 'Pesticides Ltd',
-  businessActivities: ['manufacture', 'market'],
+  businessActivities: ['using', 'selling'],
   address: {
     addressLine1: 'Highfield Farm',
     addressLine2: '',
@@ -19,8 +20,7 @@ const storedDoc = {
     contactTelephone: '01234 567890',
     contactEmail: 'john.smith@pesticides.co.uk'
   },
-  addressActivities: ['use', 'store'],
-  quantity: { quantityType: 'amount', quantity: 80000 }
+  usingPPPs: { quantity: '60-149' }
 }
 
 describe('toOperatorView', () => {
@@ -28,27 +28,19 @@ describe('toOperatorView', () => {
     expect(toOperatorView(storedDoc)).toEqual({
       reference: 'PPP-A1B-2C3',
       businessName: 'Pesticides Ltd',
-      activities: [
-        'Manufacture, process or import',
-        'Place on the market or distribute'
-      ],
-      mainCustomer: 'N/A',
+      activities: ['Using PPPs as part of your work', 'Selling PPPs'],
       address: {
         line1: 'Highfield Farm',
         town: 'Farmtown',
         postcode: 'PH1 1FT',
-        country: ''
+        region: ''
       },
       contact: {
         name: 'John Smith',
         email: 'john.smith@pesticides.co.uk',
         telephone: '01234 567890'
       },
-      addressActivities: [
-        'Use plant protection products (PPPs) or adjuvants',
-        'Store plant protection products (PPPs) or adjuvants'
-      ],
-      quantity: '80,000 litres or kilograms',
+      quantity: '60 to 149 litres or kilograms',
       registeredDate: '2026-03-11',
       status: 'Registered'
     })
@@ -63,102 +55,56 @@ describe('toOperatorView', () => {
     expect(operator.registeredDate).toBe('2026-03-11')
   })
 
-  test('formats an area quantity as hectares', () => {
-    const operator = toOperatorView({
-      ...storedDoc,
-      quantity: { quantityType: 'area', quantity: 1500 }
-    })
-
-    expect(operator.quantity).toBe('1,500 hectares')
-  })
-
-  // The seed data (and anything else written straight to the database) stores
-  // the quantity as the string the form submitted.
-  test('formats a quantity stored as a numeric string', () => {
-    const operator = toOperatorView({
-      ...storedDoc,
-      quantity: { quantityType: 'amount', quantity: '80000' }
-    })
-
-    expect(operator.quantity).toBe('80,000 litres or kilograms')
-  })
-
   test.each([
-    ['an empty string', ''],
-    ['whitespace', '   '],
-    ['a non-numeric string', 'lots'],
-    ['a hex string', '0x10'],
-    ['an exponent string', '1e3'],
-    ['NaN', Number.NaN],
-    ['Infinity', Infinity],
-    ['null', null]
-  ])('leaves the quantity empty for %s', (_description, value) => {
-    const operator = toOperatorView({
-      ...storedDoc,
-      quantity: { quantityType: 'amount', quantity: value }
-    })
+    ['1-29', '1 to 29 litres or kilograms'],
+    ['30-59', '30 to 59 litres or kilograms'],
+    ['60-149', '60 to 149 litres or kilograms'],
+    ['150-399', '150 to 399 litres or kilograms'],
+    ['400-plus', '400 and over litres or kilograms']
+  ])('shows the quantity band %s as its label with the unit', (band, quantity) => {
+    expect(toOperatorView({ ...storedDoc, usingPPPs: { quantity: band } }).quantity).toBe(quantity)
+  })
 
-    expect(operator.quantity).toBe('')
+  test('falls back to the raw value for an unknown quantity band', () => {
+    expect(toOperatorView({ ...storedDoc, usingPPPs: { quantity: '1000-plus' } }).quantity).toBe(
+      '1000-plus'
+    )
+  })
+
+  test('leaves the quantity empty when no quantity band is stored', () => {
+    expect(toOperatorView({ ...storedDoc, usingPPPs: {} }).quantity).toBe('')
   })
 
   test('uses the journey label for every business activity', () => {
     const operator = toOperatorView({
       ...storedDoc,
-      businessActivities: ['use-professional', 'seller-amateur']
+      businessActivities: [USING, SELLING]
     })
 
     expect(operator.activities).toEqual([
-      'Use professional PPPs as part of work',
-      'Sell amateur PPPs'
+      'Using PPPs as part of your work',
+      'Selling PPPs'
     ])
   })
 
-  test.each([
-    ['professional', 'Professional user'],
-    ['amateur', 'Amateur user'],
-    ['both', 'Both professional and amateur users']
-  ])('labels a stored mainCustomer of %s', (code, label) => {
-    expect(toOperatorView({ ...storedDoc, mainCustomer: code }).mainCustomer).toBe(
-      label
-    )
-  })
-
-  test.each([
-    ['missing', undefined],
-    ['empty', '']
-  ])('shows N/A when mainCustomer is %s', (_description, value) => {
-    expect(
-      toOperatorView({ ...storedDoc, mainCustomer: value }).mainCustomer
-    ).toBe('N/A')
-  })
-
-  test('falls back to the raw value for an unknown mainCustomer', () => {
-    expect(
-      toOperatorView({ ...storedDoc, mainCustomer: 'wholesale' }).mainCustomer
-    ).toBe('wholesale')
-  })
-
-  test('prefers a stored status/country when present', () => {
+  test('prefers a stored status/region when present, shown as its label', () => {
     const operator = toOperatorView({
       ...storedDoc,
       status: 'Suspended',
-      address: { ...storedDoc.address, addressCountry: 'England' }
+      address: { ...storedDoc.address, addressRegion: 'england' }
     })
 
     expect(operator.status).toBe('Suspended')
-    expect(operator.address.country).toBe('England')
+    expect(operator.address.region).toBe('England')
   })
 
   test('falls back to the raw slug for an unknown activity code', () => {
     const operator = toOperatorView({
       ...storedDoc,
-      businessActivities: ['manufacture', 'some-new-code']
+      businessActivities: ['selling', 'some-new-code']
     })
 
-    expect(operator.activities).toEqual([
-      'Manufacture, process or import',
-      'some-new-code'
-    ])
+    expect(operator.activities).toEqual(['Selling PPPs', 'some-new-code'])
   })
 
   test('tolerates a sparse document without throwing', () => {
@@ -167,14 +113,13 @@ describe('toOperatorView', () => {
     expect(operator.reference).toBe('PPP-ZZZ-999')
     expect(operator.businessName).toBe('')
     expect(operator.activities).toEqual([])
-    expect(operator.addressActivities).toEqual([])
     expect(operator.quantity).toBe('')
     expect(operator.registeredDate).toBe('')
     expect(operator.address).toEqual({
       line1: '',
       town: '',
       postcode: '',
-      country: ''
+      region: ''
     })
     expect(operator.contact).toEqual({ name: '', email: '', telephone: '' })
     expect(operator.status).toBe('Registered')
@@ -196,6 +141,7 @@ describe('toOperatorView', () => {
         addressLine2: 'Unit 2',
         addressCounty: 'Surrey'
       },
+      mainCustomer: 'both',
       professionalSectors: ['forestry'],
       memberSchemes: ['Red Tractor'],
       additionalAddresses: [{ address: {}, contact: {}, activity: ['use'] }]
@@ -203,6 +149,7 @@ describe('toOperatorView', () => {
 
     expect(operator.address).not.toHaveProperty('line2')
     expect(operator.address).not.toHaveProperty('county')
+    expect(operator).not.toHaveProperty('mainCustomer')
     expect(operator).not.toHaveProperty('professionalSectors')
     expect(operator).not.toHaveProperty('memberSchemes')
     expect(operator).not.toHaveProperty('additionalAddresses')

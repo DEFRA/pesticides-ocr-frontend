@@ -9,7 +9,7 @@ import { getNextPage } from '#/server/common/helpers/journey.js'
 
 export const get = {
   handler(request, h) {
-    const formSession = request.yar.get('formSession') ?? {}
+    const formSession = getSession(request, 'formSession')
     request.yar.set('formSession', formSession)
 
     // Record the journey start once per session (consent-free, EQ-472) — this is
@@ -21,7 +21,7 @@ export const get = {
     })
 
     return h.view('qualifying-questions/business-activities/index', {
-      selected: [formSession.businessActivities ?? []].flat(),
+      values: { businessActivities: formSession['businessActivities'] },
       analyticsEvent: started ? analyticsEvents.journeyStart : undefined
     })
   }
