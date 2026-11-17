@@ -2,7 +2,9 @@ import Joi from 'joi'
 import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 import { STORES_NOTHING, storingItems, storingValues } from './items.js'
 
-const selectStoring = 'Select where PPPs are stored, or that you do not store them'
+const selectStoring = 'Select where the products are stored'
+const notStoringWithOthers =
+  'Select where the products are stored, or select ‘We do not store PPPs’'
 
 // "We do not store PPPs" is exclusive. JavaScript unticks the others, but
 // without it they can still be posted together.
@@ -31,7 +33,7 @@ export const validate = {
     .messages({
       'any.required': selectStoring,
       'any.only': selectStoring,
-      'any.invalid': selectStoring,
+      'any.invalid': notStoringWithOthers,
       'array.base': selectStoring,
       'array.min': selectStoring,
       'array.unique': selectStoring,

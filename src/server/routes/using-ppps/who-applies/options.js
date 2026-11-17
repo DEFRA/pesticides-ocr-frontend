@@ -5,7 +5,7 @@ import { whoAppliesItems, whoAppliesValues } from './items.js'
 const selectWhoApplies = 'Select who applies PPPs for your organisation'
 
 export const app = {
-  pageTitle: 'Who applies PPPs for your organisation?',
+  pageTitle: 'Who mainly applies PPPs for your organisation?',
   items: whoAppliesItems
 }
 

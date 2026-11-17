@@ -3,7 +3,7 @@ import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 import { contactFields } from '#/server/common/helpers/contact-fields.js'
 import { requiredText } from '#/server/common/helpers/address-fields.js'
 
-const ENTER_BUSINESS_NAME_MESSAGE = 'Enter a business name'
+const ENTER_BUSINESS_NAME_MESSAGE = 'Enter the business name'
 const NAME_MAX_LENGTH = 100
 
 export const app = {

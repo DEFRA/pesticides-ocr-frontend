@@ -6,7 +6,7 @@ import { agriSubsectorsItems } from '#/server/routes/using-ppps/agri-subsectors/
 import { amenitySubsectorsItems } from '#/server/routes/using-ppps/amenity-subsectors/items.js'
 import { hortiSubsectorsItems } from '#/server/routes/using-ppps/horti-subsectors/items.js'
 import { storingItems } from '#/server/routes/using-ppps/storing/items.js'
-import { storageLocationItemsFor } from '#/server/routes/using-ppps/storage-location/items.js'
+import { MAIN_ADDRESS } from '#/server/routes/using-ppps/storage-location/items.js'
 import { usingQuantityText } from '#/server/routes/using-ppps/quantity/items.js'
 import { getUsingPPPsAnswers } from '#/server/common/helpers/using-ppps-answers.js'
 import { addressLines, labelsFor, toLines } from '#/server/common/helpers/answer-lines.js'
@@ -31,6 +31,35 @@ function memberSchemeLines(memberSchemes) {
   return labels.length > 0 ? labels : ['None']
 }
 
+// Each place PPPs are stored, in the order the pages ask about them: the main
+// business address, each other address, then the third party storing them.
+function storeLocations(usingPPPs) {
+  const contact = usingPPPs.storageContact
+  const mainAddress = [usingPPPs['storageLocation'] ?? []].flat().includes(MAIN_ADDRESS)
+    ? [{ lines: ['At the main business address'], href: '/using-ppps/storage-location?change=true' }]
+    : []
+  const otherAddresses = (usingPPPs['ownStorageAddresses'] ?? []).map((address) => ({
+    lines: addressLines(address),
+    href: '/using-ppps/storage-addresses?change=true'
+  }))
+  const thirdParty = contact
+    ? [
+        {
+          lines: toLines(
+            contact['contactName'],
+            contact['contactJobTitle'],
+            contact['businessName'],
+            contact['contactTelephone'],
+            contact['contactEmail']
+          ),
+          href: '/using-ppps/third-party-storage-contact?change=true'
+        }
+      ]
+    : []
+
+  return [...mainAddress, ...otherAddresses, ...thirdParty]
+}
+
 export function buildAnswers(formData = {}) {
   const contact = formData['primaryContact'] ?? {}
   const usingPPPs = getUsingPPPsAnswers(formData)
@@ -52,13 +81,7 @@ export function buildAnswers(formData = {}) {
     hortiSubsectors: labelsFor(hortiSubsectorsItems, usingPPPs['hortiSubsectors']),
     memberSchemes: memberSchemeLines(usingPPPs['memberSchemes']),
     storing: labelsFor(storingItems, usingPPPs['storing']),
-    storageLocation: labelsFor(storageLocationItemsFor(formData), usingPPPs['storageLocation']),
-    ownStorageAddresses: (usingPPPs['ownStorageAddresses'] ?? []).map((address) => addressLines(address)),
-    storageContactName: toLines(usingPPPs.storageContact?.['contactName']),
-    storageBusinessName: toLines(usingPPPs.storageContact?.['businessName']),
-    storageContactJobTitle: toLines(usingPPPs.storageContact?.['contactJobTitle']),
-    storageContactTelephone: toLines(usingPPPs.storageContact?.['contactTelephone']),
-    storageContactEmail: toLines(usingPPPs.storageContact?.['contactEmail']),
+    storeLocations: storeLocations(usingPPPs),
     usingQuantity: toLines(usingQuantityText(usingPPPs['quantity']))
   })
 }

@@ -43,6 +43,11 @@
 
       <h1 class="govuk-heading-l">{{ heading }}</h1>
 
+      <p class="govuk-body" id="address-search-summary">
+        {{ addressCount }} addresses found for <strong>{{ postcode }}</strong>{% if building %} and <strong>{{ building }}</strong>{% endif %}.
+        <a class="govuk-link" href="{{ searchPage }}">Search again</a>
+      </p>
+
       <form method="post" action="{{ formAction }}" novalidate>
 
         {{ govukSelect({
@@ -55,10 +60,13 @@
           items: addressItems
         }) }}
 
-        {{ govukButton({
-          text: "Continue",
-          type: "submit"
-        }) }}
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Continue",
+            type: "submit"
+          }) }}
+          <p class="govuk-body">or <a class="govuk-link" href="{{ manualAddressPage }}">enter an address manually</a></p>
+        </div>
 
       </form>
 

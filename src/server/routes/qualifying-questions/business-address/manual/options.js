@@ -7,7 +7,7 @@ import { manualPageContext } from './controller.js'
 const ENTER_ADDRESS_LINE_1_MESSAGE = "Enter the first line of your business' address"
 
 export const app = {
-  pageTitle: 'Main Site Address',
+  pageTitle: 'Main Business Address',
   items: regionItems
 }
 

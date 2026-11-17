@@ -15,6 +15,7 @@ const businessAddressLookup = {
   manualPage: ADDRESS_MANUAL_PAGE,
   searchKey: ADDRESS_SEARCH_KEY,
   heading: 'What is the main address for your business or organisation?',
+  intro: 'This is the address most relevant to the PPP activities you are responsible for.',
   titles: {
     search: 'Business Address',
     select: 'Select Address',

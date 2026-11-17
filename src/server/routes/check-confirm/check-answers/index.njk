@@ -54,13 +54,14 @@
       }) }}
 
       <h2 class="govuk-heading-m">PPP activity details</h2>
-      {# One row per own storage address, so they're added to the rows in a loop. #}
-      {% set storageAddressRows = [] %}
-      {% for lines in answers.ownStorageAddresses %}
-        {% set _ = storageAddressRows.push({
-          key: { text: "Storage address " + loop.index },
-          value: { html: appAnswerList({ values: lines }) },
-          actions: { items: [{ href: "/using-ppps/storage-addresses?change=true", text: "Change", visuallyHiddenText: "storage address " + loop.index }] }
+      {# One row per place PPPs are stored, so they're added to the rows in a loop. #}
+      {% set storeLocationRows = [] %}
+      {% for location in answers.storeLocations %}
+        {% set key = "PPP store location" + ("" if loop.first else " " + loop.index) %}
+        {% set _ = storeLocationRows.push({
+          key: { text: key },
+          value: { html: appAnswerList({ values: location.lines }) },
+          actions: { items: [{ href: location.href, text: "Change", visuallyHiddenText: key }] }
         }) %}
       {% endfor %}
       {{ govukSummaryList({
@@ -81,9 +82,9 @@
             actions: { items: [{ href: "/using-ppps/contractor-address?change=true", text: "Change", visuallyHiddenText: "contractor address" }] }
           } if answers.contractorAddress,
           {
-            key: { text: "Sectors" },
+            key: { text: "Main sectors of work" },
             value: { html: appAnswerList({ values: answers.professionalSectors }) },
-            actions: { items: [{ href: "/using-ppps/ppp-sectors?change=true", text: "Change", visuallyHiddenText: "sectors" }] }
+            actions: { items: [{ href: "/using-ppps/ppp-sectors?change=true", text: "Change", visuallyHiddenText: "main sectors of work" }] }
           } if answers.professionalSectors,
           {
             key: { text: "Agricultural sectors" },
@@ -109,42 +110,12 @@
             key: { text: "Storing products" },
             value: { html: appAnswerList({ values: answers.storing }) },
             actions: { items: [{ href: "/using-ppps/storing?change=true", text: "Change", visuallyHiddenText: "storing products" }] }
-          } if answers.storing,
+          } if answers.storing
+        ].concat(storeLocationRows, [
           {
-            key: { text: "Where products are stored" },
-            value: { html: appAnswerList({ values: answers.storageLocation }) },
-            actions: { items: [{ href: "/using-ppps/storage-location?change=true", text: "Change", visuallyHiddenText: "where products are stored" }] }
-          } if answers.storageLocation
-        ].concat(storageAddressRows, [
-          {
-            key: { text: "Storage contact name" },
-            value: { html: appAnswerList({ values: answers.storageContactName }) },
-            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact name" }] }
-          } if answers.storageContactName,
-          {
-            key: { text: "Storage business name" },
-            value: { html: appAnswerList({ values: answers.storageBusinessName }) },
-            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage business name" }] }
-          } if answers.storageBusinessName,
-          {
-            key: { text: "Storage contact job title" },
-            value: { html: appAnswerList({ values: answers.storageContactJobTitle }) },
-            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact job title" }] }
-          } if answers.storageContactJobTitle,
-          {
-            key: { text: "Storage contact telephone" },
-            value: { html: appAnswerList({ values: answers.storageContactTelephone }) },
-            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact telephone" }] }
-          } if answers.storageContactTelephone,
-          {
-            key: { text: "Storage contact email" },
-            value: { html: appAnswerList({ values: answers.storageContactEmail }) },
-            actions: { items: [{ href: "/using-ppps/third-party-storage-contact?change=true", text: "Change", visuallyHiddenText: "storage contact email" }] }
-          } if answers.storageContactEmail,
-          {
-            key: { text: "Quantity used in a typical year" },
+            key: { text: "Quantity of PPPs or adjuvants used in the last year" },
             value: { html: appAnswerList({ values: answers.usingQuantity }) },
-            actions: { items: [{ href: "/using-ppps/quantity?change=true", text: "Change", visuallyHiddenText: "quantity used in a typical year" }] }
+            actions: { items: [{ href: "/using-ppps/quantity?change=true", text: "Change", visuallyHiddenText: "quantity of PPPs or adjuvants used in the last year" }] }
           } if answers.usingQuantity
         ])
       }) }}

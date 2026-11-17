@@ -2,7 +2,7 @@ import Joi from 'joi'
 import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
 import { usingQuantityItems, usingQuantityValues } from './items.js'
 
-const selectUsingQuantity = 'Select how much you use in a typical year'
+const selectUsingQuantity = 'Select the quantity of PPPs or adjuvants you use in a typical year'
 
 export const app = {
   pageTitle: 'What quantity of PPPs or adjuvants do you use in a typical year?',
