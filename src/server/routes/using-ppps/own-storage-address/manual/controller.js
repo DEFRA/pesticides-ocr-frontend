@@ -58,11 +58,16 @@ export const get = {
 export const post = {
   handler(request, h) {
     const formSession = getSession(request, 'formSession')
-    const { adding, index } = editing(request, formSession)
+    const { adding, missing, index } = editing(request, formSession)
+
+    // An address that's no longer on the list (say, removed in another tab).
+    if (missing) {
+      return h.redirect(storageAddressesPage(request))
+    }
 
     if (adding) {
       addOwnStorageAddress(formSession, request.payload)
-    } else if (index !== undefined) {
+    } else {
       saveOwnStorageAddresses(
         formSession,
         readOwnStorageAddresses(formSession).with(index, request.payload)
