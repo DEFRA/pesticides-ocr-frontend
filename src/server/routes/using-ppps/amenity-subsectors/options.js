@@ -18,12 +18,11 @@ export const validate = {
       .min(1)
       .when('amenitySubsectorsOther', {
         is: Joi.exist(),
-        then: Joi.forbidden(),
+        then: Joi.optional(),
         otherwise: Joi.required()
       })
       .messages({
         'any.required': selectSubsectorOrOther,
-        'any.unknown': selectSubsectorOrOther,
         'any.only': selectSubsectorOrOther,
         'array.min': selectSubsectorOrOther,
         'array.base': selectSubsectorOrOther

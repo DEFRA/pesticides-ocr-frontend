@@ -1,9 +1,8 @@
 export const amenitySubsectorsItems = [
-  { value: 'parks', text: 'Parks' },
-  { value: 'sports-grounds', text: 'Sports grounds, including golf courses' },
-  { value: 'property', text: 'Public or private property' },
-  { value: 'infrastructure', text: 'Infrastructure, such as roads, railways and waterways' },
-  { value: 'utilities', text: 'Utilities, such as transport and water companies' }
+  { value: 'gardens-lawncare', text: 'Gardens and Lawncare' },
+  { value: 'infrastructure-transport', text: 'Infrastructure and Transport' },
+  { value: 'site-property-maintenance', text: 'Site and Property Maintenance' },
+  { value: 'sports-public-amenity', text: 'Sports and Public Amenity land' }
 ]
 
 export const amenitySubsectorsValues = amenitySubsectorsItems.map((item) => item.value)

@@ -8,8 +8,8 @@ import {
 } from '#/server/common/helpers/using-ppps-answers.js'
 import { amenitySubsectorsValues } from './items.js'
 
-// The answer is either the chosen amenity sector values or, when only
-// Other is given, a single-item list holding the Other text.
+// The answer is the chosen amenity sector values, followed by the Other text when
+// it's given. Either or both can be given.
 export const get = {
   handler(request, h) {
     request.yar.set('formSession', getSession(request, 'formSession'))
@@ -31,7 +31,7 @@ export const post = {
     const other = request.payload['amenitySubsectorsOther']
     const formSession = getSession(request, 'formSession')
 
-    setUsingPPPsAnswer(formSession, 'amenitySubsectors', sectors ?? [other])
+    setUsingPPPsAnswer(formSession, 'amenitySubsectors', [...(sectors ?? []), ...(other ? [other] : [])])
     request.yar.set('formSession', formSession)
 
     return redirectToNextPage(request, h, getNextPage(AMENITY_SUBSECTORS_PAGE, formSession))

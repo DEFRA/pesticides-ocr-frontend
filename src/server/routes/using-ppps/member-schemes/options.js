@@ -16,12 +16,7 @@ export const validate = {
       .items(Joi.string().valid(...memberSchemesValues))
       .single()
       .unique()
-      .when('memberSchemesOther', {
-        is: Joi.exist(),
-        then: Joi.forbidden()
-      })
       .messages({
-        'any.unknown': selectSchemeOrOther,
         'any.only': selectSchemeOrOther,
         'array.base': selectSchemeOrOther,
         'array.unique': selectSchemeOrOther

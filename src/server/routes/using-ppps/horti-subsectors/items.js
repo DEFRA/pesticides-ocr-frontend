@@ -1,7 +1,9 @@
 export const hortiSubsectorsItems = [
   { value: 'edible-protected', text: 'Edible protected crops' },
-  { value: 'orchards-soft-fruit', text: 'Orchards and soft fruit' },
-  { value: 'ornamentals', text: 'Ornamentals' }
+  { value: 'orchards', text: 'Orchards' },
+  { value: 'ornamentals', text: 'Ornamental Plants' },
+  { value: 'soft-fruits', text: 'Soft Fruits – Outdoor and Protected' },
+  { value: 'viticulture', text: 'Viticulture' }
 ]
 
 export const hortiSubsectorsValues = hortiSubsectorsItems.map((item) => item.value)
