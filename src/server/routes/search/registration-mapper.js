@@ -10,6 +10,10 @@
 import { businessActivityItems } from '#/server/routes/qualifying-questions/business-activities/items.js'
 import { usingQuantityText } from '#/server/routes/using-ppps/quantity/items.js'
 import { regionItems } from '#/server/common/constants/regions.js'
+import {
+  internationalAddressLines,
+  isInternationalAddress
+} from '#/server/common/helpers/answer-lines.js'
 
 // --- POC mapping defaults --------------------------------------------------
 // Fields the Operator contract needs but the register journey does not (yet)
@@ -56,7 +60,17 @@ function toIsoDate(value) {
 
 // The Operator contract carries only line1/town/postcode/region; the stored
 // address.line2/county are intentionally dropped (not shown in the results).
+// An address outside Great Britain is free text, so it all goes in line1.
 function mapAddress(address = {}) {
+  if (isInternationalAddress(address)) {
+    return {
+      line1: internationalAddressLines(address.internationalAddress).join(', '),
+      town: '',
+      postcode: '',
+      region: DEFAULT_REGION
+    }
+  }
+
   return {
     line1: address.addressLine1 ?? '',
     town: address.addressTown ?? '',

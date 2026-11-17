@@ -9,7 +9,14 @@ import { storingItems } from '#/server/routes/using-ppps/storing/items.js'
 import { MAIN_ADDRESS } from '#/server/routes/using-ppps/storage-location/items.js'
 import { usingQuantityText } from '#/server/routes/using-ppps/quantity/items.js'
 import { getUsingPPPsAnswers } from '#/server/common/helpers/using-ppps-answers.js'
-import { addressLines, labelsFor, toLines } from '#/server/common/helpers/answer-lines.js'
+import {
+  addressLines,
+  businessAddressLines,
+  isInternationalAddress,
+  labelsFor,
+  toLines
+} from '#/server/common/helpers/answer-lines.js'
+import { INTERNATIONAL_ADDRESS_PAGE } from '#/server/common/constants/address-pages.js'
 
 function hasValue(value) {
   return Array.isArray(value) ? value.length > 0 : value !== undefined
@@ -67,7 +74,9 @@ export function buildAnswers(formData = {}) {
   return withValues({
     businessActivities: labelsFor(businessActivityItems, formData['businessActivities']),
     businessName: toLines(formData['businessName']),
-    address: addressLines(formData.address),
+    address: businessAddressLines(formData.address),
+    // Change goes back to the page the address was given on.
+    addressChangePage: isInternationalAddress(formData.address) ? INTERNATIONAL_ADDRESS_PAGE : undefined,
     contactName: toLines(contact['contactName']),
     contactJobTitle: toLines(contact['contactJobTitle']),
     contactTelephone: toLines(contact['contactTelephone']),

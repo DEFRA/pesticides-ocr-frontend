@@ -11,6 +11,7 @@ import { businessName } from './qualifying-questions/business-name/index.js'
 import { businessAddress } from './qualifying-questions/business-address/index.js'
 import { businessAddressSelect } from './qualifying-questions/business-address/select/index.js'
 import { businessAddressManual } from './qualifying-questions/business-address/manual/index.js'
+import { businessAddressInternational } from './qualifying-questions/business-address/international/index.js'
 import { businessContact } from './qualifying-questions/business-contact/index.js'
 import { verifyEmail } from './qualifying-questions/verify-email/index.js'
 import { whoApplies } from './using-ppps/who-applies/index.js'
@@ -46,6 +47,7 @@ export const routes = [
   businessAddress,
   businessAddressSelect,
   businessAddressManual,
+  businessAddressInternational,
   businessContact,
   verifyEmail,
   whoApplies,

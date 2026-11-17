@@ -43,7 +43,7 @@
           {
             key: { text: "Main address" },
             value: { html: appAnswerList({ values: answers.address }) },
-            actions: { items: [{ href: "/business-address?change=true", text: "Change", visuallyHiddenText: "main address" }] }
+            actions: { items: [{ href: (answers.addressChangePage or "/business-address") + "?change=true", text: "Change", visuallyHiddenText: "main address" }] }
           } if answers.address,
           {
             key: { text: "Business PPP activities" },
