@@ -20,7 +20,7 @@ const USING_PPPS_ANSWERS = new Set([
   'memberSchemes',
   'storing',
   'storageLocation',
-  'ownStorageAddress',
+  'ownStorageAddresses',
   'storageContact',
   'quantity'
 ])
@@ -133,8 +133,24 @@ describe('#journey', () => {
       ['/using-ppps/horti-subsectors', { professionalSectors: ['horticulture'] }, '/using-ppps/member-schemes'],
       ['/using-ppps/storing', { storing: 'own' }, '/using-ppps/storage-location'],
       ['/using-ppps/storage-location', { storageLocation: 'main-address' }, '/using-ppps/quantity'],
-      ['/using-ppps/storage-location', { storageLocation: 'main-and-other' }, '/using-ppps/own-storage-address'],
-      ['/using-ppps/own-storage-address', {}, '/using-ppps/quantity'],
+      ['/using-ppps/storage-location', { storageLocation: ['another-address'] }, '/using-ppps/storage-addresses'],
+      [
+        '/using-ppps/storage-location',
+        { storageLocation: ['main-address', 'another-address'] },
+        '/using-ppps/storage-addresses'
+      ],
+      [
+        '/using-ppps/storage-location',
+        { storing: ['own', 'third-party'], storageLocation: ['main-address'] },
+        '/using-ppps/third-party-storage-contact'
+      ],
+      ['/using-ppps/storage-addresses', {}, '/using-ppps/quantity'],
+      [
+        '/using-ppps/storage-addresses',
+        { storing: ['own', 'third-party'] },
+        '/using-ppps/third-party-storage-contact'
+      ],
+      ['/using-ppps/storing', { storing: ['own', 'third-party'] }, '/using-ppps/storage-location'],
       ['/using-ppps/third-party-storage-contact', {}, '/using-ppps/quantity'],
       ['/using-ppps/storing', { storing: 'third-party' }, '/using-ppps/third-party-storage-contact'],
       ['/using-ppps/storing', { storing: 'no' }, '/using-ppps/quantity'],
@@ -254,19 +270,38 @@ describe('#journey', () => {
       ).toBe('/check-answers')
     })
 
-    test('Should ask for the own storage address when stored at other locations too', () => {
-      const otherLocations = { ...usesPpps, storing: 'own', storageLocation: 'main-and-other' }
+    test('Should ask for the storage addresses when stored at another address', () => {
+      const otherLocations = { ...usesPpps, storing: ['own'], storageLocation: ['another-address'] }
       const { quantity, ...beforeQuantity } = otherLocations
-      const ownStorageAddress = { addressLine1: '1 Barn Lane', addressPostcode: 'YO1 7HH' }
+      const ownStorageAddresses = [{ addressLine1: '1 Barn Lane', addressPostcode: 'YO1 7HH' }]
 
-      expect(findFirstMissingPage(beforeQuantity)).toBe('/using-ppps/own-storage-address')
-      expect(findFirstMissingPage({ ...beforeQuantity, ownStorageAddress })).toBe(
+      expect(findFirstMissingPage(beforeQuantity)).toBe('/using-ppps/storage-addresses')
+      expect(findFirstMissingPage({ ...beforeQuantity, ownStorageAddresses })).toBe(
         '/using-ppps/quantity'
       )
-      expect(findFirstMissingPage({ ...otherLocations, ownStorageAddress })).toBe('/check-answers')
+      expect(findFirstMissingPage({ ...otherLocations, ownStorageAddresses })).toBe('/check-answers')
       expect(
-        getPreviousPage('/using-ppps/quantity', { ...otherLocations, ownStorageAddress })
-      ).toBe('/using-ppps/own-storage-address')
+        getPreviousPage('/using-ppps/quantity', { ...otherLocations, ownStorageAddresses })
+      ).toBe('/using-ppps/storage-addresses')
+    })
+
+    test('Should ask the own sites pages, then the storage contact, when both are ticked', () => {
+      const both = {
+        ...usesPpps,
+        storing: ['own', 'third-party'],
+        storageLocation: ['main-address', 'another-address'],
+        ownStorageAddresses: [{ addressLine1: '1 Barn Lane' }]
+      }
+      const storageContact = { contactName: 'Sam Store', businessName: 'Safe Storage Ltd' }
+
+      expect(findFirstMissingPage(both)).toBe('/using-ppps/third-party-storage-contact')
+      expect(getPreviousPage('/using-ppps/third-party-storage-contact', both)).toBe(
+        '/using-ppps/storage-addresses'
+      )
+      expect(findFirstMissingPage({ ...both, storageContact })).toBe('/check-answers')
+      expect(getPreviousPage('/using-ppps/quantity', { ...both, storageContact })).toBe(
+        '/using-ppps/third-party-storage-contact'
+      )
     })
 
     test('Should ask for the storage contact when a third party stores the products', () => {
@@ -288,7 +323,7 @@ describe('#journey', () => {
       ).toEqual(usesPpps)
     })
 
-    test('Should remove the own storage address once it is only stored at the main address', () => {
+    test('Should remove the storage addresses once it is only stored at the main address', () => {
       const formSession = {
         ...usesPpps,
         storing: 'own',
@@ -296,7 +331,7 @@ describe('#journey', () => {
       }
 
       expect(
-        removeSkippedAnswers({ ...formSession, ownStorageAddress: { addressLine1: '1 Barn Lane' } })
+        removeSkippedAnswers({ ...formSession, ownStorageAddresses: [{ addressLine1: '1 Barn Lane' }] })
       ).toEqual(formSession)
     })
 
@@ -331,7 +366,7 @@ describe('#journey', () => {
             whoApplies: 'self',
             professionalSectors,
             agriSubsectors: ['arable'],
-            amenitySubsectors: ['parks']
+            amenitySubsectors: ['gardens-lawncare']
           })
         ).toBe(nextPage)
       }
@@ -368,7 +403,7 @@ describe('#journey', () => {
           whoApplies: 'self',
           professionalSectors,
           agriSubsectors: ['arable'],
-          amenitySubsectors: ['parks']
+          amenitySubsectors: ['gardens-lawncare']
         })
       ).toBe(previous)
     })
@@ -696,7 +731,7 @@ describe('#journey', () => {
     })
 
     test('Should remove the amenity sectors once amenity is no longer ticked', () => {
-      const formSession = removeSkippedAnswers({ ...usesPpps, amenitySubsectors: ['parks'] })
+      const formSession = removeSkippedAnswers({ ...usesPpps, amenitySubsectors: ['gardens-lawncare'] })
 
       expect(formSession).toEqual(usesPpps)
     })

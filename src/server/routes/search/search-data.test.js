@@ -63,7 +63,7 @@ describe('searchRegister', () => {
     expect(result.pagination).toEqual(pagination)
     expect(operator.businessName).toBe('Live Co')
     // Coded slugs become display labels, and the nested stored names flatten.
-    expect(operator.activities).toEqual(['Selling PPPs'])
+    expect(operator.activities).toEqual(['Seller of amateur plant protection products'])
     expect(operator.contact.name).toBe('Jo')
     expect(operator.address.town).toBe('Town')
     expect(operator.registeredDate).toBe('2026-03-11')

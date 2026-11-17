@@ -55,11 +55,11 @@ describe('#agriSubsectorsController', () => {
         .map((_index, input) => page(`label[for="${page(input).attr('id')}"]`).text().trim())
         .get()
 
-      expect(labels).toEqual(['Arable', 'Outdoor vegetables', 'Grasslands and fodder crops'])
+      expect(labels).toEqual(['Arable', 'Outdoor vegetables', 'Grasslands and fodder crops', 'Potatoes'])
     })
 
-    test('Should offer Other after an "or" divider', () => {
-      expect(textOf('h4')).toBe('or')
+    test('Should offer Other after the checkboxes, with no "or" divider', () => {
+      expect(page('h4')).toHaveLength(0)
       expect(textOf('label[for="agriSubsectorsOther"]')).toBe('Other')
       expect(textOf('#agriSubsectorsOther-hint')).toBe(
         'Describe your main type of work in a few words'
@@ -132,6 +132,12 @@ describe('#agriSubsectorsController', () => {
       expect(headers.location).toBe(location)
     })
 
+    test('Should accept a sector and Other together', async () => {
+      const { statusCode } = await postAgriSubsectors({ agriSubsectors: ['arable'], agriSubsectorsOther: 'Hops' })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+    })
+
     test('Should accept Other on its own', async () => {
       const { statusCode, headers } = await afterSectors(['agriculture'], {
         agriSubsectorsOther: 'Hops'
@@ -144,7 +150,6 @@ describe('#agriSubsectorsController', () => {
     test.each([
       [{ agriSubsectorsOther: '' }],
       [{ agriSubsectorsOther: '   ' }],
-      [{ agriSubsectors: ['arable'], agriSubsectorsOther: 'Hops' }],
       [{ agriSubsectors: ['orchards'], agriSubsectorsOther: '' }]
     ])('Should show an error for %o', async (payload) => {
       const { result, statusCode } = await postAgriSubsectors(payload)
@@ -182,6 +187,18 @@ describe('#agriSubsectorsController', () => {
       const page = await revisitStep(server, { url, cookie })
 
       expect(checkedValues(page, 'agriSubsectors')).toEqual([])
+      expect(page('#agriSubsectorsOther').val().trim()).toBe('Hops')
+    })
+
+    test('Should keep a sector and the Other text held in the session together', async () => {
+      const cookie = await answerStep(server, {
+        url,
+        payload: { agriSubsectors: ['arable'], agriSubsectorsOther: 'Hops' }
+      })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(checkedValues(page, 'agriSubsectors')).toEqual(['arable'])
       expect(page('#agriSubsectorsOther').val().trim()).toBe('Hops')
     })
 

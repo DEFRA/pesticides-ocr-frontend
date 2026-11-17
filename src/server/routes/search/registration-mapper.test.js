@@ -28,7 +28,7 @@ describe('toOperatorView', () => {
     expect(toOperatorView(storedDoc)).toEqual({
       reference: 'PPP-A1B-2C3',
       businessName: 'Pesticides Ltd',
-      activities: ['Using PPPs as part of your work', 'Selling PPPs'],
+      activities: ['Using PPPs as part of your work', 'Seller of amateur plant protection products'],
       address: {
         line1: 'Highfield Farm',
         town: 'Farmtown',
@@ -83,7 +83,7 @@ describe('toOperatorView', () => {
 
     expect(operator.activities).toEqual([
       'Using PPPs as part of your work',
-      'Selling PPPs'
+      'Seller of amateur plant protection products'
     ])
   })
 
@@ -104,7 +104,7 @@ describe('toOperatorView', () => {
       businessActivities: ['selling', 'some-new-code']
     })
 
-    expect(operator.activities).toEqual(['Selling PPPs', 'some-new-code'])
+    expect(operator.activities).toEqual(['Seller of amateur plant protection products', 'some-new-code'])
   })
 
   test('tolerates a sparse document without throwing', () => {
@@ -153,5 +153,19 @@ describe('toOperatorView', () => {
     expect(operator).not.toHaveProperty('professionalSectors')
     expect(operator).not.toHaveProperty('memberSchemes')
     expect(operator).not.toHaveProperty('additionalAddresses')
+  })
+
+  test('maps an international address onto the first address line', () => {
+    const operator = toOperatorView({
+      ...storedDoc,
+      address: { internationalAddress: 'Rue de la Paix 12\n\n75002 Paris\nFrance' }
+    })
+
+    expect(operator.address).toEqual({
+      line1: 'Rue de la Paix 12, 75002 Paris, France',
+      town: '',
+      postcode: '',
+      region: ''
+    })
   })
 })

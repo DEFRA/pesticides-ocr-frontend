@@ -136,13 +136,13 @@ describe('#ownStorageAddress', () => {
       expect(headers.location).toBe(searchUrl)
     })
 
-    test('Should save the chosen address under usingPPPs and go on to the quantity', async () => {
+    test('Should save the chosen address under usingPPPs and go on to the list of storage addresses', async () => {
       const cookie = await search({ addressPostcode: 'aa31ab' })
 
       const { statusCode, headers } = await post(selectUrl, { address: '1' }, cookie)
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/using-ppps/quantity')
+      expect(headers.location).toBe('/using-ppps/storage-addresses')
       expect(await checkAnswersText(cookie)).toEqual(expect.stringContaining('Highfield Farm'))
     })
 
@@ -155,14 +155,15 @@ describe('#ownStorageAddress', () => {
       expect(headers.location).toBe(searchUrl)
     })
 
-    test('Should select the address already chosen when searching again', async () => {
+    test('Should add each address chosen to the list rather than replacing the last one', async () => {
       const cookie = await search({ addressPostcode: 'AA3 1AB' })
       await post(selectUrl, { address: '2' }, cookie)
       await post(searchUrl, { addressPostcode: 'AA3 1AB' }, cookie)
+      await post(selectUrl, { address: '1' }, cookie)
 
-      const page = await revisitStep(server, { url: selectUrl, cookie })
+      const page = await revisitStep(server, { url: '/using-ppps/storage-addresses', cookie })
 
-      expect(page('select#address option:selected').val()).toBe('2')
+      expect(page('.govuk-summary-card')).toHaveLength(2)
     })
 
     test('Should show an error when no address is chosen', async () => {
@@ -188,19 +189,20 @@ describe('#ownStorageAddress', () => {
       const page = await revisitStep(server, { url: manualUrl })
 
       expect(page('h1').text().trim()).toBe(heading)
+      expect(page('h1 + p').text().trim()).toBe('This is the address most relevant to the PPP you store.')
       expect(page('title').text()).toEqual(expect.stringContaining(`${heading} |`))
       expect(page('input[name="addressRegion"]')).toHaveLength(3)
       expect(page('.govuk-back-link').attr('href')).toBe(searchUrl)
       expect(page('main').text()).not.toEqual(expect.stringContaining('outside of Great Britain'))
     })
 
-    test('Should save the address under usingPPPs and go on to the quantity', async () => {
+    test('Should save the address under usingPPPs and go on to the list of storage addresses', async () => {
       const cookie = await getSessionCookie(server, manualUrl)
 
       const { headers } = await post(manualUrl, address, cookie)
-      const page = await revisitStep(server, { url: manualUrl, cookie })
+      const page = await revisitStep(server, { url: `${manualUrl}?address=1`, cookie })
 
-      expect(headers.location).toBe('/using-ppps/quantity')
+      expect(headers.location).toBe('/using-ppps/storage-addresses')
       expect(page('#addressLine1').val()).toBe('1 Barn Lane')
       expect(page('input[name="addressRegion"]:checked').val()).toBe('england')
     })

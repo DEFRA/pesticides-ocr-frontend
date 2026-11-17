@@ -22,7 +22,7 @@ describe('#whoAppliesController', () => {
         url: '/using-ppps/who-applies'
       })
 
-      expect(result).toEqual(expect.stringContaining('Who applies PPPs for your organisation? |'))
+      expect(result).toEqual(expect.stringContaining('Who mainly applies PPPs for your organisation? |'))
       expect(statusCode).toBe(statusCodes.ok)
     })
 
@@ -30,7 +30,7 @@ describe('#whoAppliesController', () => {
       const page = await revisitStep(server, { url: '/using-ppps/who-applies' })
       const labelFor = (value) => page(`input[value="${value}"]`).next('label').text().trim()
 
-      expect(page('h1').text().trim()).toBe('Who applies PPPs for your organisation?')
+      expect(page('h1').text().trim()).toBe('Who mainly applies PPPs for your organisation?')
       expect(labelFor('self')).toBe('We apply PPPs ourselves or on behalf of other organisations')
       expect(labelFor('contractor')).toBe('Another organisation applies PPPs on our behalf')
     })

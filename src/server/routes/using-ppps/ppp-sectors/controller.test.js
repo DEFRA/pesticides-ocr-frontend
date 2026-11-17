@@ -80,8 +80,8 @@ describe('#pppSectorsController', () => {
       ])
     })
 
-    test('Should offer Other after an "or" divider', () => {
-      expect(textOf('h4.govuk-heading-s')).toBe('or')
+    test('Should offer Other after the checkboxes, with no "or" divider', () => {
+      expect(page('h4.govuk-heading-s')).toHaveLength(0)
       expect(textOf('label[for="professionalSectorsOther"]')).toBe('Other')
       expect(textOf('#professionalSectorsOther-hint')).toBe(
         'Describe your main type of work in a few words'
@@ -153,14 +153,13 @@ describe('#pppSectorsController', () => {
       expect(result).toEqual(expect.stringContaining(selectSectorOrOther))
     })
 
-    test('Should show an error when both a sector and Other are given', async () => {
-      const { statusCode, result } = await postSectors({
+    test('Should accept a sector and Other together', async () => {
+      const { statusCode } = await postSectors({
         professionalSectors: 'forestry',
         professionalSectorsOther: 'Vineyard management'
       })
 
-      expect(statusCode).toBe(statusCodes.ok)
-      expect(result).toEqual(expect.stringContaining(selectSectorOrOther))
+      expect(statusCode).toBe(statusCodes.redirect)
     })
 
     test('Should show an error for a sector that is not offered', async () => {

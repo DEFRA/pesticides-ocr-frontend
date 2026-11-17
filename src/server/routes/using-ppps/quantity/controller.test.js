@@ -83,14 +83,14 @@ describe('#usingQuantityController', () => {
     test('Should return view with error message when nothing is selected', async () => {
       const { result, statusCode } = await postQuantity({})
 
-      expect(result).toEqual(expect.stringContaining('Select how much you use in a typical year'))
+      expect(result).toEqual(expect.stringContaining('Select the quantity of PPPs or adjuvants you use in a typical year'))
       expect(statusCode).toBe(statusCodes.ok)
     })
 
     test('Should return view with error message for an unknown band', async () => {
       const { result, statusCode } = await postQuantity({ quantity: '80000' })
 
-      expect(result).toEqual(expect.stringContaining('Select how much you use in a typical year'))
+      expect(result).toEqual(expect.stringContaining('Select the quantity of PPPs or adjuvants you use in a typical year'))
       expect(statusCode).toBe(statusCodes.ok)
     })
   })

@@ -132,24 +132,17 @@ describe('#memberSchemesController', () => {
       expect(result).toEqual(expect.stringMatching(/Assurance schemes[\s\S]*?None/))
     })
 
-    test('Should show an error when both a scheme and Other are given', async () => {
-      const { statusCode, result } = await postSchemes({
-        memberSchemes: 'red-tractor',
+    test.each([
+      ['a scheme', 'red-tractor'],
+      ['several schemes', ['leaf', 'sqc']]
+    ])('Should redirect to storing products when %s and Other are given together', async (_description, memberSchemes) => {
+      const { statusCode, headers } = await postSchemes({
+        memberSchemes,
         memberSchemesOther: 'Vineyard assurance'
       })
 
-      expect(statusCode).toBe(statusCodes.ok)
-      expect(result).toEqual(expect.stringContaining(selectSchemeOrOther))
-    })
-
-    test('Should show an error when several schemes and Other are given', async () => {
-      const { statusCode, result } = await postSchemes({
-        memberSchemes: ['leaf', 'sqc'],
-        memberSchemesOther: 'Vineyard assurance'
-      })
-
-      expect(statusCode).toBe(statusCodes.ok)
-      expect(result).toEqual(expect.stringContaining(selectSchemeOrOther))
+      expect(statusCode).toBe(statusCodes.redirect)
+      expect(headers.location).toBe('/using-ppps/storing')
     })
 
     test.each([

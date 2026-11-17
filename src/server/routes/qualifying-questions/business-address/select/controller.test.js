@@ -84,12 +84,16 @@ describe('#businessAddressSelectController', () => {
       expect(page('button[type="submit"]').text().trim()).toBe('Use this address')
     })
 
-    test('Should not show a search summary above the dropdown', async () => {
+    test('Should say how many addresses were found above the dropdown, with links to search again or enter one manually', async () => {
       const cookie = await searchFor({ addressPostcode: 'AA3 1AB' })
 
       const page = await revisitStep(server, { url, cookie })
+      const summary = page('#address-search-summary')
 
-      expect(page('#address-search-summary')).toHaveLength(0)
+      expect(summary.text().replace(/\s+/g, ' ').trim()).toBe('4 addresses found for AA3 1AB. Search again')
+      expect(summary.find('a').attr('href')).toBe('/business-address')
+      expect(page('.govuk-button-group a').text().trim()).toBe('enter an address manually')
+      expect(page('.govuk-button-group a').attr('href')).toBe('/business-address/manual')
     })
 
     test('Should say when no address was found and offer to search again or enter one manually', async () => {

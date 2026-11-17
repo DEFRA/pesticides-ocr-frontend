@@ -26,18 +26,40 @@ describe('#storageLocationController', () => {
     test('Should return view', async () => {
       const { result, statusCode } = await server.inject({ method: 'GET', url })
 
-      expect(result).toEqual(expect.stringContaining('Where do you store products you apply? |'))
+      expect(result).toEqual(expect.stringContaining('Which Of Your Sites Store PPPs |'))
       expect(statusCode).toBe(statusCodes.ok)
     })
 
-    test('Should show the question, the hint and every option', async () => {
-      const page = await revisitStep(server, { url })
+    test('Should show the question, the hint and every option, naming the main business address', async () => {
+      const cookie = await answerUpToStoring(server)
+      const page = await revisitStep(server, { url, cookie })
       const labelFor = (value) => page(`input[value="${value}"]`).next('label').text().trim()
 
-      expect(page('h1').text().trim()).toBe('Where do you store products you apply?')
-      expect(page('.govuk-hint').first().text().trim()).toBe('Select an option')
-      expect(labelFor('main-address')).toBe('Only at the main business address')
-      expect(labelFor('main-and-other')).toBe('At the main business address and other locations')
+      expect(page('h1').text().trim()).toBe('Which of your sites store PPPs?')
+      expect(page('#storageLocation-hint').text().trim()).toBe('Select all that apply')
+      expect(labelFor('main-address')).toBe('At Lower Meadow Barn')
+      expect(labelFor('another-address')).toBe('Another address')
+    })
+
+    test('Should name the first line of an international main business address', async () => {
+      const cookie = await answerUpToStoring(server)
+      await answerStep(server, {
+        url: '/business-address/international',
+        payload: { internationalAddress: 'Rue de la Paix 12\n75002 Paris\nFrance' },
+        cookie
+      })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(page('input[value="main-address"]').next('label').text().trim()).toBe('At Rue de la Paix 12')
+    })
+
+    test('Should fall back to the main business address when none has been given', async () => {
+      const page = await revisitStep(server, { url })
+
+      expect(page('input[value="main-address"]').next('label').text().trim()).toBe(
+        'At the main business address'
+      )
     })
 
     test('Should link back to storing products once the route up to it is answered', async () => {
@@ -65,9 +87,10 @@ describe('#storageLocationController', () => {
     })
 
     test.each([
-      ['main-address', '/using-ppps/quantity'],
-      ['main-and-other', '/using-ppps/own-storage-address']
-    ])('Should redirect %s to %s', async (storageLocation, location) => {
+      [['main-address'], '/using-ppps/quantity'],
+      [['another-address'], '/using-ppps/storage-addresses'],
+      [['main-address', 'another-address'], '/using-ppps/storage-addresses']
+    ])('Should redirect %o to %s', async (storageLocation, location) => {
       const { statusCode, headers } = await postStorageLocation({ storageLocation })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -82,32 +105,30 @@ describe('#storageLocationController', () => {
 
       const page = await revisitStep(server, { url: '/check-answers', cookie })
 
-      expect(page('main').text()).toEqual(expect.stringContaining('Only at the main business address'))
+      expect(page('main').text()).toEqual(expect.stringContaining('At the main business address'))
     })
 
-    test.each([[{}], [{ storageLocation: 'somewhere' }]])(
+    test.each([[{}], [{ storageLocation: 'somewhere' }], [{ storageLocation: 'main-and-other' }]])(
       'Should return view with error message for %o',
       async (payload) => {
         const { result, statusCode } = await postStorageLocation(payload)
 
-        expect(result).toEqual(
-          expect.stringContaining('Select where you store the products you apply')
-        )
+        expect(result).toEqual(expect.stringContaining('Select which of your sites store PPPs'))
         expect(statusCode).toBe(statusCodes.ok)
       }
     )
   })
 
   describe('Pre-populating from the session', () => {
-    test('Should check the option held in the session', async () => {
+    test('Should check the options held in the session', async () => {
       const cookie = await answerStep(server, {
         url,
-        payload: { storageLocation: 'main-and-other' }
+        payload: { storageLocation: ['main-address', 'another-address'] }
       })
 
       const page = await revisitStep(server, { url, cookie })
 
-      expect(checkedValues(page, 'storageLocation')).toEqual(['main-and-other'])
+      expect(checkedValues(page, 'storageLocation')).toEqual(['main-address', 'another-address'])
     })
 
     test('Should check nothing when no option is held in the session', async () => {

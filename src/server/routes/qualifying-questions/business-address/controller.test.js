@@ -32,6 +32,9 @@ describe('#businessAddressController', () => {
       const page = await revisitStep(server, { url: '/business-address' })
 
       expect(page('h1').text()).toBe('What is the main address for your business or organisation?')
+      expect(page('h1 + p').text().trim()).toBe(
+        'This is the address most relevant to the PPP activities you are responsible for.'
+      )
       expect(page('label[for="addressPostcode"]').text().trim()).toBe('Postcode')
       expect(page('#addressPostcode-hint').text().trim()).toBe('For example AA3 1AB')
       expect(page('label[for="addressBuilding"]').text().trim()).toBe(
@@ -49,7 +52,7 @@ describe('#businessAddressController', () => {
       expect(group.find('p').text().replaceAll(/\s+/g, ' ').trim()).toBe(
         'or enter an address manually'
       )
-      expect(group.find('a').text().trim()).toBe('enter an address manually')
+      expect(group.find('a').text()).toBe('enter an address manually')
       expect(group.find('a').attr('href')).toBe('/business-address/manual')
     })
 

@@ -57,7 +57,7 @@ describe('#businessContactController', () => {
   })
 
   describe('POST /business-contact', () => {
-    test('Should redirect to business name page', async () => {
+    test('Should redirect to the check your email page', async () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-contact',
@@ -69,7 +69,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/business-name')
+      expect(headers.location).toBe('/verify-email')
     })
 
     test('Should return view with error message', async () => {
@@ -126,7 +126,7 @@ describe('#businessContactController', () => {
       expect(statusCode).toBe(statusCodes.ok)
     })
 
-    test('Should accept a job title or role and continue to business name', async () => {
+    test('Should accept a job title or role and continue to check your email', async () => {
       const { statusCode, headers } = await injectWithSession(server, {
         method: 'POST',
         url: '/business-contact',
@@ -139,7 +139,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/business-name')
+      expect(headers.location).toBe('/verify-email')
     })
 
     test('Should continue when the job title or role is left empty', async () => {
@@ -155,7 +155,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/business-name')
+      expect(headers.location).toBe('/verify-email')
     })
 
     test('Should show an error when the job title or role is over 100 characters', async () => {
@@ -191,7 +191,7 @@ describe('#businessContactController', () => {
       })
 
       expect(statusCode).toBe(statusCodes.redirect)
-      expect(headers.location).toBe('/business-name')
+      expect(headers.location).toBe('/verify-email')
     })
   })
 

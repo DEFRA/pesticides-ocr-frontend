@@ -1,5 +1,8 @@
 import {
   addressLines,
+  businessAddressLines,
+  internationalAddressLines,
+  isInternationalAddress,
   labelsFor,
   toLines
 } from './answer-lines.js'
@@ -62,5 +65,56 @@ describe('#answerLines', () => {
     test('Should return nothing when no address is held', () => {
       expect(addressLines()).toEqual([])
     })
+  })
+})
+
+describe('#isInternationalAddress', () => {
+  test('Should be true for an address typed in as text', () => {
+    expect(isInternationalAddress({ internationalAddress: 'Rue de la Paix 12' })).toBe(true)
+  })
+
+  test.each([[{ addressLine1: '1 Barn Lane' }], [{}], [undefined]])(
+    'Should be false for %o',
+    (address) => {
+      expect(isInternationalAddress(address)).toBe(false)
+    }
+  )
+})
+
+describe('#internationalAddressLines', () => {
+  test('Should give one trimmed line per line typed, dropping blank ones', () => {
+    expect(internationalAddressLines('Rue de la Paix 12\r\n\n  75002 Paris  \nFrance\n')).toEqual([
+      'Rue de la Paix 12',
+      '75002 Paris',
+      'France'
+    ])
+  })
+
+  test('Should give no lines when nothing was typed', () => {
+    expect(internationalAddressLines()).toEqual([])
+  })
+})
+
+describe('#businessAddressLines', () => {
+  test('Should give the lines of an international address', () => {
+    expect(businessAddressLines({ internationalAddress: 'Rue de la Paix 12\nFrance' })).toEqual([
+      'Rue de la Paix 12',
+      'France'
+    ])
+  })
+
+  test('Should give the lines of an address in Great Britain', () => {
+    expect(
+      businessAddressLines({
+        addressLine1: '1 Barn Lane',
+        addressTown: 'York',
+        addressPostcode: 'YO1 7HH',
+        addressRegion: 'england'
+      })
+    ).toEqual(['1 Barn Lane', 'York', 'YO1 7HH', 'England'])
+  })
+
+  test('Should give no lines when no address was given', () => {
+    expect(businessAddressLines()).toEqual([])
   })
 })

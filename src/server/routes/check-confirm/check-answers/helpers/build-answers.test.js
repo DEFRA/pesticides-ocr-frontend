@@ -8,7 +8,7 @@ describe('#buildAnswers', () => {
     })
 
     expect(answers.businessActivities).toEqual([
-      'Selling PPPs',
+      'Seller of amateur plant protection products',
       'Using PPPs as part of your work'
     ])
   })
@@ -20,57 +20,76 @@ describe('#buildAnswers', () => {
   })
 
   test.each([
-    ['own', 'Yes, at sites we own'],
-    ['third-party', 'Yes, a third party stores them for us'],
-    ['no', 'No, we don’t store PPPs']
-  ])('Should map storing products %s to the label used on the question page', (storing, label) => {
-    expect(buildAnswers({ usingPPPs: { storing } }).storing).toEqual([label])
+    [['own'], ['At sites we own']],
+    [['third-party'], ['By a third party on our behalf']],
+    [['no'], ['We do not store PPPs']],
+    [['own', 'third-party'], ['At sites we own', 'By a third party on our behalf']]
+  ])('Should map storing products %o to the labels used on the question page', (storing, labels) => {
+    expect(buildAnswers({ usingPPPs: { storing } }).storing).toEqual(labels)
   })
 
-  test.each([
-    ['main-address', 'Only at the main business address'],
-    ['main-and-other', 'At the main business address and other locations']
-  ])('Should map where products are stored %s to the label used on the question page', (storageLocation, label) => {
-    expect(buildAnswers({ usingPPPs: { storageLocation } }).storageLocation).toEqual([label])
+  test('Should give the main business address as a PPP store location when it is ticked', () => {
+    expect(buildAnswers({ usingPPPs: { storageLocation: ['main-address'] } }).storeLocations).toEqual([
+      { lines: ['At the main business address'], href: '/using-ppps/storage-location?change=true' }
+    ])
   })
 
-  test('Should give the own storage address one line per address line', () => {
+  test('Should give each storage address as a PPP store location, one line per address line', () => {
     expect(
       buildAnswers({
         usingPPPs: {
-          ownStorageAddress: {
-            addressLine1: '1 Barn Lane',
-            addressTown: 'York',
-            addressPostcode: 'YO1 7HH',
-            addressRegion: 'wales'
+          storageLocation: ['another-address'],
+          ownStorageAddresses: [
+            { addressLine1: '1 Barn Lane', addressTown: 'York', addressPostcode: 'YO1 7HH', addressRegion: 'wales' },
+            { addressLine1: '2 Mill Road', addressTown: 'Leeds', addressPostcode: 'LS1 1AA', addressRegion: 'england' }
+          ]
+        }
+      }).storeLocations
+    ).toEqual([
+      { lines: ['1 Barn Lane', 'York', 'YO1 7HH', 'Wales'], href: '/using-ppps/storage-addresses?change=true' },
+      { lines: ['2 Mill Road', 'Leeds', 'LS1 1AA', 'England'], href: '/using-ppps/storage-addresses?change=true' }
+    ])
+  })
+
+  test('Should give the storage contact as one PPP store location, leaving out an empty job title', () => {
+    expect(
+      buildAnswers({
+        usingPPPs: {
+          storageContact: {
+            contactName: 'Sam Store',
+            businessName: 'Safe Storage Ltd',
+            contactJobTitle: '',
+            contactTelephone: '01234 567890',
+            contactEmail: 'sam@example.com'
           }
         }
-      }).ownStorageAddress
-    ).toEqual(['1 Barn Lane', 'York', 'YO1 7HH', 'Wales'])
-  })
-
-  test('Should give each of the storage contact details, leaving out an empty job title', () => {
-    const answers = buildAnswers({
-      usingPPPs: {
-        storageContact: {
-          contactName: 'Sam Store',
-          businessName: 'Safe Storage Ltd',
-          contactJobTitle: '',
-          contactTelephone: '01234 567890',
-          contactEmail: 'sam@example.com'
-        }
+      }).storeLocations
+    ).toEqual([
+      {
+        lines: ['Sam Store', 'Safe Storage Ltd', '01234 567890', 'sam@example.com'],
+        href: '/using-ppps/third-party-storage-contact?change=true'
       }
-    })
-
-    expect(answers.storageContactName).toEqual(['Sam Store'])
-    expect(answers.storageBusinessName).toEqual(['Safe Storage Ltd'])
-    expect(answers).not.toHaveProperty('storageContactJobTitle')
-    expect(answers.storageContactTelephone).toEqual(['01234 567890'])
-    expect(answers.storageContactEmail).toEqual(['sam@example.com'])
+    ])
   })
 
-  test('Should leave out where products are stored when it was not given', () => {
-    expect(buildAnswers({ usingPPPs: { storing: 'no' } })).not.toHaveProperty('storageLocation')
+  test('Should list the PPP store locations as the pages ask them: main address, other addresses, then the third party', () => {
+    const locations = buildAnswers({
+      usingPPPs: {
+        storageLocation: ['main-address', 'another-address'],
+        ownStorageAddresses: [{ addressLine1: '1 Barn Lane' }],
+        storageContact: { contactName: 'Sam Store', contactJobTitle: 'Manager', businessName: 'Safe Storage Ltd' }
+      }
+    }).storeLocations
+
+    expect(locations.map(({ lines }) => lines)).toEqual([
+      ['At the main business address'],
+      ['1 Barn Lane'],
+      ['Sam Store', 'Manager', 'Safe Storage Ltd']
+    ])
+  })
+
+  test('Should leave out the PPP store locations when none were given', () => {
+    expect(buildAnswers({ usingPPPs: { storing: ['no'] } })).not.toHaveProperty('storeLocations')
   })
 
   test('Should leave out storing products when it was not given', () => {
@@ -241,15 +260,16 @@ describe('#buildAnswers', () => {
 
   test('Should map the amenity sectors to the labels used on the question page', () => {
     expect(
-      buildAnswers({ usingPPPs: { amenitySubsectors: ['parks', 'utilities'] } }).amenitySubsectors
-    ).toEqual(['Parks', 'Utilities, such as transport and water companies'])
+      buildAnswers({ usingPPPs: { amenitySubsectors: ['gardens-lawncare', 'sports-public-amenity'] } })
+        .amenitySubsectors
+    ).toEqual(['Gardens and Lawncare', 'Sports and Public Amenity land'])
   })
 
   test('Should map the horticultural sectors to the labels used on the question page', () => {
     expect(
       buildAnswers({ usingPPPs: { hortiSubsectors: ['edible-protected', 'ornamentals'] } })
         .hortiSubsectors
-    ).toEqual(['Edible protected crops', 'Ornamentals'])
+    ).toEqual(['Edible protected crops', 'Ornamental Plants'])
   })
 
   test('Should leave out the agricultural sectors when they were not given', () => {
@@ -269,5 +289,16 @@ describe('#buildAnswers', () => {
       'Red Tractor',
       'Scottish Quality Crops (SQC)'
     ])
+  })
+
+  test('Should give an international main address one line per line typed, changed on its own page', () => {
+    const answers = buildAnswers({ address: { internationalAddress: 'Rue de la Paix 12\n\n75002 Paris\nFrance' } })
+
+    expect(answers.address).toEqual(['Rue de la Paix 12', '75002 Paris', 'France'])
+    expect(answers.addressChangePage).toBe('/business-address/international')
+  })
+
+  test('Should leave the address change page to the default for an address in Great Britain', () => {
+    expect(buildAnswers({ address: { addressLine1: '1 Barn Lane' } })).not.toHaveProperty('addressChangePage')
   })
 })

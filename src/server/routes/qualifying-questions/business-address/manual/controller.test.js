@@ -33,14 +33,14 @@ describe('#businessAddressManualController', () => {
     test('Should return view', async () => {
       const { result, statusCode } = await server.inject({ method: 'GET', url })
 
-      expect(result).toEqual(expect.stringContaining('Main Site Address |'))
+      expect(result).toEqual(expect.stringContaining('Main Business Address |'))
       expect(statusCode).toBe(statusCodes.ok)
     })
 
     test('Should ask for each part of the address', async () => {
       const page = await revisitStep(server, { url })
 
-      expect(page('h1').text()).toBe('Main site address')
+      expect(page('h1').text()).toBe('Main business address')
       expect(page('main p.govuk-body').first().text()).toBe(
         'This is the address most relevant to the PPP activities you are responsible for.'
       )

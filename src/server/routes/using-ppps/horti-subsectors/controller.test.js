@@ -55,11 +55,17 @@ describe('#hortiSubsectorsController', () => {
         .map((_index, input) => page(`label[for="${page(input).attr('id')}"]`).text().trim())
         .get()
 
-      expect(labels).toEqual(['Edible protected crops', 'Orchards and soft fruit', 'Ornamentals'])
+      expect(labels).toEqual([
+        'Edible protected crops',
+        'Orchards',
+        'Ornamental Plants',
+        'Soft Fruits – Outdoor and Protected',
+        'Viticulture'
+      ])
     })
 
-    test('Should offer Other after an "or" divider', () => {
-      expect(textOf('h4')).toBe('or')
+    test('Should offer Other after the checkboxes, with no "or" divider', () => {
+      expect(page('h4')).toHaveLength(0)
       expect(textOf('label[for="hortiSubsectorsOther"]')).toBe('Other')
       expect(textOf('#hortiSubsectorsOther-hint')).toBe(
         'Describe your main type of work in a few words'
@@ -130,6 +136,12 @@ describe('#hortiSubsectorsController', () => {
       expect(headers.location).toBe(location)
     })
 
+    test('Should accept a sector and Other together', async () => {
+      const { statusCode } = await postHortiSubsectors({ hortiSubsectors: ['ornamentals'], hortiSubsectorsOther: 'Vineyards' })
+
+      expect(statusCode).toBe(statusCodes.redirect)
+    })
+
     test('Should accept Other on its own', async () => {
       const { statusCode, headers } = await afterSectors(['horticulture'], {
         hortiSubsectorsOther: 'Vineyards'
@@ -142,8 +154,7 @@ describe('#hortiSubsectorsController', () => {
     test.each([
       [{ hortiSubsectorsOther: '' }],
       [{ hortiSubsectorsOther: '   ' }],
-      [{ hortiSubsectors: ['ornamentals'], hortiSubsectorsOther: 'Vineyards' }],
-      [{ hortiSubsectors: ['orchards'], hortiSubsectorsOther: '' }]
+      [{ hortiSubsectors: ['arable'], hortiSubsectorsOther: '' }]
     ])('Should show an error for %o', async (payload) => {
       const { result, statusCode } = await postHortiSubsectors(payload)
 
@@ -180,6 +191,18 @@ describe('#hortiSubsectorsController', () => {
       const page = await revisitStep(server, { url, cookie })
 
       expect(checkedValues(page, 'hortiSubsectors')).toEqual([])
+      expect(page('#hortiSubsectorsOther').val().trim()).toBe('Vineyards')
+    })
+
+    test('Should keep a sector and the Other text held in the session together', async () => {
+      const cookie = await answerStep(server, {
+        url,
+        payload: { hortiSubsectors: ['ornamentals'], hortiSubsectorsOther: 'Vineyards' }
+      })
+
+      const page = await revisitStep(server, { url, cookie })
+
+      expect(checkedValues(page, 'hortiSubsectors')).toEqual(['ornamentals'])
       expect(page('#hortiSubsectorsOther').val().trim()).toBe('Vineyards')
     })
 

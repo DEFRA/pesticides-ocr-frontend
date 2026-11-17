@@ -27,7 +27,7 @@ describe('#storingController', () => {
         url: '/using-ppps/storing'
       })
 
-      expect(result).toEqual(expect.stringContaining('Do you store products you apply? |'))
+      expect(result).toEqual(expect.stringContaining('Where Are The Products Stored |'))
       expect(statusCode).toBe(statusCodes.ok)
     })
 
@@ -35,11 +35,16 @@ describe('#storingController', () => {
       const page = await revisitStep(server, { url: '/using-ppps/storing' })
       const labelFor = (value) => page(`input[value="${value}"]`).next('label').text().trim()
 
-      expect(page('h1').text().trim()).toBe('Do you store products you apply?')
-      expect(page('.govuk-hint').first().text().trim()).toBe('Select an option')
-      expect(labelFor('own')).toBe('Yes, at sites we own')
-      expect(labelFor('third-party')).toBe('Yes, a third party stores them for us')
-      expect(labelFor('no')).toBe('No, we don’t store PPPs')
+      expect(page('h1').text().trim()).toBe('Where are the products stored?')
+      expect(page('h1 + p').text().trim()).toBe(
+        'Only include sites where more than 50 litres or 50 kilograms of PPPs are stored at any one time.'
+      )
+      expect(page('#storing-hint').text().trim()).toBe('Select all that apply')
+      expect(labelFor('own')).toBe('At sites we own')
+      expect(labelFor('third-party')).toBe('By a third party on our behalf')
+      expect(labelFor('no')).toBe('We do not store PPPs')
+      expect(page('input[value="no"]').attr('data-behaviour')).toBe('exclusive')
+      expect(page('.govuk-checkboxes__divider')).toHaveLength(0)
     })
 
     test('Should link back to the PPP sectors once the route up to it is answered', async () => {
@@ -68,8 +73,9 @@ describe('#storingController', () => {
     test.each([
       ['own', '/using-ppps/storage-location'],
       ['third-party', '/using-ppps/third-party-storage-contact'],
-      ['no', '/using-ppps/quantity']
-    ])('Should redirect %s to %s', async (storing, location) => {
+      ['no', '/using-ppps/quantity'],
+      [['own', 'third-party'], '/using-ppps/storage-location']
+    ])('Should redirect %o to %s', async (storing, location) => {
       const { statusCode, headers } = await postStoring({ storing })
 
       expect(statusCode).toBe(statusCodes.redirect)
@@ -79,17 +85,22 @@ describe('#storingController', () => {
     test('Should return view with error message when nothing is selected', async () => {
       const { result, statusCode } = await postStoring({})
 
-      expect(result).toEqual(
-        expect.stringContaining('Select if you store the products you apply')
-      )
+      expect(result).toEqual(expect.stringContaining('Select where the products are stored'))
       expect(statusCode).toBe(statusCodes.ok)
     })
 
     test('Should return view with error message for an unknown option', async () => {
       const { result, statusCode } = await postStoring({ storing: 'sometimes' })
 
+      expect(result).toEqual(expect.stringContaining('Select where the products are stored'))
+      expect(statusCode).toBe(statusCodes.ok)
+    })
+
+    test('Should not accept "We do not store PPPs" alongside another option', async () => {
+      const { result, statusCode } = await postStoring({ storing: ['own', 'no'] })
+
       expect(result).toEqual(
-        expect.stringContaining('Select if you store the products you apply')
+        expect.stringContaining('Select where the products are stored, or select ‘We do not store PPPs’')
       )
       expect(statusCode).toBe(statusCodes.ok)
     })
@@ -98,12 +109,12 @@ describe('#storingController', () => {
   describe('Pre-populating from the session', () => {
     const url = '/using-ppps/storing'
 
-    test('Should check the option held in the session', async () => {
-      const cookie = await answerStep(server, { url, payload: { storing: 'third-party' } })
+    test('Should check the options held in the session', async () => {
+      const cookie = await answerStep(server, { url, payload: { storing: ['own', 'third-party'] } })
 
       const page = await revisitStep(server, { url, cookie })
 
-      expect(checkedValues(page, 'storing')).toEqual(['third-party'])
+      expect(checkedValues(page, 'storing')).toEqual(['own', 'third-party'])
     })
 
     test('Should check nothing when no option is held in the session', async () => {
