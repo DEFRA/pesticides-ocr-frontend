@@ -1,0 +1,13 @@
+// The postcode and building searched for. It's only needed to run the lookup,
+// so it's kept out of `formSession`, which is sent to the backend as the answers.
+export const ADDRESS_SEARCH_KEY = 'addressSearch'
+
+// The same, for the own storage address.
+export const OWN_STORAGE_ADDRESS_SEARCH_KEY = 'ownStorageAddressSearch'
+
+// The key in `formSession` that holds the using PPPs answers.
+export const USING_PPPS_KEY = 'usingPPPs'
+
+// The /start choice: register for the first time or update a registration. It
+// isn't an answer for the backend, so it's kept out of `formSession`.
+export const REGISTRATION_CHOICE_KEY = 'registrationChoice'

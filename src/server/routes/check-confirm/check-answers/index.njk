@@ -16,30 +16,15 @@
       {{ govukSummaryList({
         rows: [
           {
-            key: { text: "Business PPP activities" },
-            value: { html: appAnswerList({ values: answers.businessActivities }) },
-            actions: { items: [{ href: "/business-activities?change=true", text: "Change", visuallyHiddenText: "business PPP activities" }] }
-          } if answers.businessActivities,
-          {
-            key: { text: "Main customer" },
-            value: { html: appAnswerList({ values: answers.mainCustomer }) },
-            actions: { items: [{ href: "/main-customer?change=true", text: "Change", visuallyHiddenText: "main customer" }] }
-          } if answers.mainCustomer,
-          {
-            key: { text: "Business name" },
-            value: { html: appAnswerList({ values: answers.businessName }) },
-            actions: { items: [{ href: "/business-name?change=true", text: "Change", visuallyHiddenText: "business name" }] }
-          } if answers.businessName,
-          {
-            key: { text: "Main address" },
-            value: { html: appAnswerList({ values: answers.address }) },
-            actions: { items: [{ href: "/business-address?change=true", text: "Change", visuallyHiddenText: "main address" }] }
-          } if answers.address,
-          {
             key: { text: "Name" },
             value: { html: appAnswerList({ values: answers.contactName }) },
             actions: { items: [{ href: "/business-contact?change=true", text: "Change", visuallyHiddenText: "name" }] }
           } if answers.contactName,
+          {
+            key: { text: "Job title or role" },
+            value: { html: appAnswerList({ values: answers.contactJobTitle }) },
+            actions: { items: [{ href: "/business-contact?change=true", text: "Change", visuallyHiddenText: "job title or role" }] }
+          } if answers.contactJobTitle,
           {
             key: { text: "Email" },
             value: { html: appAnswerList({ values: answers.contactEmail }) },
@@ -49,85 +34,92 @@
             key: { text: "Telephone" },
             value: { html: appAnswerList({ values: answers.contactTelephone }) },
             actions: { items: [{ href: "/business-contact?change=true", text: "Change", visuallyHiddenText: "telephone" }] }
-          } if answers.contactTelephone
+          } if answers.contactTelephone,
+          {
+            key: { text: "Business name" },
+            value: { html: appAnswerList({ values: answers.businessName }) },
+            actions: { items: [{ href: "/business-name?change=true", text: "Change", visuallyHiddenText: "business name" }] }
+          } if answers.businessName,
+          {
+            key: { text: "Main address" },
+            value: { html: appAnswerList({ values: answers.address }) },
+            actions: { items: [{ href: (answers.addressChangePage or "/business-address") + "?change=true", text: "Change", visuallyHiddenText: "main address" }] }
+          } if answers.address,
+          {
+            key: { text: "Business PPP activities" },
+            value: { html: appAnswerList({ values: answers.businessActivities }) },
+            actions: { items: [{ href: "/business-activities?change=true", text: "Change", visuallyHiddenText: "business PPP activities" }] }
+          } if answers.businessActivities
         ]
       }) }}
 
       <h2 class="govuk-heading-m">PPP activity details</h2>
-      {% set isArea = answers.quantityType == "area" %}
+      {# One row per place PPPs are stored, so they're added to the rows in a loop. #}
+      {% set storeLocationRows = [] %}
+      {% for location in answers.storeLocations %}
+        {% set key = "PPP store location" + ("" if loop.first else " " + loop.index) %}
+        {% set _ = storeLocationRows.push({
+          key: { text: key },
+          value: { html: appAnswerList({ values: location.lines }) },
+          actions: { items: [{ href: location.href, text: "Change", visuallyHiddenText: key }] }
+        }) %}
+      {% endfor %}
       {{ govukSummaryList({
         rows: [
           {
-            key: { text: "PPP activities at the address" },
-            value: { html: appAnswerList({ values: answers.addressActivities }) },
-            actions: { items: [{ href: "/address-activity?change=true", text: "Change", visuallyHiddenText: "PPP activities at the address" }] }
-          } if answers.addressActivities,
+            key: { text: "Who applies PPPs" },
+            value: { html: appAnswerList({ values: answers.whoApplies }) },
+            actions: { items: [{ href: "/using-ppps/who-applies?change=true", text: "Change", visuallyHiddenText: "who applies PPPs" }] }
+          } if answers.whoApplies,
           {
-            key: { text: "Area covered by PPPs in the last year" if isArea else "Quantity of PPPs used in the last year" },
-            value: { html: appAnswerList({ values: answers.quantity }) },
-            actions: { items: [{ href: "/quantity?change=true", text: "Change", visuallyHiddenText: "area covered by PPPs in the last year" if isArea else "quantity of PPPs used in the last year" }] }
-          } if answers.quantity,
+            key: { text: "Contractor name" },
+            value: { html: appAnswerList({ values: answers.contractorName }) },
+            actions: { items: [{ href: "/using-ppps/contractor-address?change=true", text: "Change", visuallyHiddenText: "contractor name" }] }
+          } if answers.contractorName,
+          {
+            key: { text: "Contractor address" },
+            value: { html: appAnswerList({ values: answers.contractorAddress }) },
+            actions: { items: [{ href: "/using-ppps/contractor-address?change=true", text: "Change", visuallyHiddenText: "contractor address" }] }
+          } if answers.contractorAddress,
           {
             key: { text: "Main sectors of work" },
             value: { html: appAnswerList({ values: answers.professionalSectors }) },
-            actions: { items: [{ href: "/professional-sectors?change=true", text: "Change", visuallyHiddenText: "main sectors of work" }] }
+            actions: { items: [{ href: "/using-ppps/ppp-sectors?change=true", text: "Change", visuallyHiddenText: "main sectors of work" }] }
           } if answers.professionalSectors,
+          {
+            key: { text: "Agricultural sectors" },
+            value: { html: appAnswerList({ values: answers.agriSubsectors }) },
+            actions: { items: [{ href: "/using-ppps/agri-subsectors?change=true", text: "Change", visuallyHiddenText: "agricultural sectors" }] }
+          } if answers.agriSubsectors,
+          {
+            key: { text: "Amenity sectors" },
+            value: { html: appAnswerList({ values: answers.amenitySubsectors }) },
+            actions: { items: [{ href: "/using-ppps/amenity-subsectors?change=true", text: "Change", visuallyHiddenText: "amenity sectors" }] }
+          } if answers.amenitySubsectors,
+          {
+            key: { text: "Horticultural sectors" },
+            value: { html: appAnswerList({ values: answers.hortiSubsectors }) },
+            actions: { items: [{ href: "/using-ppps/horti-subsectors?change=true", text: "Change", visuallyHiddenText: "horticultural sectors" }] }
+          } if answers.hortiSubsectors,
           {
             key: { text: "Assurance schemes" },
             value: { html: appAnswerList({ values: answers.memberSchemes }) },
-            actions: { items: [{ href: "/member-schemes?change=true", text: "Change", visuallyHiddenText: "assurance schemes" }] }
+            actions: { items: [{ href: "/using-ppps/member-schemes?change=true", text: "Change", visuallyHiddenText: "assurance schemes" }] }
           } if answers.memberSchemes,
           {
-            key: { text: "Additional addresses" },
-            value: { text: answers.additionalAddresses.length }
-          } if answers.additionalAddresses
-        ]
+            key: { text: "Storing products" },
+            value: { html: appAnswerList({ values: answers.storing }) },
+            actions: { items: [{ href: "/using-ppps/storing?change=true", text: "Change", visuallyHiddenText: "storing products" }] }
+          } if answers.storing
+        ].concat(storeLocationRows, [
+          {
+            key: { text: "Quantity of PPPs or adjuvants used in the last year" },
+            value: { html: appAnswerList({ values: answers.usingQuantity }) },
+            actions: { items: [{ href: "/using-ppps/quantity?change=true", text: "Change", visuallyHiddenText: "quantity of PPPs or adjuvants used in the last year" }] }
+          } if answers.usingQuantity
+        ])
       }) }}
 
-      {% if answers.additionalAddresses or canAddAdditionalAddresses %}
-        <h2 class="govuk-heading-m">Additional addresses</h2>
-
-        {% for entry in answers.additionalAddresses %}
-          {{ govukSummaryList({
-            card: {
-              title: { text: "Additional address " ~ loop.index }
-            },
-            rows: [
-              { 
-                key: { text: "Address" },
-                value: { html: appAnswerList({ values: entry.address }) }
-              } if entry.address,
-              { 
-                key: { text: "Name" },
-                value: { html: appAnswerList({ values: entry.contactName }) }
-              } if entry.contactName,
-              { 
-                key: { text: "Email" },
-                value: { html: appAnswerList({ values: entry.contactEmail }) }
-              } if entry.contactEmail,
-              { 
-                key: { text: "Telephone" },
-                value: { html: appAnswerList({ values: entry.contactTelephone }) }
-              } if entry.contactTelephone,
-              { 
-                key: { text: "PPP activity" },
-                value: { html: appAnswerList({ values: entry.activity }) }
-              } if entry.activity
-            ]
-          }) }}
-
-          <form method="post" action="/check-answers/additional-addresses/{{ loop.index }}/delete" novalidate>
-            {{ govukButton({
-              html: "Delete<span class=\"govuk-visually-hidden\"> (Additional address " ~ loop.index ~ ")</span>",
-              classes: "govuk-button--secondary"
-            }) }}
-          </form>
-        {% endfor %}
-
-        <p class="govuk-body">
-          <a class="govuk-link" href="/additional-addresses/address">Add another address</a>
-        </p>
-      {% endif %}
 
       <form method="post" action="/check-answers" novalidate>
         {{ govukButton({

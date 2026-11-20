@@ -1,23 +1,15 @@
 import Joi from 'joi'
 import { viewFailAction } from '#/server/common/helpers/view-fail-action.js'
+import { contactFields } from '#/server/common/helpers/contact-fields.js'
 
 export const app = {
-  pageTitle: 'Business Contact'
+  pageTitle: 'Business Contact',
+  // The first journey page. /start is outside the journey map, so the back
+  // link can't be worked out from the answers.
+  backLink: '/start'
 }
 
 export const validate = {
-  payload: Joi.object({
-    contactName: Joi.string().required().messages({
-      'string.empty': 'Enter a contact name'
-    }),
-    contactTelephone: Joi.string().trim().pattern(/^[0-9+()\- ]+$/).required().messages({
-      'string.empty': 'Enter a telephone number',
-      'string.pattern.base': 'Enter a valid telephone number'
-    }),
-    contactEmail: Joi.string().email().required().messages({
-      'string.empty': 'Enter an email address',
-      'string.email': 'Enter a valid email address'
-    })
-  }),
+  payload: Joi.object(contactFields()),
   failAction: viewFailAction('qualifying-questions/business-contact/index')
 }

@@ -1,10 +1,9 @@
 import { getSession } from '#/server/common/helpers/get-session.js'
-import { redirectToNextPage } from '#/server/common/helpers/journey-navigation.js'
-import { getNextPage } from '#/server/common/helpers/journey.js'
+import { VERIFY_EMAIL_PAGE } from '#/server/common/helpers/journey.js'
 
 export const get = {
   handler(request, h) {
-    request.yar.set('formSession', request.yar.get('formSession') ?? {})
+    request.yar.set('formSession', getSession(request, 'formSession'))
 
     return h.view('qualifying-questions/business-contact/index', {
       values: getSession(request, 'formSession')['primaryContact']
@@ -12,14 +11,17 @@ export const get = {
   }
 }
 
+// Always on to check your email, even from check answers (?change=true), so a
+// changed email address is verified too. Change mode goes with it, so it can
+// return to check answers.
 export const post = {
   handler(request, h) {
     const payload = request.payload
-    const formSession = request.yar.get('formSession') ?? {}
+    const formSession = getSession(request, 'formSession')
 
     formSession['primaryContact'] = payload
     request.yar.set('formSession', formSession)
 
-    return redirectToNextPage(request, h, getNextPage('/business-contact', formSession))
+    return h.redirect(`${VERIFY_EMAIL_PAGE}${request.url.search}`)
   }
 }
