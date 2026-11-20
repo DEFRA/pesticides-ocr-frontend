@@ -12,7 +12,8 @@ export const get = {
 }
 
 // Always on to check your email, even from check answers (?change=true), so a
-// changed email address is verified too.
+// changed email address is verified too. Change mode goes with it, so it can
+// return to check answers.
 export const post = {
   handler(request, h) {
     const payload = request.payload
@@ -21,6 +22,6 @@ export const post = {
     formSession['primaryContact'] = payload
     request.yar.set('formSession', formSession)
 
-    return h.redirect(VERIFY_EMAIL_PAGE)
+    return h.redirect(`${VERIFY_EMAIL_PAGE}${request.url.search}`)
   }
 }

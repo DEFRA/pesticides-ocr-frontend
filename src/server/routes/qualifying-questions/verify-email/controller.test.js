@@ -43,34 +43,18 @@ describe('#verifyEmailController', () => {
       expect(result).toEqual(expect.stringContaining('Check Your Email |'))
     })
 
-    test('Should say where the verification link was sent and when it expires', async () => {
+    test('Should say that no email has been sent while verification is not live', async () => {
       const cookie = await answerContact()
 
       const page = await revisitStep(server, { url, cookie })
 
       expect(page('h1').text().trim()).toBe('Check your email')
       expect(page('main strong').text().trim()).toBe('jo@example.com')
-      expect(page('main').text()).toEqual(
-        expect.stringContaining('containing a verification link.')
+      expect(page('main p.govuk-body').text().replace(/\s+/g, ' ').trim()).toBe(
+        "Email verification isn't live yet, so no email has been sent to jo@example.com."
       )
-      expect(page('main').text()).toEqual(expect.stringContaining('The link expires in 15 minutes.'))
-    })
-
-    test('Should explain what to do when the email has not arrived', async () => {
-      const cookie = await answerContact()
-
-      const page = await revisitStep(server, { url, cookie })
-      const details = page('.govuk-details')
-
-      expect(details.find('.govuk-details__summary-text').text().trim()).toBe('Not received an email?')
-      expect(
-        details
-          .find('li')
-          .map((_index, item) => page(item).text().trim())
-          .get()
-      ).toEqual(['check your spam or junk folder', 'check that the email address shown is correct'])
-      expect(details.find('a').text().trim()).toBe('request a new verification link')
-      expect(details.find('a').attr('href')).toBe(url)
+      expect(page('.govuk-details')).toHaveLength(0)
+      expect(page('main a[href="/verify-email"]')).toHaveLength(0)
     })
 
     test('Should offer a temporary button to carry on to the business name', async () => {
@@ -82,6 +66,15 @@ describe('#verifyEmailController', () => {
       expect(button.text().trim()).toBe('I have already verified')
       expect(button.attr('href')).toBe('/business-name')
       expect(button.hasClass('govuk-button--secondary')).toBe(true)
+    })
+
+    test('Should take the button and back link to check answers when changing an answer', async () => {
+      const cookie = await answerContact()
+
+      const page = await revisitStep(server, { url: `${url}?change=true`, cookie })
+
+      expect(page('a.govuk-button').attr('href')).toBe('/check-answers')
+      expect(page('.govuk-back-link').attr('href')).toBe('/check-answers')
     })
 
     test('Should link back to the business contact page', async () => {
@@ -109,7 +102,7 @@ describe('#verifyEmailController', () => {
     })
   })
 
-  test('Should be where the business contact page goes, even when changing an answer', async () => {
+  test('Should be where the business contact page goes, keeping change mode', async () => {
     const cookie = await answerContact()
 
     const { headers } = await server.inject({
@@ -123,6 +116,6 @@ describe('#verifyEmailController', () => {
       }
     })
 
-    expect(headers.location).toBe(url)
+    expect(headers.location).toBe(`${url}?change=true`)
   })
 })
