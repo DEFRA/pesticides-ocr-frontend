@@ -1,0 +1,23 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    <h1 class="govuk-heading-l">Check your email</h1>
+
+    <p class="govuk-body">Email verification isn't live yet, so no email has been sent to <strong>{{ contactEmail }}</strong>.</p>
+
+    {# Temporary: lets people carry on until email verification exists. Removed in EQ-802. #}
+    {{ govukButton({
+      text: "I have already verified",
+      href: continueLink,
+      classes: "govuk-button--secondary"
+    }) }}
+
+  </div>
+</div>
+
+{% endblock %}

@@ -10,9 +10,7 @@
 
     {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
 
-    <h1 class="govuk-heading-l">What is your business name?</h1>
-
-    <p class="govuk-body">We will use this to find your business details and registered address on Companies House.</p>
+    <h1 class="govuk-heading-l">What is your business or organisation name?</h1>
 
     <form method="post" action="{{ formAction }}" novalidate>
 
@@ -21,7 +19,7 @@
         name: "businessName",
         value: values["businessName"] if values,
         label: {
-          text: "Enter your business or company name"
+          text: "Enter your business or organisation name"
         },
         classes: "govuk-!-width-two-thirds",
         errorMessage: errors["businessName"] if errors["businessName"]

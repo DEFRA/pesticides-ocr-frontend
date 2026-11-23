@@ -1,29 +1,22 @@
 import { businessActivityItems } from '../../../qualifying-questions/business-activities/items.js'
-import { mainCustomerItems } from '../../../qualifying-questions/main-customer/items.js'
-import { addressActivityItems } from '../../../qualifying-questions/address-activity/items.js'
-import { quantityTypeItems } from '../../../qualifying-questions/quantity/items.js'
-import { professionalSectorsItems } from '../../../pro-users/professional-sectors/items.js'
-import { memberSchemesItems } from '../../../pro-users/member-schemes/items.js'
-import { additionalBusinessActivityItems } from '../../../pro-users/additional-business-activity/items.js'
-
-function toLines(...values) {
-  return values.filter((value) => value !== undefined && value !== '')
-}
-
-function labelsFor(items, values) {
-  return toLines(...[values ?? []].flat())
-    .map((value) => items.find((item) => item.value === value)?.text ?? value)
-}
-
-function addressLines(address = {}) {
-  return toLines(
-    address['addressLine1'],
-    address['addressLine2'],
-    address['addressTown'],
-    address['addressCounty'],
-    address['addressPostcode']
-  )
-}
+import { memberSchemesItems } from '#/server/routes/using-ppps/member-schemes/items.js'
+import { whoAppliesItems } from '#/server/routes/using-ppps/who-applies/items.js'
+import { pppSectorsItems } from '#/server/routes/using-ppps/ppp-sectors/items.js'
+import { agriSubsectorsItems } from '#/server/routes/using-ppps/agri-subsectors/items.js'
+import { amenitySubsectorsItems } from '#/server/routes/using-ppps/amenity-subsectors/items.js'
+import { hortiSubsectorsItems } from '#/server/routes/using-ppps/horti-subsectors/items.js'
+import { storingItems } from '#/server/routes/using-ppps/storing/items.js'
+import { MAIN_ADDRESS } from '#/server/routes/using-ppps/storage-location/items.js'
+import { usingQuantityText } from '#/server/routes/using-ppps/quantity/items.js'
+import { getUsingPPPsAnswers } from '#/server/common/helpers/using-ppps-answers.js'
+import {
+  addressLines,
+  businessAddressLines,
+  isInternationalAddress,
+  labelsFor,
+  toLines
+} from '#/server/common/helpers/answer-lines.js'
+import { INTERNATIONAL_ADDRESS_PAGE } from '#/server/common/constants/address-pages.js'
 
 function hasValue(value) {
   return Array.isArray(value) ? value.length > 0 : value !== undefined
@@ -33,16 +26,6 @@ function withValues(answers) {
   return Object.fromEntries(
     Object.entries(answers).filter(([, value]) => hasValue(value))
   )
-}
-
-function additionalAddress(entry = {}) {
-  return withValues({
-    address: addressLines(entry.address),
-    contactName: toLines(entry.contact?.['contactName']),
-    contactEmail: toLines(entry.contact?.['contactEmail']),
-    contactTelephone: toLines(entry.contact?.['contactTelephone']),
-    activity: labelsFor(additionalBusinessActivityItems, entry.activity)
-  })
 }
 
 function memberSchemeLines(memberSchemes) {
@@ -55,34 +38,59 @@ function memberSchemeLines(memberSchemes) {
   return labels.length > 0 ? labels : ['None']
 }
 
-function quantityLines(quantity = {}) {
-  const type = quantityTypeItems.find(
-    (item) => item.value === quantity['quantityType']
-  )
+// Each place PPPs are stored, in the order the pages ask about them: the main
+// business address, each other address, then the third party storing them.
+function storeLocations(usingPPPs) {
+  const contact = usingPPPs.storageContact
+  const mainAddress = [usingPPPs['storageLocation'] ?? []].flat().includes(MAIN_ADDRESS)
+    ? [{ lines: ['At the main business address'], href: '/using-ppps/storage-location?change=true' }]
+    : []
+  const otherAddresses = (usingPPPs['ownStorageAddresses'] ?? []).map((address) => ({
+    lines: addressLines(address),
+    href: '/using-ppps/storage-addresses?change=true'
+  }))
+  const thirdParty = contact
+    ? [
+        {
+          lines: toLines(
+            contact['contactName'],
+            contact['contactJobTitle'],
+            contact['businessName'],
+            contact['contactTelephone'],
+            contact['contactEmail']
+          ),
+          href: '/using-ppps/third-party-storage-contact?change=true'
+        }
+      ]
+    : []
 
-  if (!type || !quantity.quantity) {
-    return []
-  }
-
-  return [`${quantity.quantity} ${type.unit}`]
+  return [...mainAddress, ...otherAddresses, ...thirdParty]
 }
 
 export function buildAnswers(formData = {}) {
   const contact = formData['primaryContact'] ?? {}
+  const usingPPPs = getUsingPPPsAnswers(formData)
 
   return withValues({
     businessActivities: labelsFor(businessActivityItems, formData['businessActivities']),
-    mainCustomer: labelsFor(mainCustomerItems, formData['mainCustomer']),
     businessName: toLines(formData['businessName']),
-    address: addressLines(formData.address),
+    address: businessAddressLines(formData.address),
+    // Change goes back to the page the address was given on.
+    addressChangePage: isInternationalAddress(formData.address) ? INTERNATIONAL_ADDRESS_PAGE : undefined,
     contactName: toLines(contact['contactName']),
+    contactJobTitle: toLines(contact['contactJobTitle']),
     contactTelephone: toLines(contact['contactTelephone']),
     contactEmail: toLines(contact['contactEmail']),
-    addressActivities: labelsFor(addressActivityItems, formData['addressActivities']),
-    quantity: quantityLines(formData.quantity),
-    quantityType: formData.quantity?.['quantityType'],
-    professionalSectors: labelsFor(professionalSectorsItems, formData['professionalSectors']),
-    memberSchemes: memberSchemeLines(formData['memberSchemes']),
-    additionalAddresses: (formData['additionalAddresses'] ?? []).map(additionalAddress)
+    whoApplies: labelsFor(whoAppliesItems, usingPPPs['whoApplies']),
+    contractorName: toLines(usingPPPs.contractor?.['contractorName']),
+    contractorAddress: addressLines(usingPPPs.contractor?.address),
+    professionalSectors: labelsFor(pppSectorsItems, usingPPPs['professionalSectors']),
+    agriSubsectors: labelsFor(agriSubsectorsItems, usingPPPs['agriSubsectors']),
+    amenitySubsectors: labelsFor(amenitySubsectorsItems, usingPPPs['amenitySubsectors']),
+    hortiSubsectors: labelsFor(hortiSubsectorsItems, usingPPPs['hortiSubsectors']),
+    memberSchemes: memberSchemeLines(usingPPPs['memberSchemes']),
+    storing: labelsFor(storingItems, usingPPPs['storing']),
+    storeLocations: storeLocations(usingPPPs),
+    usingQuantity: toLines(usingQuantityText(usingPPPs['quantity']))
   })
 }

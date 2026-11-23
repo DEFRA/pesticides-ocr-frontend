@@ -1,10 +1,8 @@
 {% extends 'layouts/page.njk' %}
-{% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
-{% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
-
-{% set title = "Contact Details" %}
 
 {% block content %}
 
@@ -13,18 +11,15 @@
 
     {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
 
-    <h1 class="govuk-heading-l">Contact Details</h1>
+    <h1 class="govuk-heading-l">Who should we contact about your PPP activities?</h1>
 
-    <p class="govuk-body">This should be the contact details of someone with a good knowledge of your professional PPP activity.</p>
+    <p class="govuk-body">We may need to contact someone about your organisation's PPP activities. This should be a person with knowledge of these activities.</p>
 
     <form method="post" action="{{ formAction }}" novalidate>
 
-      {% call govukFieldset({
-      }) %}
-
       {{ govukInput({
         label: {
-          text: "Name"
+          text: "Contact name"
         },
         id: "contactName",
         name: "contactName",
@@ -32,6 +27,18 @@
         autocomplete: "name",
         classes: "govuk-!-width-two-thirds",
         errorMessage: errors["contactName"] if errors["contactName"]
+      }) }}
+
+      {{ govukInput({
+        label: {
+          text: "Job title or role (optional)"
+        },
+        id: "contactJobTitle",
+        name: "contactJobTitle",
+        value: values["contactJobTitle"] if values,
+        autocomplete: "organization-title",
+        classes: "govuk-!-width-two-thirds",
+        errorMessage: errors["contactJobTitle"] if errors["contactJobTitle"]
       }) }}
 
       {{ govukInput({
@@ -50,7 +57,6 @@
         label: {
           text: "Email address"
         },
-        classes: "govuk-!-width-two-thirds",
         id: "contactEmail",
         name: "contactEmail",
         value: values["contactEmail"] if values,
@@ -59,7 +65,9 @@
         errorMessage: errors["contactEmail"] if errors["contactEmail"]
       }) }}
 
-      {% endcall %}
+      {{ govukInsetText({
+        text: "If these contact details change in the future they must be updated"
+      }) }}
 
       {{ govukButton({
         text: "Continue",
@@ -67,5 +75,6 @@
       }) }}
 
     </form>
-
-    {% endblock %}
+  </div>
+</div>
+{% endblock %}

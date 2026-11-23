@@ -127,8 +127,8 @@ describe('#pageLayout analytics', () => {
       expect(event((await get('/')).result)).toBeUndefined()
     })
 
-    test('the first question carries journey_start once per session', async () => {
-      const { first, reload } = await firstThenReload('/business-activities')
+    test('the start page carries journey_start once per session', async () => {
+      const { first, reload } = await firstThenReload('/start')
 
       expect(event(first.result)).toBe('journey_start')
       expect(event(reload.result)).toBeUndefined()
@@ -156,7 +156,7 @@ describe('#pageLayout analytics', () => {
       expect(event(second.result)).toBe('registration_complete')
     })
 
-    test.each(['/business-activities', '/not-eligible'])(
+    test.each(['/start', '/business-activities', '/not-eligible'])(
       '%s is not cached, so going back asks the server again',
       async (url) => {
         const { headers } = await get(url)

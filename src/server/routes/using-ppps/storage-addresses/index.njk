@@ -1,0 +1,82 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "answer-list/macro.njk" import appAnswerList %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    {% if errorList %}{{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}{% endif %}
+
+    <h1 class="govuk-heading-l">Additional storage addresses</h1>
+
+    {#
+      The summary card markup is written out rather than using govukSummaryList's
+      `card`, whose actions can only be links: Remove changes the answers, so it
+      has to be a POST.
+    #}
+    {% for storageAddress in storageAddresses %}
+      {% set title = "Storage address " + storageAddress.number %}
+      <div class="govuk-summary-card">
+        <div class="govuk-summary-card__title-wrapper">
+          <h2 class="govuk-summary-card__title">{{ title }}</h2>
+          <ul class="govuk-summary-card__actions">
+            <li class="govuk-summary-card__action">
+              <form method="post" action="{{ removeAction }}" novalidate>
+                <input type="hidden" name="address" value="{{ storageAddress.number }}">
+                <button type="submit" class="govuk-link app-link-button">Remove<span class="govuk-visually-hidden"> {{ title | lower }}</span></button>
+              </form>
+            </li>
+          </ul>
+        </div>
+        <div class="govuk-summary-card__content">
+          {{ govukSummaryList({
+            rows: [
+              {
+                key: { text: "Storage site" },
+                value: { html: appAnswerList({ values: storageAddress.lines }) },
+                actions: {
+                  items: [
+                    {
+                      href: storageAddress.changeHref,
+                      text: "Change",
+                      visuallyHiddenText: "storage site for " + (title | lower)
+                    }
+                  ]
+                }
+              }
+            ]
+          }) }}
+        </div>
+      </div>
+    {% endfor %}
+
+    <form method="post" action="{{ formAction }}" novalidate>
+
+      {{ govukRadios({
+        name: "addAnother",
+        value: values["addAnother"] if values,
+        fieldset: {
+          legend: {
+            text: "Do you want to add another address?",
+            classes: "govuk-fieldset__legend--m"
+          }
+        },
+        errorMessage: errors["addAnother"] if errors["addAnother"],
+        items: items
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        type: "submit"
+      }) }}
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}
